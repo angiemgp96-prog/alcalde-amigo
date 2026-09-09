@@ -122,36 +122,76 @@ class SpeechEngine {
     try {
       window.speechSynthesis.cancel(); // Cancela voces en cola
       
-      const emojiRegex = /[\u{1F300}-\u{1F9FF}\u{1FA00}-\u{1FAFF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{2300}-\u{23FF}\u{2B50}\u{2B55}\u{203C}\u{2049}\u{25AA}\u{25AB}\u{25FE}\u{25FD}\u{25FB}\u{25FC}\u{25B6}\u{25C0}\u{1F1E6}-\u{1F1FF}🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️👤💡]/gu;
       const cleanText = text
-        .replace(emojiRegex, '')
+        .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+        .replace(/[\u{2600}-\u{27BF}]/gu, '')
+        .replace(/[\u{2300}-\u{23FF}]/gu, '')
+        .replace(/[\u{2B00}-\u{2BFF}]/gu, '')
+        .replace(/[🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️💡🤝🏛️📊📢🇨🇴]/gu, '')
         .replace(/[*_#~`]/g, '') // Elimina caracteres markdown
         .replace(/https?:\/\/\S+/gi, '') // Elimina links
         .replace(/\s+/g, ' ')
         .trim();
 
-      if (!cleanText) return;
+      if (!cleanText) {
+        if (onEnd) onEnd();
+        return;
+      }
 
-      const utterance = new SpeechSynthesisUtterance(cleanText);
-      utterance.lang = 'es-CO';
-      utterance.rate = 1.05;
-      utterance.pitch = 1.1;
+      const doSpeak = () => {
+        try {
+          window.speechSynthesis.cancel();
+          const utterance = new SpeechSynthesisUtterance(cleanText);
+          utterance.lang = 'es-CO';
+          utterance.rate = 1.02;
+          utterance.pitch = 1.05;
 
-      // Buscar voz en español
+          const voices = window.speechSynthesis.getVoices();
+          const esVoice = voices.find(v => 
+            v.lang.toLowerCase().includes('es-co') || 
+            v.lang.toLowerCase().includes('es-mx') || 
+            v.lang.toLowerCase().includes('es-es') || 
+            v.lang.toLowerCase().startsWith('es')
+          );
+          if (esVoice) {
+            utterance.voice = esVoice;
+          }
+
+          if (onEnd) {
+            utterance.onend = onEnd;
+            utterance.onerror = onEnd;
+          }
+
+          window.speechSynthesis.speak(utterance);
+        } catch (e) {
+          console.warn('Speech error:', e);
+          if (onEnd) onEnd();
+        }
+      };
+
       const voices = window.speechSynthesis.getVoices();
-      const esVoice = voices.find(v => v.lang.startsWith('es-CO') || v.lang.startsWith('es-MX') || v.lang.startsWith('es-ES') || v.lang.startsWith('es'));
-      if (esVoice) {
-        utterance.voice = esVoice;
-      }
+      if (voices.length === 0) {
+        let handled = false;
+        const timer = setTimeout(() => {
+          if (!handled) {
+            handled = true;
+            doSpeak();
+          }
+        }, 150);
 
-      if (onEnd) {
-        utterance.onend = onEnd;
-        utterance.onerror = onEnd;
+        window.speechSynthesis.onvoiceschanged = () => {
+          if (!handled) {
+            handled = true;
+            clearTimeout(timer);
+            doSpeak();
+          }
+        };
+      } else {
+        doSpeak();
       }
-
-      window.speechSynthesis.speak(utterance);
     } catch (err) {
       console.warn('Error al reproducir voz de Ramitos:', err);
+      if (onEnd) onEnd();
     }
   }
 
