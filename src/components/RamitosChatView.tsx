@@ -60,7 +60,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   // PERMISOS DE AUDIO Y MICRÓFONO CON INTERACCIÓN GESTUAL
   const [isAudioPermissionGranted, setIsAudioPermissionGranted] = useState<boolean>(() => {
     if (typeof window !== 'undefined') {
-      return sessionStorage.getItem('ramitos_audio_activated') === 'true';
+      return localStorage.getItem('ramitos_audio_activated') === 'true';
     }
     return false;
   });
@@ -71,30 +71,24 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     speechEngine.unlockAudioContext();
     if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
       try {
-        await navigator.mediaDevices.getUserMedia({ audio: true });
+        const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Inmediatamente detener los tracks para liberar el hardware del micrófono y evitar conflictos con SpeechRecognition
+        stream.getTracks().forEach(track => track.stop());
         setPermissionError(null);
       } catch (err) {
         console.warn('Permiso de micrófono no concedido:', err);
         setPermissionError('No se pudo acceder al micrófono. Puedes usar el chat escribiendo por texto.');
       }
     }
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem('ramitos_audio_activated', 'true');
-    }
+    try {
+      localStorage.setItem('ramitos_audio_activated', 'true');
+    } catch (e) {}
+
     setIsAudioPermissionGranted(true);
     setShowPermissionModal(false);
 
-    // Reproducir saludo por voz inmediatamente después del clic gestual
+    // Iniciar saludo por voz e hilo de conversación sólo después del clic gestual
     speakRamitosVoice(currentResponse, true);
-  };
-
-  const handleUseTextOnly = () => {
-    setIsMuted(true);
-    if (typeof sessionStorage !== 'undefined') {
-      sessionStorage.setItem('ramitos_audio_activated', 'true');
-    }
-    setIsAudioPermissionGranted(true);
-    setShowPermissionModal(false);
   };
 
   // REFS PARA AUDIOS Y NUDGE TIMERS
@@ -190,7 +184,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
   // EFECTO MÁQUINA DE ESCRIBIR (Typewriter effect)
   useEffect(() => {
-    if (!currentResponse) return;
+    if (!currentResponse || !isAudioPermissionGranted) return;
     let index = 0;
     setDisplayedResponse('');
     const interval = setInterval(() => {
@@ -207,7 +201,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     }, 25);
 
     return () => clearInterval(interval);
-  }, [currentResponse, isMuted]);
+  }, [currentResponse, isMuted, isAudioPermissionGranted]);
 
   useEffect(() => {
     // Purga automática de caché local fantasma en cada inicio
@@ -1051,7 +1045,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               </div>
             )}
 
-            <div className="space-y-2 pt-2">
+            <div className="pt-2">
               <button
                 type="button"
                 onClick={handleEnableAudioAndMic}
@@ -1059,14 +1053,6 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               >
                 <Mic className="w-4 h-4" />
                 <span>🎙️ Activar Voz y Micrófono</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleUseTextOnly}
-                className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
-              >
-                📝 Usar solo Texto (Sin Audio)
               </button>
             </div>
           </div>
