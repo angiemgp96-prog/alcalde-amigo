@@ -175,6 +175,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
     // CARGA AUTOMÁTICA EN TIEMPO REAL DEL HISTORIAL COMPLETO DE SUPABASE (POR IP Y DISPOSITIVO)
     const loadPastHistoryFromSupabase = async () => {
+      // Si la ventana/pestaña es nueva o está en modo incógnito (sessionStorage vacío), se inicia como nuevo ciudadano
+      const isReturningTab = Boolean(sessionStorage.getItem('ramitos_tab_session_active'));
+      if (!isReturningTab) {
+        sessionStorage.setItem('ramitos_tab_session_active', 'true');
+        return;
+      }
       try {
         const past = await getPastInteractionsHistory();
         if (past && past.length > 0) {
