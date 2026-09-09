@@ -57,6 +57,46 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   const [groqKeyInput, setGroqKeyInput] = useState(getGroqApiKey());
   const [savedKeySuccess, setSavedKeySuccess] = useState(false);
 
+  // PERMISOS DE AUDIO Y MICRÓFONO CON INTERACCIÓN GESTUAL
+  const [isAudioPermissionGranted, setIsAudioPermissionGranted] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return sessionStorage.getItem('ramitos_audio_activated') === 'true';
+    }
+    return false;
+  });
+  const [showPermissionModal, setShowPermissionModal] = useState<boolean>(!isAudioPermissionGranted);
+  const [permissionError, setPermissionError] = useState<string | null>(null);
+
+  const handleEnableAudioAndMic = async () => {
+    speechEngine.unlockAudioContext();
+    if (typeof navigator !== 'undefined' && navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+      try {
+        await navigator.mediaDevices.getUserMedia({ audio: true });
+        setPermissionError(null);
+      } catch (err) {
+        console.warn('Permiso de micrófono no concedido:', err);
+        setPermissionError('No se pudo acceder al micrófono. Puedes usar el chat escribiendo por texto.');
+      }
+    }
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('ramitos_audio_activated', 'true');
+    }
+    setIsAudioPermissionGranted(true);
+    setShowPermissionModal(false);
+
+    // Reproducir saludo por voz inmediatamente después del clic gestual
+    speakRamitosVoice(currentResponse, true);
+  };
+
+  const handleUseTextOnly = () => {
+    setIsMuted(true);
+    if (typeof sessionStorage !== 'undefined') {
+      sessionStorage.setItem('ramitos_audio_activated', 'true');
+    }
+    setIsAudioPermissionGranted(true);
+    setShowPermissionModal(false);
+  };
+
   // REFS PARA AUDIOS Y NUDGE TIMERS
   const currentTranscriptRef = useRef<string>('');
   const idleTimerRef = useRef<any>(null);
@@ -239,7 +279,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
   const speakRamitosVoice = (text: string, isNudge: boolean = false) => {
     clearIdleTimer();
-    if (isMuted) {
+    if (isMuted || !isAudioPermissionGranted) {
       setIsRamitosSpeaking(false);
       if (hasUserSentMessageRef.current && !isNudge && !isNudgeActiveRef.current) {
         scheduleIdleNudgeTimer(text);
@@ -985,6 +1025,51 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* MODAL / GATE DE ACTIVACIÓN DE PERMISOS DE AUDIO Y VOZ */}
+      {showPermissionModal && (
+        <div className="fixed inset-0 z-50 bg-slate-950/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-white text-slate-900 rounded-3xl max-w-md w-full p-6 space-y-4 border border-slate-200 shadow-2xl text-center">
+            <div className="w-16 h-16 rounded-full bg-emerald-100 border-2 border-emerald-300 flex items-center justify-center mx-auto text-emerald-700 shadow-md">
+              <Volume2 className="w-8 h-8 text-emerald-600" />
+            </div>
+
+            <div className="space-y-2">
+              <h3 className="text-lg font-black text-slate-900">
+                🔊 Experiencia Interactiva de Voz
+              </h3>
+              <p className="text-xs text-slate-600 leading-relaxed font-medium">
+                Para que Ramitos pueda hablarte y escucharte por voz en tu celular o PC, activa los permisos de audio presionando el botón a continuación.
+              </p>
+            </div>
+
+            {permissionError && (
+              <div className="p-3 bg-amber-50 border border-amber-300 rounded-2xl text-amber-900 text-xs font-bold">
+                ⚠️ {permissionError}
+              </div>
+            )}
+
+            <div className="space-y-2 pt-2">
+              <button
+                type="button"
+                onClick={handleEnableAudioAndMic}
+                className="w-full py-3.5 rounded-2xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs sm:text-sm flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/30 cursor-pointer active:scale-95 transition-all"
+              >
+                <Mic className="w-4 h-4" />
+                <span>🎙️ Activar Voz y Micrófono</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleUseTextOnly}
+                className="w-full py-2.5 rounded-2xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-all cursor-pointer"
+              >
+                📝 Usar solo Texto (Sin Audio)
+              </button>
+            </div>
+          </div>
         </div>
       )}
 

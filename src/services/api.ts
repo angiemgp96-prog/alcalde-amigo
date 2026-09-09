@@ -333,30 +333,18 @@ export interface PastUserInteraction {
   timestamp: string;
 }
 
-export async function getPastInteractionsHistory(deviceId?: string, ipAddress?: string): Promise<PastUserInteraction[]> {
+export async function getPastInteractionsHistory(deviceId?: string): Promise<PastUserInteraction[]> {
   const targetDeviceId = deviceId || getDeviceId();
-  const targetIp = ipAddress || await getClientIpAddress();
 
   if (supabaseClient) {
     try {
-      // 1. Consultar por device_id
-      let { data, error } = await supabaseClient
+      // Consultar estrictamente por device_id para respetar la navegación en incógnito como nuevo usuario
+      const { data, error } = await supabaseClient
         .from('interacciones_conversaciones_ramitos')
         .select('mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion')
         .eq('device_id', targetDeviceId)
         .order('fecha_interaccion', { ascending: true })
         .limit(20);
-
-      // 2. Si no hay por device_id, consultar por ip_address
-      if ((!data || data.length === 0) && targetIp) {
-        const resIp = await supabaseClient
-          .from('interacciones_conversaciones_ramitos')
-          .select('mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion')
-          .eq('ip_address', targetIp)
-          .order('fecha_interaccion', { ascending: true })
-          .limit(20);
-        data = resIp.data || [];
-      }
 
       if (data && data.length > 0) {
         return data.map((item: any) => ({
