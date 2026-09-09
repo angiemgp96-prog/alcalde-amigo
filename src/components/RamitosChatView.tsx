@@ -24,14 +24,15 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   onOpenMenu,
   isSecretAdminUnlocked = false
 }) => {
+  const FIRST_INTERACTION_GREETING =
+    '🌿 ¡Hola! Soy Ramitos, tu Copiloto Municipal en Guaduas. Aquí las soluciones las construimos juntos entre la comunidad y el gobierno: tu voz y las propuestas de tu vereda o barrio son la clave para transformar nuestro municipio. Cuéntame, ¿qué problemática o idea tienes hoy para Guaduas?';
+
   // ESTADOS PRINCIPALES DE INTERFAZ Y RAMITOS
-  const [currentResponse, setCurrentResponse] = useState<string>(
-    '¡Hola! Estoy listo para ayudarte.'
-  );
+  const [currentResponse, setCurrentResponse] = useState<string>(FIRST_INTERACTION_GREETING);
   const [currentSynthesis, setCurrentSynthesis] = useState<any>(null);
   const [currentExpresion, setCurrentExpresion] = useState<RamitosChatResponse['expresion']>('feliz');
   const [useCustomAssetFailed, setUseCustomAssetFailed] = useState(false);
-  const [displayedResponse, setDisplayedResponse] = useState('¡Hola! Estoy listo para ayudarte.');
+  const [displayedResponse, setDisplayedResponse] = useState(FIRST_INTERACTION_GREETING);
   const [copied, setCopied] = useState(false);
 
   const [isRamitosSpeaking, setIsRamitosSpeaking] = useState(false);
@@ -40,7 +41,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
   // ESTADOS DE HISTORIAL, MENSAJES Y MENÚS
   const [history, setHistory] = useState<Array<{ sender: 'ramitos' | 'user'; text: string; time: string }>>([
-    { sender: 'ramitos', text: '¡Hola! Estoy listo para ayudarte.', time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    { sender: 'ramitos', text: FIRST_INTERACTION_GREETING, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
   ]);
   const [inputText, setInputText] = useState('');
   const [isHoldingMic, setIsHoldingMic] = useState(false);
@@ -192,12 +193,26 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             }
           });
 
-          setHistory(loadedHistory);
+          // Extraer la última intervención/tema conversado por el ciudadano
+          const lastUserItem = [...past].reverse().find(i => i.userText && i.userText.trim().length > 0);
+          const lastUserText = lastUserItem?.userText?.trim() || '';
 
-          // Mostrar la última respuesta de Ramitos en la burbuja de voz
-          const lastRamitosMsg = past[past.length - 1]?.ramitosResponse;
-          if (lastRamitosMsg) {
-            setCurrentResponse(lastRamitosMsg);
+          let reconnectGreeting = '';
+          if (lastUserText) {
+            const topicSnippet = lastUserText.length > 45 ? lastUserText.substring(0, 42) + '...' : lastUserText;
+            reconnectGreeting = `🌿 ¡Qué gusto tenerte de nuevo por aquí! La última vez estuvimos conversando sobre "${topicSnippet}". ¿Quieres que sigamos profundizando en esa solución o tienes alguna otra sugerencia para Guaduas?`;
+          } else {
+            reconnectGreeting = `🌿 ¡Qué gusto tenerte de nuevo por aquí! ¿Quieres que sigamos profundizando en lo último que conversamos o tienes alguna otra sugerencia o problemática para Guaduas?`;
+          }
+
+          const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+          loadedHistory.push({ sender: 'ramitos', text: reconnectGreeting, time: nowTimeStr });
+
+          setHistory(loadedHistory);
+          setCurrentResponse(reconnectGreeting);
+          setCurrentExpresion('entusiasmado');
+          if (!isMuted) {
+            speakRamitosVoice(reconnectGreeting, true);
           }
         }
       } catch (err) {
