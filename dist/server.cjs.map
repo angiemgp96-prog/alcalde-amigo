@@ -1,7 +1,0 @@
-{
-  "version": 3,
-  "sources": ["../server.ts"],
-  "sourcesContent": ["import express from 'express';\nimport path from 'path';\nimport fs from 'fs';\n\nconst app = express();\nconst PORT = process.env.PORT || 3000;\n\n// Determine static dist directory whether executed from root or inside dist/\nconst distDir = fs.existsSync(path.join(__dirname, 'dist'))\n  ? path.join(__dirname, 'dist')\n  : __dirname;\n\n// Serve static frontend files\napp.use(express.static(distDir));\n\n// Fallback for Single Page Application (SPA) routing\napp.use((_req, res) => {\n  res.sendFile(path.join(distDir, 'index.html'));\n});\n\napp.listen(PORT, () => {\n  console.log(`\uD83D\uDE80 Servidor Express corriendo en el puerto ${PORT}`);\n});\n"],
-  "mappings": ";;;;;;;;;;;;;;;;;;;;;;;;;AAAA,qBAAoB;AACpB,kBAAiB;AACjB,gBAAe;AAEf,IAAM,UAAM,eAAAA,SAAQ;AACpB,IAAM,OAAO,QAAQ,IAAI,QAAQ;AAGjC,IAAM,UAAU,UAAAC,QAAG,WAAW,YAAAC,QAAK,KAAK,WAAW,MAAM,CAAC,IACtD,YAAAA,QAAK,KAAK,WAAW,MAAM,IAC3B;AAGJ,IAAI,IAAI,eAAAF,QAAQ,OAAO,OAAO,CAAC;AAG/B,IAAI,IAAI,CAAC,MAAM,QAAQ;AACrB,MAAI,SAAS,YAAAE,QAAK,KAAK,SAAS,YAAY,CAAC;AAC/C,CAAC;AAED,IAAI,OAAO,MAAM,MAAM;AACrB,UAAQ,IAAI,qDAA8C,IAAI,EAAE;AAClE,CAAC;",
-  "names": ["express", "fs", "path"]
-}
