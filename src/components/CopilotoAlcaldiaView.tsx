@@ -18,6 +18,7 @@ interface CopilotoAlcaldiaViewProps {
   onSelectProposal: (proposal: BaseProposal) => void;
   onAddProposal?: (newProposal: BaseProposal) => void;
   onUpdateProposal?: (updatedProposal: BaseProposal) => void;
+  isSecretAdminUnlocked?: boolean;
 }
 
 export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
@@ -25,7 +26,8 @@ export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
   selectedProposal,
   onSelectProposal,
   onAddProposal,
-  onUpdateProposal
+  onUpdateProposal,
+  isSecretAdminUnlocked = false
 }) => {
   // Local state for dynamic proposals and active sub-tab
   const [proposalList, setProposalList] = useState<BaseProposal[]>(initialProposals || []);
@@ -140,6 +142,13 @@ export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
     const isDetalle = lower.includes('detalle') || lower.includes('resumen');
     const isAsistente = lower.includes('asistente') || lower.includes('crear propuesta');
     const isAudit = lower.includes('incoherencia') || lower.includes('audita') || lower.includes('link') || lower.includes('revisa') || lower.includes('fallas');
+
+    if ((editPriceMatch || addItemMatch || deleteItemMatch) && !isSecretAdminUnlocked) {
+      replyText = `🔒 **Acción Bloqueada (Modo Lectura Pública)**: Para modificar precios, agregar o eliminar ítems del Plan debes digitar la clave secreta **0777** en tu teclado.`;
+      actionBadge = '🔒 Bloqueado (Sin Clave 0777)';
+      setCopilotoMessages(prev => [...prev, { id: `ram-${Date.now()}`, sender: 'ramitos', text: replyText, actionBadge, timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+      return;
+    }
 
     if (editPriceMatch) {
       const targetQuery = editPriceMatch[1].trim();
@@ -461,6 +470,10 @@ export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
 
   // Handle Civic Endorsement (Visto Bueno Cívico)
   const handleToggleVistoBueno = () => {
+    if (!isSecretAdminUnlocked) {
+      alert('🔒 Modo Consulta Protegido: Digita la clave secreta 0777 en tu teclado para autorizar o modificar vistos buenos.');
+      return;
+    }
     const updated = proposalList.map(p => {
       if (p.id === currentProposal.id) {
         const isApproved = !p.vistoBuenoAprobado;
@@ -483,6 +496,10 @@ export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
 
   // Open Edit Modal for a specific item
   const handleOpenEditItemModal = (index: number) => {
+    if (!isSecretAdminUnlocked) {
+      alert('🔒 Modo Consulta Protegido: Digita la clave secreta 0777 en tu teclado para habilitar la edición de insumos.');
+      return;
+    }
     const item = editablePurchases[index];
     setEditingItemIndex(index);
     setEditLinkUrl(item.linkReferencia || '');
@@ -732,9 +749,15 @@ export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
           </div>
         </div>
 
-        <span className="px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 text-[11px] font-extrabold border border-emerald-200 shadow-2xs">
-          Panel Admin
-        </span>
+        {isSecretAdminUnlocked ? (
+          <span className="px-3 py-1.5 rounded-full bg-emerald-100 text-emerald-800 text-[11px] font-black border border-emerald-300 shadow-sm flex items-center gap-1">
+            🔓 Modo Edición Admin (0777)
+          </span>
+        ) : (
+          <span className="px-3 py-1.5 rounded-full bg-amber-50 text-amber-900 text-[11px] font-black border border-amber-300 shadow-2xs flex items-center gap-1" title="Digita 0777 para habilitar edición">
+            🔒 Consulta Pública (Solo Lectura)
+          </span>
+        )}
       </div>
 
       {/* 🧭 SUB-TAB NAVIGATION BAR (SÓLO PESTAÑAS ÚTILES Y DIRECTAS) */}

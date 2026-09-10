@@ -162,6 +162,7 @@ export function App() {
               onSelectProposal={setSelectedProposal}
               onAddProposal={handleAddProposal}
               onUpdateProposal={handleUpdateProposal}
+              isSecretAdminUnlocked={isSecretAdminUnlocked}
             />
           </div>
         )}
