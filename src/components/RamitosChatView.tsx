@@ -25,7 +25,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   isSecretAdminUnlocked = false
 }) => {
   const FIRST_INTERACTION_GREETING =
-    '🌿 ¡Hola! Soy Ramitos, tu Copiloto Municipal en Guaduas. Aquí las soluciones las construimos juntos entre la comunidad y el gobierno: tu voz y las propuestas de tu vereda o barrio son la clave para transformar nuestro municipio. Cuéntame, ¿qué problemática o idea tienes hoy para Guaduas?';
+    '🌿 ¡Hola! Soy Ramitos, tu Copiloto Municipal en Guaduas. Aquí las soluciones las construimos juntos en comunidad: tu voz y las propuestas de tu vereda o barrio son la clave para transformar nuestro municipio. Cuéntame, ¿qué problemática o idea tienes hoy para Guaduas?';
 
   // ESTADOS PRINCIPALES DE INTERFAZ Y RAMITOS
   const [currentResponse, setCurrentResponse] = useState<string>(FIRST_INTERACTION_GREETING);
