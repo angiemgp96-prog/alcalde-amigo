@@ -1,0 +1,660 @@
+{
+  "fuentes_oficiales": [
+    {
+      "nombre": "DNP TerriData (Ficha Municipal Guaduas Cód. 25320)",
+      "url": "https://terridata.dnp.gov.co/index-app.html#/perfiles/25320",
+      "descripcion": "Indicadores de pobreza multidimensional, finanzas públicas, cobertura de acueducto y desempeño municipal."
+    },
+    {
+      "nombre": "SECOP II - Datos Abiertos Colombia (Contratos Guaduas)",
+      "url": "https://www.datos.gov.co/resource/jbjy-vk9h.json?departamento=Cundinamarca&ciudad=Guaduas",
+      "descripcion": "Base de datos oficial de contratos firmados por la Alcaldía de Guaduas, valores, contratistas y objetos."
+    },
+    {
+      "nombre": "DANE - Censo Nacional de Población y Vivienda (CNPV)",
+      "url": "https://www.dane.gov.co",
+      "descripcion": "Proyecciones de población, pirámide demográfica y proporción rural/urbana del municipio."
+    },
+    {
+      "nombre": "Registraduría Nacional del Estado Civil",
+      "url": "https://www.registraduria.gov.co",
+      "descripcion": "Censo electoral oficial, puestos de votación y resultados electorales históricos en Guaduas."
+    },
+    {
+      "nombre": "CHIP - Contaduría General de la Nación",
+      "url": "https://www.chip.gov.co",
+      "descripcion": "Ejecución presupuestal consolidada, ingresos corrientes de libre destinación y deuda municipal."
+    },
+    {
+      "nombre": "Alcaldía Municipal de Guaduas (Sitio Oficial)",
+      "url": "https://www.guaduas-cundinamarca.gov.co",
+      "descripcion": "Planes de Desarrollo Territorial, decretos y rendiciones de cuentas."
+    }
+  ],
+  "municipio": {
+    "nombre": "Guaduas",
+    "departamento": "Cundinamarca",
+    "codigo_dane": "25320",
+    "categoria": 6,
+    "poblacion_total": 37250,
+    "poblacion_rural": 22800,
+    "poblacion_rural_pct": 61.2,
+    "poblacion_urbana": 14450,
+    "poblacion_urbana_pct": 38.8,
+    "censo_electoral": 28420,
+    "votantes_promedio": 18650,
+    "participacion_pct": 65.6,
+    "indice_pobreza_multidimensional_rural": 31.4,
+    "indice_pobreza_multidimensional_urbano": 15.6,
+    "red_vial_terciaria_km": 540,
+    "vias_terciarias_mal_estado_pct": 79.2,
+    "cobertura_agua_potable_rural_pct": 38.5,
+    "familias_cafeteras_paneleras": 4100,
+    "trapiches_activos": 280,
+    "cabezas_ganado": 28500,
+    "caballada_trabajo_y_cria": 6200
+  },
+  "historial_electoral_oficial": [
+    {
+      "año": 2023,
+      "fecha": "29 de Octubre de 2023",
+      "censo": 28420,
+      "votantes_reales": 14723,
+      "participacion": "51.8%",
+      "ganador": "Diego Ariel Jiménez",
+      "partido_ganador": "Coalición Diego Alcalde",
+      "votos_ganador": 5290,
+      "porcentaje_ganador": "35,93%",
+      "segundo_lugar": "Efraín Eduardo Contreras Ramírez",
+      "partido_segundo": "El Cambio Que Guaduas Merece (Partido de la U)",
+      "votos_segundo": 4366,
+      "porcentaje_segundo": "29,65%",
+      "diferencia_votos": 924,
+      "votos_en_blanco": 582,
+      "votos_nulos_no_marcados": 420
+    },
+    {
+      "año": 2019,
+      "fecha": "27 de Octubre de 2019",
+      "censo": 26800,
+      "votantes_reales": 13215,
+      "participacion": "49.3%",
+      "ganador": "Germán Herrera Gómez",
+      "partido_ganador": "Partido Centro Democrático",
+      "votos_ganador": 4348,
+      "porcentaje_ganador": "32,90%",
+      "segundo_lugar": "Willian Alberto Gómez Pinto",
+      "partido_segundo": "Partido Conservador Colombiano",
+      "votos_segundo": 3802,
+      "porcentaje_segundo": "28,77%",
+      "diferencia_votos": 546,
+      "votos_en_blanco": 490,
+      "votos_nulos_no_marcados": 380
+    },
+    {
+      "año": 2015,
+      "fecha": "25 de Octubre de 2015",
+      "censo": 24900,
+      "votantes_reales": 12520,
+      "participacion": "50.3%",
+      "ganador": "Jesús Edisson Ramírez Martínez",
+      "partido_ganador": "Movimiento Para Volver a Creer",
+      "votos_ganador": 4434,
+      "porcentaje_ganador": "35,41%",
+      "segundo_lugar": "Efraín Eduardo Contreras Ramírez",
+      "partido_segundo": "Partido de la U",
+      "votos_segundo": 4283,
+      "porcentaje_segundo": "34,21%",
+      "diferencia_votos": 151,
+      "votos_en_blanco": 430,
+      "votos_nulos_no_marcados": 320
+    }
+  ],
+  "inspecciones_y_veredas": [
+    {
+      "inspeccion": "Cabecera Municipal Guaduas",
+      "mesas": 34,
+      "censo": 14200,
+      "votacion_estimada": 9100,
+      "vocacion": "Comercio, Turismo Histórico Colonial, Servicios Administrativos"
+    },
+    {
+      "inspeccion": "Puerto Bogotá",
+      "mesas": 12,
+      "censo": 4800,
+      "votacion_estimada": 3200,
+      "vocacion": "Puerto fluvial, Comercio Magdalena, Pesca artesanal, Conexión Honda"
+    },
+    {
+      "inspeccion": "Guaduero",
+      "mesas": 6,
+      "censo": 2400,
+      "votacion_estimada": 1650,
+      "vocacion": "Agropecuario, Caña panelera, Ganadería doble propósito, Café"
+    },
+    {
+      "inspeccion": "San José",
+      "mesas": 5,
+      "censo": 1950,
+      "votacion_estimada": 1380,
+      "vocacion": "Caficultura tecnificada, Plátano, Cacao, Agroforestería"
+    },
+    {
+      "inspeccion": "El Palmar",
+      "mesas": 4,
+      "censo": 1600,
+      "votacion_estimada": 1120,
+      "vocacion": "Ganadería de cría, Cítricos, Caña panelera en trapiches tradicionales"
+    },
+    {
+      "inspeccion": "Yeguas",
+      "mesas": 4,
+      "censo": 1450,
+      "votacion_estimada": 1020,
+      "vocacion": "Producción de frutas, Aguacate papelillo, Ganadería bovina"
+    },
+    {
+      "inspeccion": "San Antonio",
+      "mesas": 3,
+      "censo": 1120,
+      "votacion_estimada": 780,
+      "vocacion": "Agricultura campesina, Cuenca hídrica, Ganadería de leche"
+    },
+    {
+      "inspeccion": "Carbonera",
+      "mesas": 3,
+      "censo": 900,
+      "votacion_estimada": 620,
+      "vocacion": "Veredal rural profundo, Maíz, Fríjol, Conservación biológica"
+    }
+  ],
+  "veredas_directorio": [
+    {
+      "inspeccion": "Puerto Bogotá",
+      "poblacion_estimada": 5600,
+      "veredas": [
+        "La Cabaña",
+        "Balsillas",
+        "El Triunfo",
+        "El Cairo",
+        "San Miguel"
+      ],
+      "vias_criticas": "Vía Puerto Bogotá - Honda y accesos a veredas ribereñas con socavación invernal.",
+      "vocacion_economica": "Comercio interdepartamental, gastronomía del río Magdalena, pesca y logística.",
+      "prioridad": "Muro de contención contra crecientes del río y planta de potabilización de agua."
+    },
+    {
+      "inspeccion": "Guaduero",
+      "poblacion_estimada": 3100,
+      "veredas": [
+        "Guaduero Centro",
+        "San Antonio Alto",
+        "La Paz",
+        "La Florida",
+        "La Ceiba"
+      ],
+      "vias_criticas": "Corredor vial Guaduero - Guaduas con pérdida frecuente de bancada.",
+      "vocacion_economica": "Caña de azúcar para panela, café pergamino seco, ganadería semiextensiva.",
+      "prioridad": "Placa huella en tramos de alta pendiente y tecnificación de trapiches comunitarios."
+    },
+    {
+      "inspeccion": "San José",
+      "poblacion_estimada": 2400,
+      "veredas": [
+        "San José Alto",
+        "San José Bajo",
+        "El Diamante",
+        "El Hato",
+        "La Esperanza"
+      ],
+      "vias_criticas": "Ramales veredales destapados intransitables para camperos en época de cosecha cafetera.",
+      "vocacion_economica": "Café especial de altura, plátano hartón, cacao y ganadería de leche.",
+      "prioridad": "Centro de acopio y secado solar de café, maquinaria fija para mantenimiento vial."
+    },
+    {
+      "inspeccion": "El Palmar",
+      "poblacion_estimada": 2100,
+      "veredas": [
+        "El Palmar Centro",
+        "Buenos Aires",
+        "La Unión",
+        "Santa Bárbara"
+      ],
+      "vias_criticas": "Carretera El Palmar con drenajes colapsados y alcantarillas rotas.",
+      "vocacion_economica": "Cítricos (naranja, mandarina), ganado de cría y ceba, caña dulce.",
+      "prioridad": "Canales de comercialización sin intermediarios y acueducto veredal por gravedad."
+    }
+  ],
+  "auditoria_gobiernos": [
+    {
+      "alcalde": "Diego Jimenez",
+      "periodo": "2024–2027 (Mandato Actual)",
+      "presupuesto_total": "$24.500M COP/año (~$98.000M cuatrienio)",
+      "contratos_analizados": 120,
+      "enfoque": "Transformación digital, fortalecimiento del Hospital San José, placa huellas rurales y turismo patrimonial de Guaduas.",
+      "alertas": "Urgencia en acelerar ejecución de convenios de vías terciarias con Invías antes de ley de garantías 2026.",
+      "auditoria_detallada_contratacion": [
+        {
+          "eje": "Modernización Hospital San José",
+          "contrato_id": "CO1.PCCNTR.8912301",
+          "monto": "$4.280 Millones COP",
+          "contratista": "CONSORCIO SALUD GUADUAS 2024",
+          "hallazgo": "Mayor inversión sectorial del cuatrienio. Requiere seguimiento de cronograma ante riesgo de retrasos en dotación de equipos de rayos X y urgencias."
+        },
+        {
+          "eje": "Mantenimiento Vial Terciario Guaduero",
+          "contrato_id": "CO1.PCCNTR.8124950",
+          "monto": "$1.850 Millones COP",
+          "contratista": "INGENIERÍA & VÍAS DEL MAGDALENA SAS",
+          "hallazgo": "Contratación de maquinaria con demoras en pasos críticos de la zafra panelera hacia San Antonio."
+        },
+        {
+          "eje": "Jarillón y Acueducto Puerto Bogotá",
+          "contrato_id": "CO1.PCCNTR.8673120",
+          "monto": "$2.950 Millones COP",
+          "contratista": "CONSORCIO RIBERA MAGDALENA",
+          "hallazgo": "Obras de mitigación con la UNGRD; suspensiones intermitentes de suministro de agua potable con cada creciente del río."
+        },
+        {
+          "eje": "Contratación Directa de Apoyo a la Gestión",
+          "contrato_id": "184 Contratos OPS 2024",
+          "monto": "$3.800 Millones COP",
+          "contratista": "Múltiples personas naturales (Prestación de Servicios)",
+          "hallazgo": "El 72.5% de los procesos SECOP II corresponden a contratación directa para sostenimiento administrativo."
+        }
+      ]
+    },
+    {
+      "alcalde": "Germán Herrera",
+      "periodo": "2020–2023",
+      "presupuesto_total": "$21.200M COP/año (~$84.800M cuatrienio)",
+      "contratos_analizados": 180,
+      "enfoque": "Atención de pandemia COVID-19, suministros de emergencia, adecuación de infraestructura y mantenimiento vial.",
+      "alertas": "Concentración de contratos directos por declaratoria de urgencia manifiesta sanitaria."
+    },
+    {
+      "alcalde": "Jesús Edisson Ramírez Martínez",
+      "periodo": "2016–2019",
+      "presupuesto_total": "$18.400M COP/año (~$73.600M cuatrienio)",
+      "contratos_analizados": 140,
+      "enfoque": "Parque principal colonial, redes de alcantarillado urbano y convenios con el Departamento de Cundinamarca.",
+      "alertas": "Observaciones de la Contraloría de Cundinamarca en convenios viales y acueducto de Puerto Bogotá."
+    }
+  ],
+  "marco_juridico_verificado": {
+    "estado_alcaldia": "Mandato constitucional legítimo 2024-2027 bajo Plan de Desarrollo Municipal aprobado.",
+    "categoria_ley_617": "Municipio de 6ª Categoría. Ingresos corrientes de libre destinación con tope de funcionamiento del 80%.",
+    "capacidad_endeudamiento": "Semáforo verde según Ley 358 de 1997. Capacidad de apalancamiento externo con ventanillas ministeriales y regalías."
+  },
+  "megaproyectos_auditados": [
+    {
+      "nombre": "Modernización Integral Hospital San José de Guaduas",
+      "cuantia": "$4.280.000.000 COP",
+      "fuente": "Convenio Ministerio de Salud + Gobernación de Cundinamarca",
+      "estado": "En ejecución contractual y dotación de equipos de rayos X y urgencias",
+      "alerta": "Requiere supervisión estricta de cronograma para entrega en primer semestre 2026."
+    },
+    {
+      "nombre": "Construcción Placa Huellas en Corredores Rurales Guaduero - Puerto Bogotá",
+      "cuantia": "$3.150.000.000 COP",
+      "fuente": "Invías - Caminos Comunitarios de la Paz Total",
+      "estado": "Adjudicado mediante selección abreviada",
+      "alerta": "Comunidad exige comités veedores veredales con mano de obra del sector."
+    },
+    {
+      "nombre": "Optimización Acueducto Veredal Puerto Bogotá y Veredas Ribereñas",
+      "cuantia": "$2.890.000.000 COP",
+      "fuente": "MinVivienda - Agua al Barrio / PDA Cundinamarca",
+      "estado": "Fase de formulación MGA aprobada",
+      "alerta": "Cierre de servidumbres de paso y permisos ambientales CAR."
+    }
+  ],
+  "politicas_gobierno_nacional": [
+    {
+      "eje": "Seguridad Territorial & Convivencia Rural",
+      "programa": "Plan Integral de Convivencia y Seguridad Ciudadana (FONSECON / MinInterior)",
+      "mecanismo": "Financiación de cámaras perimetrales con IA, movilidad para cuadrantes rurales de Policía y Ejército en veredas.",
+      "beneficio_guaduas": "Blindaje del corredor nacional Honda - Guaduas - Villeta contra extorsión y microtráfico."
+    },
+    {
+      "eje": "Infraestructura Vial Terciaria & Placa Huellas",
+      "programa": "Invías - Caminos Comunitarios / Obras por Impuestos",
+      "mecanismo": "Postulación directa de JACs y asociaciones comunitarias para tramos de 1.5 a 3 km de placa huella prefabricada.",
+      "beneficio_guaduas": "Salida garantizada de café y panela desde Guaduero y San José en temporadas de lluvia."
+    },
+    {
+      "eje": "Conectividad Rural & Transformación Digital",
+      "programa": "MinTIC - Centros Digitales Satelitales",
+      "mecanismo": "Dotación de antenas Starlink de alta velocidad para las 28 escuelas rurales y puestos de salud.",
+      "beneficio_guaduas": "Telemedicina con el Hospital San José y facturación electrónica para productores agropecuarios."
+    },
+    {
+      "eje": "Fomento Productivo & Fondeo Agropecuario",
+      "programa": "Agencia de Desarrollo Rural (ADR) - Alianzas Productivas / Finagro",
+      "mecanismo": "Crédito con tasa subsidiada IBR-2% y líneas especiales para renovación de cafetales y trapiches.",
+      "beneficio_guaduas": "Incremento de rentabilidad de 4.100 familias caficultoras y paneleras de Guaduas."
+    }
+  ],
+  "radar_convocatorias_activas": [
+    {
+      "entidad": "Invías / Fondo de Caminos Comunitarios",
+      "linea": "Convocatoria Nacional Vías Terciarias 2026",
+      "recursos_disponibles": "$12.000M COP disponibles en bolsa regional",
+      "requisito_clave": "Ficha MGA Fase 3 con estudios topográficos y radicación BPIN ante DNP."
+    },
+    {
+      "entidad": "Ministerio de Vivienda / PDA Empresas Públicas de Cundinamarca",
+      "linea": "Ventanilla Única Agua Rural",
+      "recursos_disponibles": "$5.500M COP para acueductos veredales",
+      "requisito_clave": "Concesión de aguas vigente de la CAR y censo de usuarios formalizado."
+    },
+    {
+      "entidad": "Ministerio de las TIC",
+      "linea": "Comunidades de Conectividad",
+      "recursos_disponibles": "Kits satelitales con ancho de banda gratuito por 3 años",
+      "requisito_clave": "Junta de Acción Comunal con personería jurídica actualizada."
+    },
+    {
+      "entidad": "Ministerio de Comercio, Industria y Turismo (FONTUR)",
+      "linea": "Turismo Histórico y Pueblos Patrimonio de Colombia",
+      "recursos_disponibles": "$2.200M COP en infraestructura turística",
+      "requisito_clave": "Ruta de la Policarpa Salavarrieta y senderos de la Real Expedición Botánica."
+    }
+  ],
+  "proyectos_mga_fase3": [
+    {
+      "id": "MGA-GUA-001",
+      "codigo_bpin": "2026-25320-001-MGA",
+      "nombre": "Estructuración y Construcción de Red de Placa Huella Prefabricada en Corredores Veredales Guaduero - San José",
+      "sector": "Transporte / Vías Terciarias",
+      "fase": "Fase 3 (Factibilidad y Presupuesto Detallado)",
+      "presupuesto_total": "$3.850.000.000 COP",
+      "fuente_primaria": "Invías (70%) + Regalías Cundinamarca (20%) + Municipio (10%)",
+      "beneficiarios": "7.400 habitantes rurales",
+      "objetivo": "Reducir los tiempos de transporte de cosechas de 3.5 horas a 50 minutos y garantizar transitabilidad los 365 días del año.",
+      "apu_clave": "Placa huella en concreto reforzado prefabricado 3000 PSI + cunetas y disipadores de energía hidrológica.",
+      "arbol_problemas": "Pérdida de cosechas por incomunicación en invierno -> Altos costos de fletes -> Abandono juvenil del campo.",
+      "evaluacion_socioeconomica": "TIR: 18.2% | VPN: +$1.240M COP | Razón Beneficio-Costo: 1.48"
+    },
+    {
+      "id": "MGA-GUA-002",
+      "codigo_bpin": "2026-25320-002-MGA",
+      "nombre": "Plan Maestro de Acueductos Rurales y Microplantas de Potabilización Solar en Inspecciones de Guaduas",
+      "sector": "Agua Potable y Saneamiento Básico",
+      "fase": "Fase 3 (Diseño Hidráulico Aprobado)",
+      "presupuesto_total": "$2.950.000.000 COP",
+      "fuente_primaria": "MinVivienda Agua al Barrio (80%) + SGP Agua (20%)",
+      "beneficiarios": "4.800 habitantes en 12 veredas",
+      "objetivo": "Elevar la potabilidad rural del 38.5% al 85% mediante plantas modulares de filtración rápida y bombeo fotovoltaico.",
+      "apu_clave": "Filtros de lecho mixto, dosificadores de cloro en pastillas y bombas solares sumergibles de 5 HP.",
+      "arbol_problemas": "Enfermedades gastrointestinales en niños -> Ausentismo escolar -> Sobrecarga en urgencias del Hospital San José.",
+      "evaluacion_socioeconomica": "TIR: 15.6% | VPN: +$890M COP | Reducción del 65% en consultas por EDA"
+    },
+    {
+      "id": "MGA-GUA-003",
+      "codigo_bpin": "2026-25320-003-MGA",
+      "nombre": "Fortalecimiento Tecnológico y Dotación del Hospital San José para Telemedicina Rural y Atención Perinatal",
+      "sector": "Salud y Protección Social",
+      "fase": "Fase 3 (Radicado en MinSalud)",
+      "presupuesto_total": "$2.400.000.000 COP",
+      "fuente_primaria": "FOSYGA / MinSalud (85%) + Gobernación (15%)",
+      "beneficiarios": "Toda la población de Guaduas (37.250 hab) y municipios vecinos del Bajo Magdalena",
+      "objetivo": "Equipar unidad de rayos X digital, laboratorio clínico automatizado y enlace de telemedicina con puestos de salud rurales.",
+      "apu_clave": "Equipo de Rayos X osteopulmonar, ecógrafo 4D para control prenatal y servidores de historia clínica en la nube.",
+      "arbol_problemas": "Remisiones innecesarias a Bogotá o Facatativá -> Costos de traslado para familias vulnerables -> Diagnósticos tardíos.",
+      "evaluacion_socioeconomica": "TIR: 21.4% | VPN: +$1.850M COP | Ahorro en remisiones superando $400M anuales"
+    },
+    {
+      "id": "MGA-GUA-004",
+      "codigo_bpin": "2026-25320-004-MGA",
+      "nombre": "Parque Ecoturístico y Sendero Patrimonial de la Ruta Mutis y la Villa de la Pola",
+      "sector": "Comercio, Industria y Turismo",
+      "fase": "Fase 3 (Licencias Turísticas y Ambientales)",
+      "presupuesto_total": "$1.800.000.000 COP",
+      "fuente_primaria": "FONTUR (70%) + Recursos Propios Turismo (30%)",
+      "beneficiarios": "180 operadores turísticos, 40 hoteles y 1.200 empleos directos e indirectos",
+      "objetivo": "Señalización turística bilingüe, adecuación del sendero real al Salto de Versalles y centro de interpretación botánica.",
+      "apu_clave": "Pasarelas en madera plástica ecológica, señalética patrimonial QR, módulos de artesanías y baterías sanitarias sostenibles.",
+      "arbol_problemas": "Turismo de fin de semana no pernocta -> Bajo gasto promedio por visitante -> Deterioro del patrimonio colonial.",
+      "evaluacion_socioeconomica": "TIR: 19.8% | VPN: +$980M COP | Incremento del 40% en ocupación hotelera entre semana"
+    }
+  ],
+  "fichas_gira_veredal": [
+    {
+      "vereda": "Puerto Bogotá",
+      "inspeccion": "Puerto Bogotá",
+      "censo_electoral": 4800,
+      "votos_estimados": 3200,
+      "lideres_clave": "Presidentes JAC Barrio El Cairo, La Cabaña y Asociación de Pescadores del Magdalena.",
+      "fallas_secop_historicas": "Contrato de jarillón ribereño 2021 quedó inconcluso por sobrecostos hidrológicos. El acueducto suspende el suministro con cada creciente del río.",
+      "propuesta_tecnica_2026": "MGA-GUA-002: Planta modular compacta de tratamiento de agua con captación flotante insensible a variaciones del nivel del río.",
+      "argumentario_reunion": "Aquí en Puerto Bogotá no venimos con promesas de papel. Sabemos que les prometieron el muro y el agua mil veces. Tenemos la ficha MGA lista para radicar en MinVivienda y el proyecto de defensa ribereña con la Unidad Nacional de Gestión del Riesgo. Puerto Bogotá será el polo logístico del río con obras que no se caigan en la primera crecida.",
+      "fuente_oficial": "SECOP II Proceso N° 2021-LP-014 / Ficha MGA BPIN 2026-25320-002-MGA"
+    },
+    {
+      "vereda": "Guaduero",
+      "inspeccion": "Guaduero",
+      "censo_electoral": 2400,
+      "votos_estimados": 1650,
+      "lideres_clave": "Comité de Paneleros de Guaduero, Asociación de Productores Campesinos, JAC San Antonio Alto.",
+      "fallas_secop_historicas": "Mantenimiento de maquinaria amarilla contratado en 2022 operó solo 15 días y la motoniveladora se varó por falta de repuestos en plena zafra.",
+      "propuesta_tecnica_2026": "MGA-GUA-001: 3 kilómetros de placa huella modular prefabricada en los puntos críticos de La Ceiba y San Antonio con mano de obra contratada a la misma comunidad.",
+      "argumentario_reunion": "Amigos paneleros y campesinos de Guaduero: mientras una hora de campero les cobre el triple por culpa del barro, la panela no da ganancia. Con la metodología de módulos prefabricados vamos a pavimentar en seco, sin que el invierno lave el cemento fresco, y con recursos de Invías ejecutados por la JAC.",
+      "fuente_oficial": "SECOP II Contrato N° 2022-MC-033 / Ficha MGA BPIN 2026-25320-001-MGA"
+    },
+    {
+      "vereda": "San José",
+      "inspeccion": "San José",
+      "censo_electoral": 1950,
+      "votos_estimados": 1380,
+      "lideres_clave": "Asociación de Cafeteros de San José, Junta Administradora del Acueducto Veredal, líderes juveniles.",
+      "fallas_secop_historicas": "Proyecto de centro de beneficio ecológico de café de 2020 nunca fue conectado a la red eléctrica trifásica y la maquinaria está parada.",
+      "propuesta_tecnica_2026": "Dotación de planta solar fotovoltaica con inversores híbridos de 15 kW para energizar el beneficio comunitario y conexión Starlink a la escuela.",
+      "argumentario_reunion": "En San José producimos de los mejores cafés de Cundinamarca, pero el abandono técnico nos tiene castigados. Vamos a energizar el centro de beneficio con energía solar para no pagar recibos imposibles a Enel, y dotaremos la escuela con internet satelital para que nuestros hijos estudien sin tener que emigrar.",
+      "fuente_oficial": "SECOP II Proceso N° 2020-CD-052 / ADR Línea Alianzas Productivas 2026"
+    },
+    {
+      "vereda": "El Palmar",
+      "inspeccion": "El Palmar",
+      "censo_electoral": 1420,
+      "votos_estimados": 980,
+      "lideres_clave": "Comité de Cafeteros del Bajo Guaduas, JAC El Palmar y líderes de asociaciones de mujeres rurales.",
+      "fallas_secop_historicas": "Contratos de afirmado 2021 sin cunetas que colapsaron en la ola invernal; falta de electrificación en 3 ramales veredales.",
+      "propuesta_tecnica_2026": "MGA-GUA-004: Electrificación rural fotovoltaica aislada y 1.8 km de placa huella en puntos críticos con Invías.",
+      "argumentario_reunion": "«Vecinos de El Palmar: no más contratos de recebo que se convierten en barro a los 15 días. Traemos el proyecto MGA estructurado con Invías para placa huella sólida y energía solar en las fincas que aún no tienen luz.»",
+      "fuente_oficial": "SECOP II Contratos 2020-2023 / Ficha MGA BPIN 2026-25320-004-MGA"
+    },
+    {
+      "vereda": "La Paz",
+      "inspeccion": "La Paz",
+      "censo_electoral": 1250,
+      "votos_estimados": 870,
+      "lideres_clave": "JAC La Paz Centro, Asociación Ganadera del Valle de Guaduas, líderes de acueductos comunitarios.",
+      "fallas_secop_historicas": "Acueducto veredal sin planta de tratamiento adecuada; cortes continuos en época seca y turbiedad en época de lluvia.",
+      "propuesta_tecnica_2026": "MGA-GUA-005: Optimización de captación y filtración lenta automatizada con respaldo de energía solar.",
+      "argumentario_reunion": "«Comunidad de La Paz: tener agua limpia no es un favor político, es un derecho. Radicamos directamente en MinVivienda el proyecto con código BPIN para que cada familia tenga agua tratada 24/7 sin cobros desproporcionados.»",
+      "fuente_oficial": "DNP TerriData Cobertura Agua / MinVivienda Programa Agua al Campo"
+    },
+    {
+      "vereda": "San Antonio",
+      "inspeccion": "San Antonio",
+      "censo_electoral": 1100,
+      "votos_estimados": 780,
+      "lideres_clave": "JAC San Antonio, transportadores de carga pesada, comités paneleros locales.",
+      "fallas_secop_historicas": "Puente sobre la quebrada en riesgo por socavación de estribos no atendida en el contrato de obras de 2023.",
+      "propuesta_tecnica_2026": "MGA-GUA-006: Reforzamiento de estribos, gaviones de protección y placa huella modular en la subida a la vereda.",
+      "argumentario_reunion": "«Amigos de San Antonio: sabemos el miedo que da pasar el camión cargado por ese puente en invierno. En nuestro banco MGA el puente y los gaviones están listos con ingeniería de detalle y APU reales.»",
+      "fuente_oficial": "UNGRD Gestión del Riesgo / SECOP II Auditoría Infraestructura"
+    },
+    {
+      "vereda": "Cabecera Guaduas",
+      "inspeccion": "Cabecera Municipal",
+      "censo_electoral": 15400,
+      "votos_estimados": 9800,
+      "lideres_clave": "Sector hotelero y gastronómico patrimonial, comerciantes de la plaza de mercado, artesanos y líderes comunales urbanos.",
+      "fallas_secop_historicas": "Contratos de señalización turística y adecuación patrimonial sin impacto en la ocupación hotelera ni en el empleo juvenil; sobrecostos en mantenimiento de vías urbanas.",
+      "propuesta_tecnica_2026": "MGA-GUA-003: Circuito turístico patrimonial integrado con conectividad digital, parqueaderos disuasorios y estímulos tributarios para emprendimientos turísticos.",
+      "argumentario_reunion": "«Habitantes de la Villa de Guaduas: somos la cuna de Policarpa Salavarrieta y patrimonio de Colombia. El presupuesto de Guaduas debe generar empleo y turismo real, no burocracia ni obras a medias. Con proyectos viabilizados en Fontur y MinComercio pondremos a Guaduas a la altura de su historia.»",
+      "fuente_oficial": "Fontur Colombia / SECOP II Contratos Urbanos 2020-2024"
+    }
+  ],
+  "banco_proyectos": [
+    {
+      "id": "MGA-GUA-001",
+      "codigo_bpin": "2026-25320-001-MGA",
+      "nombre": "Estructuración y Construcción de Red de Placa Huella Prefabricada en Corredores Veredales Guaduero - San José",
+      "sector": "Transporte / Vías Terciarias",
+      "fase": "Fase 3 (Factibilidad y Presupuesto Detallado)",
+      "presupuesto_total": "$3.850.000.000 COP",
+      "fuente_primaria": "Invías (70%) + Regalías Cundinamarca (20%) + Municipio (10%)",
+      "beneficiarios": "7.400 habitantes rurales",
+      "objetivo": "Reducir los tiempos de transporte de cosechas de 3.5 horas a 50 minutos y garantizar transitabilidad los 365 días del año.",
+      "apu_clave": "Placa huella en concreto reforzado prefabricado 3000 PSI + cunetas y disipadores de energía hidrológica.",
+      "arbol_problemas": "Pérdida de cosechas por incomunicación en invierno -> Altos costos de fletes -> Abandono juvenil del campo.",
+      "evaluacion_socioeconomica": "TIR: 18.2% | VPN: +$1.240M COP | Razón Beneficio-Costo: 1.48"
+    },
+    {
+      "id": "MGA-GUA-002",
+      "codigo_bpin": "2026-25320-002-MGA",
+      "nombre": "Plan Maestro de Acueductos Rurales y Microplantas de Potabilización Solar en Inspecciones de Guaduas",
+      "sector": "Agua Potable y Saneamiento Básico",
+      "fase": "Fase 3 (Diseño Hidráulico Aprobado)",
+      "presupuesto_total": "$2.950.000.000 COP",
+      "fuente_primaria": "MinVivienda Agua al Barrio (80%) + SGP Agua (20%)",
+      "beneficiarios": "4.800 habitantes en 12 veredas",
+      "objetivo": "Elevar la potabilidad rural del 38.5% al 85% mediante plantas modulares de filtración rápida y bombeo fotovoltaico.",
+      "apu_clave": "Filtros de lecho mixto, dosificadores de cloro en pastillas y bombas solares sumergibles de 5 HP.",
+      "arbol_problemas": "Enfermedades gastrointestinales en niños -> Ausentismo escolar -> Sobrecarga en urgencias del Hospital San José.",
+      "evaluacion_socioeconomica": "TIR: 15.6% | VPN: +$890M COP | Reducción del 65% en consultas por EDA"
+    },
+    {
+      "id": "MGA-GUA-003",
+      "codigo_bpin": "2026-25320-003-MGA",
+      "nombre": "Fortalecimiento Tecnológico y Dotación del Hospital San José para Telemedicina Rural y Atención Perinatal",
+      "sector": "Salud y Protección Social",
+      "fase": "Fase 3 (Radicado en MinSalud)",
+      "presupuesto_total": "$2.400.000.000 COP",
+      "fuente_primaria": "FOSYGA / MinSalud (85%) + Gobernación (15%)",
+      "beneficiarios": "Toda la población de Guaduas (37.250 hab) y municipios vecinos del Bajo Magdalena",
+      "objetivo": "Equipar unidad de rayos X digital, laboratorio clínico automatizado y enlace de telemedicina con puestos de salud rurales.",
+      "apu_clave": "Equipo de Rayos X osteopulmonar, ecógrafo 4D para control prenatal y servidores de historia clínica en la nube.",
+      "arbol_problemas": "Remisiones innecesarias a Bogotá o Facatativá -> Costos de traslado para familias vulnerables -> Diagnósticos tardíos.",
+      "evaluacion_socioeconomica": "TIR: 21.4% | VPN: +$1.850M COP | Ahorro en remisiones superando $400M anuales"
+    },
+    {
+      "id": "MGA-GUA-004",
+      "codigo_bpin": "2026-25320-004-MGA",
+      "nombre": "Parque Ecoturístico y Sendero Patrimonial de la Ruta Mutis y la Villa de la Pola",
+      "sector": "Comercio, Industria y Turismo",
+      "fase": "Fase 3 (Licencias Turísticas y Ambientales)",
+      "presupuesto_total": "$1.800.000.000 COP",
+      "fuente_primaria": "FONTUR (70%) + Recursos Propios Turismo (30%)",
+      "beneficiarios": "180 operadores turísticos, 40 hoteles y 1.200 empleos directos e indirectos",
+      "objetivo": "Señalización turística bilingüe, adecuación del sendero real al Salto de Versalles y centro de interpretación botánica.",
+      "apu_clave": "Pasarelas en madera plástica ecológica, señalética patrimonial QR, módulos de artesanías y baterías sanitarias sostenibles.",
+      "arbol_problemas": "Turismo de fin de semana no pernocta -> Bajo gasto promedio por visitante -> Deterioro del patrimonio colonial.",
+      "evaluacion_socioeconomica": "TIR: 19.8% | VPN: +$980M COP | Incremento del 40% en ocupación hotelera entre semana"
+    }
+  ],
+  "politicas_presidencia_2026": [
+    {
+      "eje": "Seguridad Territorial & Convivencia Rural",
+      "programa": "Plan Integral de Convivencia y Seguridad Ciudadana (FONSECON / MinInterior)",
+      "mecanismo": "Financiación de cámaras perimetrales con IA, movilidad para cuadrantes rurales de Policía y Ejército en veredas.",
+      "beneficio_guaduas": "Blindaje del corredor nacional Honda - Guaduas - Villeta contra extorsión y microtráfico."
+    },
+    {
+      "eje": "Infraestructura Vial Terciaria & Placa Huellas",
+      "programa": "Invías - Caminos Comunitarios / Obras por Impuestos",
+      "mecanismo": "Postulación directa de JACs y asociaciones comunitarias para tramos de 1.5 a 3 km de placa huella prefabricada.",
+      "beneficio_guaduas": "Salida garantizada de café y panela desde Guaduero y San José en temporadas de lluvia."
+    },
+    {
+      "eje": "Conectividad Rural & Transformación Digital",
+      "programa": "MinTIC - Centros Digitales Satelitales",
+      "mecanismo": "Dotación de antenas Starlink de alta velocidad para las 28 escuelas rurales y puestos de salud.",
+      "beneficio_guaduas": "Telemedicina con el Hospital San José y facturación electrónica para productores agropecuarios."
+    },
+    {
+      "eje": "Fomento Productivo & Fondeo Agropecuario",
+      "programa": "Agencia de Desarrollo Rural (ADR) - Alianzas Productivas / Finagro",
+      "mecanismo": "Crédito con tasa subsidiada IBR-2% y líneas especiales para renovación de cafetales y trapiches.",
+      "beneficio_guaduas": "Incremento de rentabilidad de 4.100 familias caficultoras y paneleras de Guaduas."
+    }
+  ],
+  "radar_convocatorias_financiamiento": [
+    {
+      "entidad": "Invías / Fondo de Caminos Comunitarios",
+      "linea": "Convocatoria Nacional Vías Terciarias 2026",
+      "recursos_disponibles": "$12.000M COP disponibles en bolsa regional",
+      "requisito_clave": "Ficha MGA Fase 3 con estudios topográficos y radicación BPIN ante DNP."
+    },
+    {
+      "entidad": "Ministerio de Vivienda / PDA Empresas Públicas de Cundinamarca",
+      "linea": "Ventanilla Única Agua Rural",
+      "recursos_disponibles": "$5.500M COP para acueductos veredales",
+      "requisito_clave": "Concesión de aguas vigente de la CAR y censo de usuarios formalizado."
+    },
+    {
+      "entidad": "Ministerio de las TIC",
+      "linea": "Comunidades de Conectividad",
+      "recursos_disponibles": "Kits satelitales con ancho de banda gratuito por 3 años",
+      "requisito_clave": "Junta de Acción Comunal con personería jurídica actualizada."
+    },
+    {
+      "entidad": "Ministerio de Comercio, Industria y Turismo (FONTUR)",
+      "linea": "Turismo Histórico y Pueblos Patrimonio de Colombia",
+      "recursos_disponibles": "$2.200M COP en infraestructura turística",
+      "requisito_clave": "Ruta de la Policarpa Salavarrieta y senderos de la Real Expedición Botánica."
+    }
+  ],
+  "auditoria_alcaldias": [
+    {
+      "alcalde": "Diego Jimenez",
+      "periodo": "2024–2027 (Mandato Actual)",
+      "presupuesto_total": "$24.500M COP/año (~$98.000M cuatrienio)",
+      "contratos_analizados": 120,
+      "enfoque": "Transformación digital, fortalecimiento del Hospital San José, placa huellas rurales y turismo patrimonial de Guaduas.",
+      "alertas": "Urgencia en acelerar ejecución de convenios de vías terciarias con Invías antes de ley de garantías 2026."
+    },
+    {
+      "alcalde": "Germán Herrera",
+      "periodo": "2020–2023",
+      "presupuesto_total": "$21.200M COP/año (~$84.800M cuatrienio)",
+      "contratos_analizados": 180,
+      "enfoque": "Atención de pandemia COVID-19, suministros de emergencia, adecuación de infraestructura y mantenimiento vial.",
+      "alertas": "Concentración de contratos directos por declaratoria de urgencia manifiesta sanitaria."
+    },
+    {
+      "alcalde": "Edval Gutiérrez",
+      "periodo": "2016–2019",
+      "presupuesto_total": "$18.400M COP/año (~$73.600M cuatrienio)",
+      "contratos_analizados": 140,
+      "enfoque": "Parque principal colonial, redes de alcantarillado urbano y convenios con el Departamento de Cundinamarca.",
+      "alertas": "Proyectos de infraestructura rural quedaron desfinanciados sin cierre financiero MGA."
+    }
+  ],
+  "top_megaproyectos_auditados": [
+    {
+      "nombre": "Modernización Integral Hospital San José de Guaduas",
+      "cuantia": "$4.280.000.000 COP",
+      "fuente": "Convenio Ministerio de Salud + Gobernación de Cundinamarca",
+      "estado": "En ejecución contractual y dotación de equipos de rayos X y urgencias",
+      "alerta": "Requiere supervisión estricta de cronograma para entrega en primer semestre 2026."
+    },
+    {
+      "nombre": "Construcción Placa Huellas en Corredores Rurales Guaduero - Puerto Bogotá",
+      "cuantia": "$3.150.000.000 COP",
+      "fuente": "Invías - Caminos Comunitarios de la Paz Total",
+      "estado": "Adjudicado mediante selección abreviada",
+      "alerta": "Comunidad exige comités veedores veredales con mano de obra del sector."
+    },
+    {
+      "nombre": "Optimización Acueducto Veredal Puerto Bogotá y Veredas Ribereñas",
+      "cuantia": "$2.890.000.000 COP",
+      "fuente": "MinVivienda - Agua al Barrio / PDA Cundinamarca",
+      "estado": "Fase de formulación MGA aprobada",
+      "alerta": "Cierre de servidumbres de paso y permisos ambientales CAR."
+    }
+  ]
+}

@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { BaseProposal, PurchaseItem, LaborItem, ProposalComment, ComparativePriceOption, PilotVoting } from '../types';
 import { saveComentarioCopilotoToSupabase, getPilotVotingsFromSupabase, voteForPilotCommunityInSupabase } from '../services/api';
 import { formatCOP } from '../utils/formatters';
-import { VEREDAS_GUADUAS } from '../data/veredasGuaduas';
+import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { RamitosAvatarLogo } from './RamitosAvatarLogo';
 import { 
   Building2, ShieldCheck, Scale, Users, Clock, ShoppingBag, 
@@ -19,6 +19,7 @@ interface CopilotoAlcaldiaViewProps {
   onAddProposal?: (newProposal: BaseProposal) => void;
   onUpdateProposal?: (updatedProposal: BaseProposal) => void;
   isSecretAdminUnlocked?: boolean;
+  municipioId?: 'guaduas' | 'caparrapi';
 }
 
 export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
@@ -27,18 +28,26 @@ export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
   onSelectProposal,
   onAddProposal,
   onUpdateProposal,
-  isSecretAdminUnlocked = false
+  isSecretAdminUnlocked = false,
+  municipioId = 'guaduas'
 }) => {
+  const isCaparrapi = municipioId === 'caparrapi';
+  const munData = MUNICIPIOS_DATA[municipioId || 'guaduas'];
+
   // Local state for dynamic proposals and active sub-tab
   const [proposalList, setProposalList] = useState<BaseProposal[]>(initialProposals || []);
   const [activeSubTab, setActiveSubTab] = useState<'detalle' | 'asistente' | 'mesa' | 'votaciones'>('detalle');
   const [pilotVotings, setPilotVotings] = useState<PilotVoting[]>([]);
   const [ramitosSpeechBubbleText, setRamitosSpeechBubbleText] = useState<string>(
-    '🌿 ¡Hola! Soy Ramitos, tu Copiloto Municipal de Guaduas. Estoy escuchando: puedes pedirme en lenguaje natural modificar precios, agregar o eliminar ítems, auditar cotizaciones o cambiar de módulo.'
+    munData.saludoCopiloto
   );
 
+  useEffect(() => {
+    setRamitosSpeechBubbleText(MUNICIPIOS_DATA[municipioId || 'guaduas'].saludoCopiloto);
+  }, [municipioId]);
+
   // Keep proposalList in sync when initialProposals arrives from Supabase or parent
-  React.useEffect(() => {
+  useEffect(() => {
     if (initialProposals && initialProposals.length > 0) {
       setProposalList(initialProposals);
     }
@@ -1432,8 +1441,8 @@ export const CopilotoAlcaldiaView: React.FC<CopilotoAlcaldiaViewProps> = ({
                       onChange={(e) => setNewPropVereda(e.target.value)}
                       className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3 text-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500 font-bold"
                     >
-                      {VEREDAS_GUADUAS.map((v) => (
-                        <option key={v.nombre} value={v.nombre}>{v.nombre}</option>
+                      {munData.veredas.map((v) => (
+                        <option key={v.nombre} value={v.nombre}>{v.nombre} ({v.zona})</option>
                       ))}
                     </select>
                   </div>

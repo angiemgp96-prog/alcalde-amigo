@@ -1,22 +1,34 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CitizenNeed, CitizenLead } from '../types';
 import { speechEngine, SUGGESTED_PROMPTS } from '../services/speechEngine';
 import { processRamitosConversationAsync } from '../services/ramitosBrain';
-import { VEREDAS_GUADUAS } from '../data/veredasGuaduas';
+import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { formatCOP } from '../utils/formatters';
 import { Mic, Send, CheckCircle2, User, Phone, MapPin, Sparkles, ShoppingBag, ThumbsUp } from 'lucide-react';
 
 interface CitizenVoiceViewProps {
   needs: CitizenNeed[];
   onSaveNeed: (need: Omit<CitizenNeed, 'id' | 'fechaReporte' | 'votosApoyo'>, lead?: Omit<CitizenLead, 'id' | 'fechaRegistro' | 'estadoNotificacion'>) => void;
+  municipioId?: 'guaduas' | 'caparrapi';
 }
 
-export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSaveNeed }) => {
+export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSaveNeed, municipioId = 'guaduas' }) => {
+  const isCaparrapi = municipioId === 'caparrapi';
+  const munData = MUNICIPIOS_DATA[municipioId || 'guaduas'];
+  const veredasList = munData.veredas;
+
   const [transcript, setTranscript] = useState('');
-  const [vereda, setVereda] = useState(VEREDAS_GUADUAS[0].nombre);
+  const [vereda, setVereda] = useState(veredasList[0]?.nombre || 'Centro');
   const [ciudadanoNombre, setCiudadanoNombre] = useState('');
   const [whatsapp, setWhatsapp] = useState('');
   const [savedSuccess, setSavedSuccess] = useState(false);
+
+  useEffect(() => {
+    const list = MUNICIPIOS_DATA[municipioId || 'guaduas'].veredas;
+    if (list && list.length > 0) {
+      setVereda(list[0].nombre);
+    }
+  }, [municipioId]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,7 +36,7 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
       alert('Por favor habla por el micrófono o escribe tu voz/sugerencia.');
       return;
     }
-    const currentSynthesis = await processRamitosConversationAsync(transcript, vereda);
+    const currentSynthesis = await processRamitosConversationAsync(transcript, vereda, [], false, municipioId);
 
     const leadData = whatsapp.trim().length >= 7 ? {
       nombre: ciudadanoNombre.trim() || 'Ciudadano de ' + vereda,
@@ -57,11 +69,17 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
   return (
     <div className="space-y-8">
       <div className="frosted-glass rounded-3xl p-6 border border-slate-800 space-y-4">
-        <h3 className="text-xl font-bold text-white flex items-center gap-2">
-          <span>Escucha Activa & Formulario Complementario</span>
-        </h3>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
+          <h3 className="text-xl font-bold text-white flex items-center gap-2">
+            <span>{isCaparrapi ? '🛡️' : '🌿'}</span>
+            <span>Escucha Activa & Formulario Complementario ({isCaparrapi ? 'Caparrapí' : 'Guaduas'})</span>
+          </h3>
+          <span className="text-xs font-mono text-cyan-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
+            {veredasList.length} veredas e inspecciones disponibles
+          </span>
+        </div>
         <p className="text-xs text-slate-300">
-          Esta vista te permite consultar los testimonios guardados o cargar una propuesta directamente con formulario de WhatsApp.
+          Esta vista te permite registrar inquietudes y propuestas para las veredas de {isCaparrapi ? 'Caparrapí' : 'Guaduas'} o cargarlas mediante formulario WhatsApp.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -69,43 +87,52 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
             value={transcript}
             onChange={(e) => setTranscript(e.target.value)}
             rows={3}
-            placeholder="Escribe la problemática o sugerencia..."
+            placeholder={`Escribe la problemática o sugerencia para tu sector en ${isCaparrapi ? 'Caparrapí' : 'Guaduas'}...`}
             className="w-full bg-slate-950 border border-slate-700 rounded-2xl p-4 text-xs text-white"
           />
 
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <select
-              value={vereda}
-              onChange={(e) => setVereda(e.target.value)}
-              className="bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white"
-            >
-              {VEREDAS_GUADUAS.map((v, i) => (
-                <option key={i} value={v.nombre}>{v.nombre}</option>
-              ))}
-            </select>
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase font-bold text-slate-400">Vereda / Sector ({isCaparrapi ? 'Caparrapí' : 'Guaduas'}):</label>
+              <select
+                value={vereda}
+                onChange={(e) => setVereda(e.target.value)}
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white"
+              >
+                {veredasList.map((v, i) => (
+                  <option key={i} value={v.nombre}>{v.nombre} ({v.zona})</option>
+                ))}
+              </select>
+            </div>
 
-            <input
-              type="text"
-              value={ciudadanoNombre}
-              onChange={(e) => setCiudadanoNombre(e.target.value)}
-              placeholder="Nombre"
-              className="bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white"
-            />
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase font-bold text-slate-400">Nombre del Ciudadano:</label>
+              <input
+                type="text"
+                value={ciudadanoNombre}
+                onChange={(e) => setCiudadanoNombre(e.target.value)}
+                placeholder="Nombre"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white"
+              />
+            </div>
 
-            <input
-              type="tel"
-              value={whatsapp}
-              onChange={(e) => setWhatsapp(e.target.value)}
-              placeholder="WhatsApp"
-              className="bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white"
-            />
+            <div className="space-y-1">
+              <label className="text-[10px] uppercase font-bold text-slate-400">WhatsApp de Contacto:</label>
+              <input
+                type="tel"
+                value={whatsapp}
+                onChange={(e) => setWhatsapp(e.target.value)}
+                placeholder="WhatsApp"
+                className="w-full bg-slate-950 border border-slate-700 rounded-xl p-3 text-xs text-white"
+              />
+            </div>
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl"
+            className="w-full py-3 bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs rounded-xl transition cursor-pointer"
           >
-            Guardar Inquietud
+            Guardar Inquietud para {isCaparrapi ? 'Caparrapí' : 'Guaduas'}
           </button>
         </form>
       </div>

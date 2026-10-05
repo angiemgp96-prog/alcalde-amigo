@@ -1,0 +1,29 @@
+[
+  {
+    "id": "APORTE-001",
+    "fecha": "2026-10-05 09:30",
+    "inspeccion": "San Carlos",
+    "tema": "Vías & Placa Huellas Modernas",
+    "titulo": "Placa huella con módulos de concreto prefabricado",
+    "detalle": "En el tramo Las Ferias - Cuatro Caminos el invierno daña el concreto tradicional antes de fraguar. Sugerimos usar placas prefabricadas modulares que se instalan en seco, bajan costos un 25% y se pueden contratar con mano de obra local.",
+    "estado": "Analizado por el Agente"
+  },
+  {
+    "id": "APORTE-002",
+    "fecha": "2026-10-05 09:32",
+    "inspeccion": "Morro Negro y Terán",
+    "tema": "Conectividad & Tecnología",
+    "titulo": "Kits de Internet Satelital Starlink en Escuelas Rurales",
+    "detalle": "Las antenas convencionales no tienen señal por la topografía. Dotar a las 12 escuelas rurales y centros comunales con antenas Starlink de autoinstalación para teleducación y trámites agrícolas de los campesinos.",
+    "estado": "Listo para incorporar a proyecto"
+  },
+  {
+    "id": "APORTE-003",
+    "fecha": "2026-10-05 09:35",
+    "inspeccion": "San Pedro",
+    "tema": "Energía & Servicios",
+    "titulo": "Plantas solares híbridas para bombeo de acueducto",
+    "detalle": "Cuando la red eléctrica se cae en tormentas, el acueducto de San Pedro deja de bombear agua por días. Proponemos una planta solar de respaldo con baterías para garantizar bombeo continuo sin depender de Enel.",
+    "estado": "Pendiente de estructuración MGA"
+  }
+]

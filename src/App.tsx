@@ -5,7 +5,7 @@ import { RamitosChatView } from './components/RamitosChatView';
 import { CitizenVoiceView } from './components/CitizenVoiceView';
 import { GreenApiCrmView } from './components/GreenApiCrmView';
 import { CopilotoAlcaldiaView } from './components/CopilotoAlcaldiaView';
-import { CloudConsoleView } from './components/CloudConsoleView';
+import { CentroMandoView } from './components/CentroMandoView';
 import {
   getCitizenNeeds,
   saveCitizenNeed,
@@ -19,6 +19,19 @@ import {
 } from './services/api';
 
 export function App() {
+  // Detección inicial de municipio desde la URL o LocalStorage
+  const getInitialMunicipio = (): 'guaduas' | 'caparrapi' => {
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname.toLowerCase();
+      if (path.includes('caparrapi')) return 'caparrapi';
+      if (path.includes('guaduas')) return 'guaduas';
+      const stored = localStorage.getItem('ialcaldia_active_municipio');
+      if (stored === 'caparrapi' || stored === 'guaduas') return stored;
+    }
+    return 'caparrapi'; // Default a Caparrapí para máxima riqueza de inteligencia
+  };
+
+  const [municipioId, setMunicipioId] = useState<'guaduas' | 'caparrapi'>(getInitialMunicipio);
   const [activeTab, setActiveTab] = useState<ActiveTab>('chat');
   const [needs, setNeeds] = useState<CitizenNeed[]>([]);
   const [leads, setLeads] = useState<CitizenLead[]>([]);
@@ -27,7 +40,7 @@ export function App() {
   const [supabaseConfig, setSupabaseConfig] = useState<SupabaseConfig>(getSavedSupabaseConfig());
   const [selectedProposal, setSelectedProposal] = useState<BaseProposal | null>(null);
 
-  // MODO SECRETO ADMINISTRADOR (ACTIVADO AL DIGITAR "0777" EN TECLADO)
+  // MODO SECRETO ADMINISTRADOR ("0777")
   const [isSecretAdminUnlocked, setIsSecretAdminUnlocked] = useState<boolean>(false);
   const [showSecretToast, setShowSecretToast] = useState<boolean>(false);
 
@@ -57,21 +70,28 @@ export function App() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Carga inicial de datos (incluyendo proyectos desde Supabase)
+  // Carga inicial de datos
   useEffect(() => {
     setNeeds(getCitizenNeeds());
     setLeads(getCitizenLeads());
     setMessages(getGreenApiMessages());
+    setProposals(getBaseProposals(municipioId));
 
-    // Cargar proyectos de Copiloto desde Supabase en segundo plano
     getProyectosCopilotoFromSupabase().then((loaded) => {
       if (loaded && loaded.length > 0) {
         setProposals(loaded);
       }
     });
-  }, []);
+  }, [municipioId]);
 
-  // Guardar nueva necesidad y lead de contacto desde el chat o voz
+  const handleSelectMunicipio = (newMun: 'guaduas' | 'caparrapi') => {
+    setMunicipioId(newMun);
+    localStorage.setItem('ialcaldia_active_municipio', newMun);
+    if (typeof window !== 'undefined') {
+      window.history.pushState({}, '', `/${newMun}`);
+    }
+  };
+
   const handleSaveNeed = async (
     needData: Omit<CitizenNeed, 'id' | 'fechaReporte' | 'votosApoyo'>,
     leadData?: Omit<CitizenLead, 'id' | 'fechaRegistro' | 'estadoNotificacion'>
@@ -84,13 +104,11 @@ export function App() {
     setNeeds(getCitizenNeeds());
   };
 
-  // Guardar o actualizar un proyecto en Supabase (links, precios, visto bueno, etc.)
   const handleUpdateProposal = async (updated: BaseProposal) => {
     setProposals((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
     await saveOrUpdateProyectoCopiloto(updated);
   };
 
-  // Crear un nuevo proyecto en Supabase desde el asistente
   const handleAddProposal = async (newProp: BaseProposal) => {
     setProposals((prev) => [newProp, ...prev]);
     await saveOrUpdateProyectoCopiloto(newProp);
@@ -101,7 +119,7 @@ export function App() {
   };
 
   return (
-    <div className="min-h-screen bg-[#f8fafc] text-slate-900 flex flex-col selection:bg-emerald-500 selection:text-white">
+    <div className="min-h-screen bg-[#0a0f1d] text-slate-100 flex flex-col selection:bg-emerald-500 selection:text-white">
       {/* Toast Notificación Modo Secreto 0777 */}
       {showSecretToast && (
         <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-emerald-300 border-2 border-emerald-500/60 shadow-2xl px-5 py-3.5 rounded-2xl flex items-center space-x-3 animate-bounce backdrop-blur-xl">
@@ -113,47 +131,65 @@ export function App() {
         </div>
       )}
 
-      {/* Header Bar solo visible si el usuario navega a opciones secundarias */}
-      {activeTab !== 'chat' && (
-        <HeaderBar
-          activeTab={activeTab}
-          setActiveTab={setActiveTab}
-          isConnectedDb={supabaseConfig.isConnected}
-          needsCount={needs.length}
-          isSecretAdminUnlocked={isSecretAdminUnlocked}
-        />
-      )}
+      {/* Header Bar siempre visible con navegación completa y selector de Sede */}
+      <HeaderBar
+        activeTab={activeTab}
+        setActiveTab={setActiveTab}
+        isConnectedDb={supabaseConfig.isConnected}
+        needsCount={needs.length}
+        isSecretAdminUnlocked={isSecretAdminUnlocked}
+        municipioId={municipioId}
+        onSelectMunicipio={handleSelectMunicipio}
+      />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full mx-auto">
-        {activeTab === 'chat' && (
-          <RamitosChatView
-            onSaveNeed={handleSaveNeed}
-            onOpenFullPlan={() => setActiveTab('copiloto')}
-            onOpenMenu={(tab) => setActiveTab(tab)}
-            isSecretAdminUnlocked={isSecretAdminUnlocked}
+      <main className="flex-1 w-full mx-auto pb-12">
+        {/* MÓDULOS DE INTELIGENCIA TERRITORIAL, SECOP II, MGA Y ELECCIONES */}
+        {['gira', 'radiografia', 'veredas', 'auditoria', 'politicas', 'mga', 'speech'].includes(activeTab) && (
+          <CentroMandoView
+            municipioId={municipioId}
+            currentTab={activeTab}
+            onTabChange={(tab) => setActiveTab(tab as ActiveTab)}
           />
         )}
 
+        {/* MÓDULO CHAT: COPILOTO CIUDADANO (CAPARRAPÍ) / RAMITOS (GUADUAS) */}
+        {activeTab === 'chat' && (
+          <div className="pt-2">
+            <RamitosChatView
+              onSaveNeed={handleSaveNeed}
+              onOpenFullPlan={() => setActiveTab('mga')}
+              onOpenMenu={(tab) => setActiveTab(tab)}
+              isSecretAdminUnlocked={isSecretAdminUnlocked}
+              municipioId={municipioId}
+            />
+          </div>
+        )}
+
+        {/* MÓDULO VOZ CIUDADANA */}
         {activeTab === 'escucha' && (
           <div className="max-w-7xl mx-auto px-4 py-8">
             <CitizenVoiceView
               needs={needs}
               onSaveNeed={handleSaveNeed}
+              municipioId={municipioId}
             />
           </div>
         )}
 
+        {/* MÓDULO CRM GREEN API */}
         {activeTab === 'crm' && (
           <div className="max-w-7xl mx-auto px-4 py-8">
             <GreenApiCrmView
               leads={leads}
               messages={messages}
               onMessageSent={handleMessageSent}
+              municipioId={municipioId}
             />
           </div>
         )}
 
+        {/* MÓDULO COPILOTO ALCALDÍA */}
         {activeTab === 'copiloto' && (
           <div className="py-4 sm:py-6 px-2">
             <CopilotoAlcaldiaView
@@ -163,6 +199,7 @@ export function App() {
               onAddProposal={handleAddProposal}
               onUpdateProposal={handleUpdateProposal}
               isSecretAdminUnlocked={isSecretAdminUnlocked}
+              municipioId={municipioId}
             />
           </div>
         )}

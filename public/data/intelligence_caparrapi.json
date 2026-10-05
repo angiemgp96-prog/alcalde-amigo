@@ -1,0 +1,1678 @@
+{
+  "fuentes_oficiales": [
+    {
+      "nombre": "DNP TerriData (Ficha Municipal Caparrapí Cód. 25148)",
+      "url": "https://terridata.dnp.gov.co/index-app.html#/perfiles/25148",
+      "descripcion": "Indicadores de pobreza multidimensional, finanzas públicas, cobertura de acueducto y desempeño municipal."
+    },
+    {
+      "nombre": "SECOP II - Datos Abiertos Colombia (Contratos Caparrapí)",
+      "url": "https://www.datos.gov.co/resource/jbjy-vk9h.json?departamento=Cundinamarca&ciudad=Caparrap%C3%AD",
+      "descripcion": "Base de datos oficial de contratos firmados por la Alcaldía de Caparrapí, valores, contratistas y objetos."
+    },
+    {
+      "nombre": "DANE - Censo Nacional de Población y Vivienda (CNPV)",
+      "url": "https://www.dane.gov.co",
+      "descripcion": "Proyecciones de población, pirámide demográfica y proporción rural/urbana del municipio."
+    },
+    {
+      "nombre": "Registraduría Nacional del Estado Civil",
+      "url": "https://www.registraduria.gov.co",
+      "descripcion": "Censo electoral oficial, puestos de votación y resultados electorales históricos en Caparrapí."
+    },
+    {
+      "nombre": "CHIP - Contaduría General de la Nación",
+      "url": "https://www.chip.gov.co",
+      "descripcion": "Ejecución presupuestal consolidada, ingresos corrientes de libre destinación y deuda municipal."
+    },
+    {
+      "nombre": "Alcaldía Municipal de Caparrapí (Sitio Oficial)",
+      "url": "https://www.caparrapi-cundinamarca.gov.co",
+      "descripcion": "Planes de Desarrollo Territorial, decretos y rendiciones de cuentas."
+    }
+  ],
+  "municipio": {
+    "nombre": "Caparrapí",
+    "departamento": "Cundinamarca",
+    "codigo_dane": "25148",
+    "categoria": 6,
+    "poblacion_total": 14280,
+    "poblacion_rural": 11195,
+    "poblacion_rural_pct": 78.4,
+    "poblacion_urbana": 3085,
+    "poblacion_urbana_pct": 21.6,
+    "censo_electoral": 13140,
+    "votantes_promedio": 8950,
+    "participacion_pct": 68.1,
+    "indice_pobreza_multidimensional_rural": 34.8,
+    "indice_pobreza_multidimensional_urbano": 18.2,
+    "red_vial_terciaria_km": 382,
+    "vias_terciarias_mal_estado_pct": 86.5,
+    "cobertura_agua_potable_rural_pct": 24.3,
+    "familias_paneleras": 2250,
+    "trapiches_activos": 320,
+    "cabezas_ganado": 16400,
+    "caballada_trabajo_y_cria": 4100
+  },
+  "historial_electoral_oficial": [
+    {
+      "año": 2023,
+      "fecha": "29 de Octubre de 2023",
+      "ganador": "Andrés Ardila Sánchez",
+      "partido_ganador": "Partido Conservador Colombiano",
+      "votos_ganador": 3183,
+      "porcentaje_ganador": "46,11%",
+      "segundo_lugar": "Isidro Anzola Aguirre",
+      "partido_segundo": "Caparrapí Participativo",
+      "votos_segundo": 2853,
+      "porcentaje_segundo": "41,32%",
+      "diferencia_votos": 330,
+      "total_votos_validos": 6903,
+      "participacion": "64,14%",
+      "otros_candidatos": [
+        {
+          "nombre": "Joribuk Pachón Vásquez",
+          "partido": "Partido Demócrata Colombiano",
+          "votos": 341,
+          "pct": "4,93%"
+        },
+        {
+          "nombre": "José Aicardo Rubio López",
+          "partido": "En Marcha",
+          "votos": 258,
+          "pct": "3,73%"
+        },
+        {
+          "nombre": "José Vicente Hernández Montero",
+          "partido": "Creemos",
+          "votos": 212,
+          "pct": "3,07%"
+        },
+        {
+          "nombre": "Jaime Andrés Guillén Correa",
+          "partido": "Partido de la U",
+          "votos": 5,
+          "pct": "0,07%"
+        }
+      ],
+      "analisis_estrategico": "Elección hiperpolarizada resuelta por solo 330 votos. La movilización de veredas rurales en San Carlos, Terán y San Pedro definió la victoria de Andrés Ardila Sánchez frente a Isidro Anzola."
+    },
+    {
+      "año": 2019,
+      "fecha": "27 de Octubre de 2019",
+      "ganador": "Gonzalo Ramírez Gaitán",
+      "partido_ganador": "Cambio Radical / Coalición Caparrapí Construye Futuro",
+      "votos_ganador": 1786,
+      "porcentaje_ganador": "26,84%",
+      "segundo_lugar": "Isidro Anzola Aguirre",
+      "partido_segundo": "Coalición Comunitaria",
+      "votos_segundo": 1540,
+      "porcentaje_segundo": "23,14%",
+      "diferencia_votos": 246,
+      "total_votos_validos": 6654,
+      "participacion": "61,20%",
+      "analisis_estrategico": "Elección fuertemente atomizada con 7 candidatos. Gonzalo Ramírez triunfó con el 26.8% de los votos capitalizando su trayectoria de 4 periodos en el Concejo Municipal."
+    },
+    {
+      "año": 2015,
+      "fecha": "25 de Octubre de 2015",
+      "ganador": "José Joaquín Sánchez Chávez",
+      "partido_ganador": "Cambio Radical",
+      "votos_ganador": 2882,
+      "porcentaje_ganador": "49,20%",
+      "segundo_lugar": "Gonzalo Ramírez Gaitán",
+      "partido_segundo": "Partido Conservador / Coalición Veredal",
+      "votos_segundo": 2410,
+      "porcentaje_segundo": "41,14%",
+      "diferencia_votos": 472,
+      "total_votos_validos": 5857,
+      "participacion": "59,80%",
+      "analisis_estrategico": "Mayoría electoral contundente con casi el 50% de los votos basada en acuerdos veredales directos y maquinaria tradicional."
+    }
+  ],
+  "inspecciones_y_veredas": [
+    {
+      "inspeccion": "San Carlos",
+      "importancia": "Principal polo comercial, ganadero y de tránsito intermunicipal (hacia Guaduas y Puerto Salgar)",
+      "censo": 1620,
+      "mesas": 4,
+      "votacion_estimada": 1120,
+      "vocacion": "Ganadería de doble propósito, cacao, comercio regional, porcicultura y caña",
+      "veredas_adscritas": [
+        "San Carlos Centro Poblado",
+        "Cuatro Caminos",
+        "Las Ferias",
+        "San Pablo",
+        "Alto de San Carlos",
+        "El Trapiche",
+        "El Chipal",
+        "La Cabaña",
+        "El Retiro"
+      ]
+    },
+    {
+      "inspeccion": "Terán",
+      "importancia": "Eje neurálgico de la cuenca panelera y mayor concentración de trapiches",
+      "censo": 1450,
+      "mesas": 4,
+      "votacion_estimada": 1020,
+      "vocacion": "Caña panelera, molienda comunitaria, yeguas de carga, comercio de panela",
+      "veredas_adscritas": [
+        "Terán Centro Poblado",
+        "Barranquillas",
+        "Buena Vista",
+        "Alto del Roble",
+        "Trapiche Viejo",
+        "La Fría",
+        "Monteverde",
+        "El Palmar"
+      ]
+    },
+    {
+      "inspeccion": "San Pedro",
+      "importancia": "Centro de servicios rurales, salud comunitaria, caballada tradicional y fuentes hídricas",
+      "censo": 1280,
+      "mesas": 4,
+      "votacion_estimada": 910,
+      "vocacion": "Ganadería, cría equina, café, acueductos veredales, agricultura de pancoger",
+      "veredas_adscritas": [
+        "San Pedro Centro Poblado",
+        "Loma Alta",
+        "Acuaparrapí",
+        "El Silencio",
+        "El Roble",
+        "La Esperanza",
+        "Hoyo Caliente",
+        "Brazuelos"
+      ]
+    },
+    {
+      "inspeccion": "La Magdalena",
+      "importancia": "Corredor estratégico de salida de cosechas y cuenca fluvial",
+      "censo": 1150,
+      "mesas": 3,
+      "votacion_estimada": 790,
+      "vocacion": "Frutales, caña, puentes y pasos de herradura, ganadería",
+      "veredas_adscritas": [
+        "La Magdalena Centro Poblado",
+        "La Hoya",
+        "San Cayetano",
+        "Canchimay",
+        "La Unión",
+        "Bavaria",
+        "El Carmen"
+      ]
+    },
+    {
+      "inspeccion": "El Dindal",
+      "importancia": "Inspección de alta vocación cafetera, panelera y pecuaria",
+      "censo": 980,
+      "mesas": 3,
+      "votacion_estimada": 670,
+      "vocacion": "Café pergamino, caña, ganado de ceba, transporte a lomo de mula",
+      "veredas_adscritas": [
+        "El Dindal Centro Poblado",
+        "Montefrío",
+        "La Florida",
+        "Peñas Blancas",
+        "El Guadual",
+        "La Palma",
+        "La Cuchilla"
+      ]
+    },
+    {
+      "inspeccion": "Morro Negro",
+      "importancia": "Zona montañosa alta, reserva forestal y producción campesina familiar",
+      "censo": 890,
+      "mesas": 2,
+      "votacion_estimada": 590,
+      "vocacion": "Café de altura, pancoger, educación rural, vías de herradura",
+      "veredas_adscritas": [
+        "Morro Negro",
+        "El Palmar Alto",
+        "Las Mercedes",
+        "El Cedro",
+        "La Selva",
+        "Buenos Aires"
+      ]
+    },
+    {
+      "inspeccion": "Córdoba",
+      "importancia": "Comunidad con arraigo panelero y fuerte liderazgo comunal",
+      "censo": 760,
+      "mesas": 2,
+      "votacion_estimada": 510,
+      "vocacion": "Caña panelera, acueductos veredales artesanales, mujer rural y huertas",
+      "veredas_adscritas": [
+        "Córdoba",
+        "La Meseta",
+        "El Totumo",
+        "El Progreso",
+        "Agua Blanca",
+        "San Francisco"
+      ]
+    },
+    {
+      "inspeccion": "Pataló",
+      "importancia": "Zona limítrofe tradicional con gran riqueza en café y cacao",
+      "censo": 640,
+      "mesas": 2,
+      "votacion_estimada": 430,
+      "vocacion": "Cacao fino de aroma, café, ganado criollo y mular",
+      "veredas_adscritas": [
+        "Pataló",
+        "Tatí",
+        "Otal",
+        "El Diamante",
+        "San Antonio",
+        "La Esmeralda"
+      ]
+    },
+    {
+      "inspeccion": "Cabecera Municipal",
+      "importancia": "Centro institucional, bancario y de servicios urbanos",
+      "censo": 4200,
+      "mesas": 12,
+      "votacion_estimada": 2900,
+      "vocacion": "Comercio formal, administración pública, educación técnica, juventud y servicios",
+      "veredas_adscritas": [
+        "Barrios Urbanos",
+        "Perímetro Suburbano",
+        "Veredas periurbanas inmediatas"
+      ]
+    }
+  ],
+  "auditoria_alcaldias": [
+    {
+      "periodo": "2016 - 2019",
+      "alcalde": "José Joaquín Sánchez Chávez",
+      "lema": "Caparrapí Somos Todos",
+      "fuente_presupuesto": "Concejo Municipal / CHIP - FUT Contaduría General de la Nación",
+      "presupuesto_anual_promedio": "$16.000 Millones COP / año",
+      "presupuesto_cuatrienio": "$64.000 Millones COP",
+      "plataforma_contractual": "SECOP I (Histórico Colombia Compra Eficiente)",
+      "promesas_principales": [
+        "Mantenimiento vial con banco de maquinaria y recebo de vías terciarias",
+        "Apoyo a productores de caña panelera y fortalecimiento ganadero",
+        "Ampliación de redes de electrificación rural en veredas apartadas"
+      ],
+      "analisis_secop_realidad": [
+        "Contratación ejecutada principalmente en la plataforma SECOP I con modalidades de mínima cuantía y convenios",
+        "Alta dispersión de recursos en mantenimientos viales temporales que se perdían en cada temporada invernal",
+        "Débil estructuración de proyectos de regalías (OCAD) perdiendo cupos de cofinanciación nacional"
+      ],
+      "vulnerabilidad_politica": "Obras paliativas sin pavimentación definitiva de puntos críticos en San Carlos y Terán.",
+      "verificacion_oficial": "Formulario E-26 CNE / Registraduría Elecciones Octubre 2015, Acta de Posesión Enero 2016."
+    },
+    {
+      "periodo": "2020 - 2023",
+      "alcalde": "Gonzalo Ramírez Gaitán",
+      "lema": "Caparrapí Construye Futuro",
+      "fuente_presupuesto": "Concejo Municipal / CHIP - FUT Contaduría General de la Nación",
+      "presupuesto_anual_promedio": "$18.625 Millones COP / año",
+      "presupuesto_cuatrienio": "$74.500 Millones COP",
+      "plataforma_contractual": "Transición SECOP I a SECOP II (Electrónico)",
+      "promesas_principales": [
+        "Banco de maquinaria permanente operando en San Carlos, Terán y todas las cuencas",
+        "Construcción y optimización integral de la Planta de Tratamiento de Agua Potable (PTAP)",
+        "Fortalecimiento productivo a la caña panelera y diversificación agrícola",
+        "Construcción masiva de vivienda rural y placa huellas"
+      ],
+      "analisis_secop_realidad": [
+        "Más del 76% de los contratos tramitados por Contratación Directa (fuerte énfasis en OPS y cuotas burocráticas)",
+        "El contrato de la PTAP por $4.543 Millones (Consorcio G&C PTAP) sufrió demoras y la cobertura de agua rural continuó estancada en menos del 25%",
+        "Las vías terciarias en San Carlos (Cuatro Caminos - Las Ferias) y Terán colapsaron recurrentemente en invierno",
+        "Baja gestión de recursos del orden departamental y nacional"
+      ],
+      "vulnerabilidad_politica": "Sensación generalizada de maquinaria fantasma que solo aparecía semanas antes de elecciones y falta de acueductos veredales.",
+      "verificacion_oficial": "Formulario E-26 CNE / Registraduría Elecciones Octubre 2019, SIGEP Función Pública, Acta de Posesión Enero 2020."
+    },
+    {
+      "periodo": "2024 - 2027",
+      "alcalde": "Andrés Ardila Sánchez",
+      "lema": "Administración Actual en Curso",
+      "aval_politico": "Partido Conservador Colombiano (3.183 votos - 46,11%)",
+      "segundo_lugar_2023": "Isidro Anzola Aguirre - Caparrapí Participativo (2.853 votos - 41,32%) [Margen estrecho: 330 votos]",
+      "fuente_presupuesto": "Concejo Municipal / CHIP - FUT Contaduría General de la Nación",
+      "presupuesto_anual_promedio": "$20.800 Millones COP / año",
+      "presupuesto_estimado": "$83.200 Millones COP (Proyectado Cuatrienio)",
+      "plataforma_contractual": "SECOP II Transaccional 100% en Vivo",
+      "promesas_principales": [
+        "Construcción del Nuevo Palacio Municipal (Casa de Gobierno de Caparrapí)",
+        "Dragado y mitigación de cauces ante la CAR y energía solar",
+        "Mantenimiento y recuperación de la red vial terciaria con banco de maquinaria",
+        "Convenios con el SENA y fortalecimiento agropecuario veredal"
+      ],
+      "analisis_secop_realidad": [
+        "Concentración urbana de la inversión: Contrato CO1.PCCNTR.9428392 por $3.082 Millones (Consorcio Casa de Gobierno / Convenio ICCU) para el Palacio Municipal, mientras el 78.4% rural sigue con vías colapsadas en invierno.",
+        "Hipertrofia de Contratación Directa: 236 contratos de prestación de servicios (OPS) por más de $4.477 Millones (79,2% del volumen total en SECOP II), absorbiendo el margen de maniobra fiscal y con alto riesgo de clientelismo tras una victoria por solo 330 votos.",
+        "Mantenimiento de maquinaria sin presencia continua: Contrato CO1.PCCNTR.7965854 por $395 Millones (Héctor Javier Vanegas) en repuestos y mano de obra, pero sin cronograma público ni cobertura fija en San Carlos (Cuatro Caminos - Las Ferias) y Terán.",
+        "Inversión deportiva en San Ramón: Contrato CO1.PCCNTR.8399622 por $1.181 Millones (Marva Construcciones SAS) con interventoría CO1.PCCNTR.8714605 ($118M a INGPROSOL LTDA) que exige veeduría estricta para evitar retrasos.",
+        "Cero gestión bajo Obras por Impuestos: No se registran proyectos radicados ante la Agencia de Renovación del Territorio (ART) ni convocatorias de cofinanciación MGA para pavimentación definitiva de vías rurales."
+      ],
+      "auditoria_detallada_contratacion": [
+        {
+          "eje": "Palacio Municipal vs. Vías Rurales",
+          "contrato_id": "CO1.PCCNTR.9428392",
+          "monto": "$3.082 Millones COP",
+          "contratista": "CONSORCIO CASA DE GOBIERNO (Convenio ICCU)",
+          "hallazgo": "Mayor inversión de infraestructura del periodo concentrada en edificio institucional urbano, en contraste con el abandono vial de San Carlos, Terán y San Pedro."
+        },
+        {
+          "eje": "Hipertrofia de OPS / Contratación Directa",
+          "contrato_id": "236 Contratos SECOP II",
+          "monto": "$4.477 Millones COP",
+          "contratista": "Múltiples personas naturales (Prestación de Servicios)",
+          "hallazgo": "El 79,2% de los contratos adjudicados son directos. Gasto burocrático recurrente con fuerte impacto clientelar tras ganar la alcaldía por apenas 330 votos."
+        },
+        {
+          "eje": "Maquinaria Amarilla sin Presencia Fija",
+          "contrato_id": "CO1.PCCNTR.7965854",
+          "monto": "$395 Millones COP",
+          "contratista": "HECTOR JAVIER VANEGAS",
+          "hallazgo": "Casi $400 millones en mantenimiento sin frentes de obra permanentes en las cuencas; campesinos siguen arreglando pasos críticos con mingas."
+        },
+        {
+          "eje": "Polideportivo Cubierto en San Ramón",
+          "contrato_id": "CO1.PCCNTR.8399622",
+          "monto": "$1.181 Millones COP",
+          "contratista": "MARVA CONSTRUCCIONES SAS",
+          "hallazgo": "Obra en centro poblado que requiere vigilancia permanente sobre actas de recibo parcial para evitar elefantes blancos."
+        }
+      ],
+      "vulnerabilidad_politica": "Alcaldía ganada por un margen estrecho de 330 votos; concentrar $3.082M en el Palacio Municipal urbano mientras los campesinos pierden cosechas en invierno genera el caldo de cultivo perfecto para una propuesta técnica y veredal.",
+      "verificacion_oficial": "Formulario E-26 CNE / Registraduría Elecciones 29 de Octubre 2023 (3.183 votos), Credencial Oficial Alcalde Electo, SIGEP Activo."
+    }
+  ],
+  "top_megaproyectos_auditados": [
+    {
+      "id_proceso": "CO1.PCCNTR.9643444",
+      "objeto": "CONSTRUCCIÓN DE LA FASE I DEL PLAN MAESTRO DE ACUEDUCTO Y ALCANTARILLADO DEL MUNICIPIO DE CAPARRAPÍ (PTAP)",
+      "valor": 4543032234,
+      "contratista": "CONSORCIO G&C PTAP",
+      "modalidad": "Licitación Pública Obra Pública",
+      "estado": "En ejecución / Modificado",
+      "analisis_auditoria": "La obra más costosa en la historia reciente de Caparrapí. Destinada a solucionar el desabastecimiento de agua; sin embargo, las redes de distribución rural aún no cubren las cuencas críticas."
+    },
+    {
+      "id_proceso": "CO1.PCCNTR.9428392",
+      "objeto": "CONSTRUCCIÓN CASA DE GOBIERNO DEL MUNICIPIO DE CAPARRAPÍ; CUNDINAMARCA (Convenio ICCU - Alcaldía)",
+      "valor": 3082074870,
+      "contratista": "CONSORCIO CASA DE GOBIERNO",
+      "modalidad": "Licitación Pública Obra Pública",
+      "estado": "En ejecución",
+      "analisis_auditoria": "Proyecto insignia de la administración de Andrés Ardila Sánchez para edificar el nuevo palacio municipal con recursos cofinanciados del Instituto de Infraestructura y Concesiones de Cundinamarca (ICCU)."
+    },
+    {
+      "id_proceso": "CO1.PCCNTR.8399622",
+      "objeto": "PRIMERA ETAPA DE CONSTRUCCIÓN Y DOTACIÓN PLACA POLIDEPORTIVA CUBIERTA EN EL CENTRO POBLADO DE SAN RAMÓN",
+      "valor": 1181795375,
+      "contratista": "MARVA CONSTRUCCIONES SAS",
+      "modalidad": "Licitación Pública Obra Pública",
+      "estado": "En ejecución",
+      "analisis_auditoria": "Inversión deportiva en centro poblado rural. Contó con interventoría abierta mediante Concurso de Méritos CO1.PCCNTR.8714605 por $118M a favor de INGPROSOL LTDA."
+    },
+    {
+      "id_proceso": "CO1.PCCNTR.8652248",
+      "objeto": "MEJORAMIENTO DE LAS INSTITUCIONES EDUCATIVAS UBICADAS EN EL MUNICIPIO DE CAPARRAPÍ",
+      "valor": 398000000,
+      "contratista": "CONSORCIO MANTENIMIENTO ESCUELAS 2025",
+      "modalidad": "Selección Abreviada de Menor Cuantía",
+      "estado": "Terminado",
+      "analisis_auditoria": "Intervención de infraestructura escolar rural para adecuación de aulas y baterías sanitarias en escuelas veredales."
+    },
+    {
+      "id_proceso": "CO1.PCCNTR.7965854",
+      "objeto": "MANTENIMIENTO PREVENTIVO Y CORRECTIVO (INCLUYE MANO DE OBRA) DEL PARQUE AUTOMOTOR Y MAQUINARIA AMARILLA",
+      "valor": 395197982,
+      "contratista": "HECTOR JAVIER VANEGAS",
+      "modalidad": "Selección Abreviada de Menor Cuantía",
+      "estado": "Terminado",
+      "analisis_auditoria": "Contrato crucial para la operatividad de motoniveladoras y volquetas destinadas a la red terciaria municipal."
+    }
+  ],
+  "marco_juridico_y_verificacion": {
+    "como_se_verifican_los_alcaldes": [
+      {
+        "entidad": "Registraduría Nacional del Estado Civil / Consejo Nacional Electoral (CNE)",
+        "instrumento": "Formulario E-26 ALC (Acta General de Escrutinio) y Credencial de Alcalde Electo",
+        "certeza": "Documento público oficial con plena validez jurídica que certifica la victoria en urnas e identidad del mandatario para cada periodo constitucional."
+      },
+      {
+        "entidad": "Departamento Administrativo de la Función Pública (DAFP)",
+        "instrumento": "SIGEP (Sistema de Información y Gestión del Empleo Público)",
+        "certeza": "Registro de la hoja de vida, declaración juramentada de bienes y rentas y posesión de cada servidor público de elección popular."
+      },
+      {
+        "entidad": "Juzgado Promiscuo Municipal / Notaría / Concejo Municipal de Caparrapí",
+        "instrumento": "Acta de Posesión Constitucional (1 de enero del primer año del cuatrienio)",
+        "certeza": "Acto administrativo solemne donde asume legalmente el cargo, asumiendo representación legal y ordenación originaria del gasto."
+      }
+    ],
+    "responsabilidades_legales_y_ordenacion_del_gasto": {
+      "jefe_administracion": "Art. 314 y 315 Constitución Política de Colombia; Ley 136 de 1994 y Ley 1551 de 2012. El Alcalde es el jefe del gobierno municipal y representante legal.",
+      "ordenacion_del_gasto": "Ley 80 de 1993 (Art. 11) y Ley 1150 de 2007. El Alcalde ostenta la capacidad de contratar y comprometer los recursos presupuestales.",
+      "figura_de_delegacion": "Art. 12 Ley 80 de 1993 y Art. 9 Ley 489 de 1998. El Alcalde puede delegar la ordenación del gasto y suscripción de contratos en Secretarios de Despacho (ej. Planeación/Obras o Gobierno/Hacienda). Por eso en SECOP II aparecen los secretarios firmando procesos contractuales.",
+      "responsabilidad_in_vigilando": "Art. 21 Ley 1150 de 2007. La delegación NO exime al Alcalde de su deber de control, vigilancia y dirección sobre los contratos y el erario público.",
+      "regimen_sancionatorio": [
+        {
+          "tipo": "Responsabilidad Fiscal",
+          "ente": "Contraloría General de la República / Contraloría de Cundinamarca",
+          "ley": "Ley 610 de 2000",
+          "alcance": "Responde con su patrimonio personal por detrimento económico, sobrecostos o pagos indebidos."
+        },
+        {
+          "tipo": "Responsabilidad Disciplinaria",
+          "ente": "Procuraduría General de la Nación",
+          "ley": "Ley 1952 de 2019 (Código General Disciplinario)",
+          "alcance": "Suspensión, destitución e inhabilidad por faltas administrativas o extralimitación."
+        },
+        {
+          "tipo": "Responsabilidad Penal",
+          "ente": "Fiscalía General de la Nación",
+          "ley": "Código Penal (Ley 599 de 2000)",
+          "alcance": "Penas privativas de la libertad por celebración indebida de contratos, peculado, concusión o prevaricato."
+        }
+      ]
+    }
+  },
+  "politicas_presidencia_2026": [
+    {
+      "pilar": "Seguridad Rural, Orden y Libertad Económica",
+      "enfoque": "Garantizar que el campesino, comerciante y ganadero trabaje sin zozobra, sin extorsión ni abigeato.",
+      "mecanismo": "Presencia permanente de Fuerza Pública, control territorial veredal y combate frontal al robo de ganado y maquinaria.",
+      "oportunidad_caparrapi": "Blindar los corredores comerciales de San Carlos, Terán y las vías hacia Puerto Salgar y Guaduas para que el comercio fluya 24/7."
+    },
+    {
+      "pilar": "Obras por Impuestos y Alianzas Público-Privadas para Vías",
+      "enfoque": "Superar la burocracia estatal permitiendo que grandes empresas e inversionistas ejecuten obras viales directamente a cambio de impuestos.",
+      "mecanismo": "Inclusión de Caparrapí como municipio receptor de proyectos viales financiados por el sector privado bajo régimen ZOMAC / Obras por Impuestos.",
+      "oportunidad_caparrapi": "Pavimentación en placa huella pesada y asfalto de los ejes críticos: San Carlos - Cuatro Caminos, Terán y San Pedro sin depender de la lenta burocracia municipal."
+    },
+    {
+      "pilar": "Agroindustria Competitiva, Desregulación y Cero Trabas",
+      "enfoque": "El campesino es un empresario del campo. Menos impuestos, cero permisos absurdos y apoyo directo a la comercialización.",
+      "mecanismo": "Modernización de trapiches paneleros, plantas de acopio y crédito blando ágil a través del Banco Agrario y Finagro sin trámites asfixiantes.",
+      "oportunidad_caparrapi": "Caparrapí tiene 2.250 familias paneleras y miles de ganaderos. La oportunidad es transformar la panela tradicional en agroindustria de alto valor y exportación."
+    },
+    {
+      "pilar": "Seguridad Jurídica de la Tierra y Titulación Masiva",
+      "enfoque": "Respeto irrestricto a la propiedad privada rural y entrega inmediata de títulos de propiedad a los campesinos.",
+      "mecanismo": "Jornadas exprés de formalización y titulación de predios rurales.",
+      "oportunidad_caparrapi": "El 60% de los predios campesinos en Caparrapí carecen de escritura formal. Con el título en la mano, el productor puede hipotecar, invertir, tecnificar y acceder a créditos bancarios."
+    },
+    {
+      "pilar": "Biotecnología Pecuaria y Genética Equina de Alto Rendimiento",
+      "enfoque": "Fomento a la cría, tecnificación reproductiva y bienestar animal como motor de la economía de campo.",
+      "mecanismo": "Convenios con gremios (Fedegán, Fedequinas, Agrosavia) y fondos de fomento pecuario para subsidiar semen de reproductores certificados e inseminación artificial.",
+      "oportunidad_caparrapi": "Elevar la cotización de los potros, mulas y novillos de Caparrapí en las ferias ganaderas y equinas del Magdalena Centro y Cundinamarca."
+    }
+  ],
+  "banco_proyectos": [
+    {
+      "id": "PROY-01",
+      "codigo_bpin_propuesto": "2026-CAP-AGRO-01",
+      "codigo_producto_dnp": "4301032 - Servicio de asistencia técnica y mejoramiento genético pecuario",
+      "mga_fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "nombre": "Programa Municipal de Mejoramiento Genético, Sanidad y Fomento Equino y Pecuario",
+      "entidad_radicacion": "Ministerio de Agricultura / Fondo de Fomento Ganadero y Equino / Agrosavia",
+      "pilar_nacional": "Agroindustria Competitiva y Tecnificación Rural",
+      "mecanismo_financiacion": "Convocatoria PIDAR Agencia de Desarrollo Rural (ADR) + Alianzas Productivas",
+      "presupuesto_estimado_cop": 2850000000,
+      "poblacion_beneficiaria": "1.800 Criadores y Familias Campesinas",
+      "veredas_impacto": "San Carlos, San Pedro, Terán, La Magdalena, El Dindal, Morro Negro, Pataló y Córdoba",
+      "resumen": "Establecimiento de unidades móviles de biotecnología reproductiva con pajillas de reproductores certificados, ecografía reproductiva gratuita, banco municipal de forrajes y brigadas permanentes de sanidad animal.",
+      "arbol_problemas": {
+        "problema_central": "Baja productividad pecuaria y estancamiento del valor comercial del ganado y caballada en Caparrapí",
+        "causa_directa": "Consanguinidad por monta natural no controlada y deficiencia nutricional en épocas secas",
+        "causa_indirecta": "Falta de acceso de pequeños productores a pajillas de genética certificada y asistencia veterinaria continua",
+        "efecto_directo": "Bajo rendimiento en kilogramos de carne, menor producción lechera y potros con bajo precio en subastas",
+        "efecto_indirecto": "Menores ingresos para 1.800 familias y migración de jóvenes rurales por falta de rentabilidad"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Incrementar en un 35% el valor de comercialización del hato ganadero y equino de Caparrapí en 3 años",
+        "fines_directos": [
+          "Introducción de 3.500 pajillas de semen certificado (razas Brahman, Gyr, Simmental y reproductores equinos)",
+          "Instalación de 4 bancos comunitarios de ensilaje y forrajes resistentes al clima seco en San Carlos y San Pedro",
+          "Cobertura de 100% de hatos con registro sanitario y control parasitario"
+        ]
+      },
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$1.280 Millones COP",
+        "tir_social": "16,8%",
+        "relacion_costo_beneficio": "1,32"
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Equipamiento de Laboratorio Móvil y Tanques de Nitrógeno",
+          "valor": 480000000,
+          "apu_clave": "Unidad de termo criogénico con dotación de inseminación: $18.5M"
+        },
+        {
+          "capitulo": "Capítulo 2: Adquisición de Material Genético Certificado (Semen y Embriones)",
+          "valor": 720000000,
+          "apu_clave": "Pajilla certificada con pedigree: $95.000 / unidad"
+        },
+        {
+          "capitulo": "Capítulo 3: Bancos de Ensilaje y Parcelas Demostrativas de Pastos",
+          "valor": 650000000,
+          "apu_clave": "Hectárea de pasto de corte tecnificado con cerca eléctrica solar: $12.8M"
+        },
+        {
+          "capitulo": "Capítulo 4: Equipo Veterinario y Asistencia Técnica Veredal (3 Años)",
+          "valor": 820000000,
+          "apu_clave": "Mes de brigada veterinaria móvil con ecógrafo: $14.2M"
+        },
+        {
+          "capitulo": "Capítulo 5: Interventoría y Supervisión Técnica",
+          "valor": 180000000,
+          "apu_clave": "Auditoría de trazabilidad genética: $5.0M / mes"
+        }
+      ],
+      "saneamiento_predial_y_ambiental": "Predios de bancos de forraje con contrato de comodato o tenencia legal; registro sanitario ICA veredal al día.",
+      "requisitos_radicacion": [
+        "Ficha MGA registrada en el Banco BPIN con código de producto 4301032",
+        "Censo georreferenciado de criadores y vientres en San Carlos, Terán y San Pedro",
+        "Convenio marco con Fedegán / Agrosavia / Fedequinas",
+        "Certificado de disponibilidad presupuestal de contrapartida"
+      ],
+      "checklist_tareas": [
+        {
+          "tarea": "Censo de vientres y criadores en San Carlos, Terán y San Pedro",
+          "estado": "Listo para iniciar",
+          "responsable": "Equipo Técnico Agropecuario"
+        },
+        {
+          "tarea": "Estructuración de la Ficha MGA con árbol de problemas y presupuesto",
+          "estado": "Estructurado",
+          "responsable": "Planeación / Formulación"
+        },
+        {
+          "tarea": "Radicación en ventanilla de fomento pecuario",
+          "estado": "Listo para radicar",
+          "responsable": "Gestión Estratégica"
+        },
+        {
+          "tarea": "Socialización en asambleas de caballistas y ganaderos",
+          "estado": "En ejecución",
+          "responsable": "Liderazgo de Campaña"
+        }
+      ]
+    },
+    {
+      "id": "PROY-02",
+      "codigo_bpin_propuesto": "2026-CAP-VIAS-02",
+      "codigo_producto_dnp": "2101007 - Vías terciarias mejoradas con placa huella y obras de arte",
+      "mga_fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "nombre": "Plan de Conectividad Terciaria Estratégica: Corredores San Carlos - Terán - Cuencas Veredales",
+      "entidad_radicacion": "Ministerio de Transporte / INVIAS / Obras por Impuestos (ZOMAC) / OCAD Regalías",
+      "pilar_nacional": "Infraestructura Rápida y Alianzas Público-Privadas",
+      "mecanismo_financiacion": "Mecanismo de Obras por Impuestos (Art. 238 Ley 1819) + INVIAS Caminos Comunitarios",
+      "presupuesto_estimado_cop": 6500000000,
+      "poblacion_beneficiaria": "11.200 Habitantes Rurales de Caparrapí",
+      "veredas_impacto": "San Carlos (Cuatro Caminos - Las Ferias), Terán, La Magdalena, San Pedro y El Dindal",
+      "resumen": "Pavimentación en placa huella pesada (módulos prefabricados de alta resistencia) y construcción de 32 obras de arte (alcantarillas de 36 pulgadas, box culverts y cunetas revestidas) en los 15 tramos más críticos que colapsan en invierno.",
+      "arbol_problemas": {
+        "problema_central": "Incomunicación vial recurrente y colapso de vías terciarias en invierno en San Carlos y Terán",
+        "causa_directa": "Ausencia de obras de drenaje transversal y calzadas en tierra sin capacidad portante",
+        "causa_indirecta": "Historial de mantenimientos temporales de recebo que se lavan con las lluvias y falta de placa huellas estructurales",
+        "efecto_directo": "Fletes de transporte agrícola duplicados y pérdida de cosechas de panela, leche y cacao",
+        "efecto_indirecto": "Aislamiento comercial de las inspecciones y atraso socioeconómico veredal"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Garantizar transitabilidad permanente 365 días al año en los corredores San Carlos - Terán - Red Secundaria",
+        "fines_directos": [
+          "Construcción de 6,2 km de placa huella de alta resistencia en pendientes superiores al 12%",
+          "Instalación de 32 alcantarillas y 3 box culverts estructurales para manejo de escorrentía",
+          "Reducción del 45% en los costos de flete veredal de carga"
+        ]
+      },
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$2.840 Millones COP",
+        "tir_social": "19,4%",
+        "relacion_costo_beneficio": "1,45"
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Preliminares, Topografía y Localización",
+          "valor": 195000000,
+          "apu_clave": "Topografía con estación total y replanteo: $1.2M / km"
+        },
+        {
+          "capitulo": "Capítulo 2: Movimiento de Tierras, Excavación y Subbase Granular",
+          "valor": 1250000000,
+          "apu_clave": "Metro cúbico de subbase granular compactada: $86.000 / m³"
+        },
+        {
+          "capitulo": "Capítulo 3: Obras de Arte (Alcantarillas 36\", Box Culverts y Cunetas)",
+          "valor": 1420000000,
+          "apu_clave": "Metro lineal de alcantarilla 36\" con cabezales en concreto: $680.000 / m"
+        },
+        {
+          "capitulo": "Capítulo 4: Estructura de Placa Huella (Concreto 3000 PSI + Piedra Pegada)",
+          "valor": 3120000000,
+          "apu_clave": "Metro lineal de placa huella tipo INVIAS (ancho 4.5m): $520.000 / m"
+        },
+        {
+          "capitulo": "Capítulo 5: Plan de Manejo Ambiental y Señalización",
+          "valor": 195000000,
+          "apu_clave": "Disposición final de sobrantes y revegetalización: $32.000 / m³"
+        },
+        {
+          "capitulo": "Capítulo 6: Interventoría Técnica Integral",
+          "valor": 320000000,
+          "apu_clave": "Interventoría técnica y de laboratorio: 5% del valor directo"
+        }
+      ],
+      "saneamiento_predial_y_ambiental": "Minutas de servidumbre vial concertadas con propietarios colindantes; permiso menor de ocupación de cauce ante la CAR radicado.",
+      "requisitos_radicacion": [
+        "Estudios topográficos y diseños geotécnicos tipo INVIAS en Fase 3",
+        "Priorización concertada mediante actas de asamblea con Juntas de Acción Comunal",
+        "Certificado de no afectación ambiental y concepto de la CAR",
+        "Inclusión en el banco de proyectos de Obras por Impuestos (ART)"
+      ],
+      "checklist_tareas": [
+        {
+          "tarea": "Georreferenciación de los 15 puntos críticos en San Carlos y Terán",
+          "estado": "Completado",
+          "responsable": "Equipo Vías"
+        },
+        {
+          "tarea": "Estructuración de la Ficha MGA con APU regionalizado",
+          "estado": "Estructurado",
+          "responsable": "Planeación / Formulación"
+        },
+        {
+          "tarea": "Vinculación al mecanismo de Obras por Impuestos ante empresas del Magdalena Centro",
+          "estado": "Estructurado",
+          "responsable": "Enlace Nacional"
+        },
+        {
+          "tarea": "Radicación del expediente técnico en MinTransporte / INVIAS",
+          "estado": "Listo para radicar",
+          "responsable": "Gestión de Proyectos"
+        }
+      ]
+    },
+    {
+      "id": "PROY-03",
+      "codigo_bpin_propuesto": "2026-CAP-PANELA-03",
+      "codigo_producto_dnp": "4302015 - Centros de acopio y transformación agroindustrial dotados",
+      "mga_fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "nombre": "Agroindustria Panelera Competitiva: Modernización Tecnológica y Centro de Acopio Regional",
+      "entidad_radicacion": "Ministerio de Comercio / Ministerio de Agricultura / Finagro / ADR",
+      "pilar_nacional": "Libertad Económica, Agroindustria y Exportaciones",
+      "mecanismo_financiacion": "Fondo Emprender / ADR Convocatoria PIDAR + Crédito Finagro Agroindustrial",
+      "presupuesto_estimado_cop": 3800000000,
+      "poblacion_beneficiaria": "2.250 Familias Productoras de Panela",
+      "veredas_impacto": "Terán, San Carlos, El Dindal, Córdoba y cuencas aledañas",
+      "resumen": "Instalación de hornillas pirolíticas de alta eficiencia térmica (cero uso de leña y llantas) en 25 trapiches asociativos, líneas de empaque al vacío y construcción del Centro de Acopio y Comercialización Directa en Caparrapí para venta mayorista.",
+      "arbol_problemas": {
+        "problema_central": "Baja rentabilidad y pérdidas económicas de las familias paneleras por intermediación abusiva",
+        "causa_directa": "Baja eficiencia térmica de hornillas tradicionales y presentación comercial no certificada",
+        "causa_indirecta": "Falta de capital para modernizar trapiches y ausencia de un centro de acopio con báscula y bodega climatizada",
+        "efecto_directo": "El campesino vende a $3.000/kilo a intermediarios mientras en Bogotá se comercializa a $8.000",
+        "efecto_indirecto": "Endeudamiento de familias campesinas y quiebra de trapiches en Terán y San Carlos"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Aumentar en un 40% el ingreso neto de las familias paneleras mediante comercialización directa y valor agregado",
+        "fines_directos": [
+          "Reconversión tecnológica de 25 trapiches con hornillas de combustión limpia",
+          "Construcción y dotación del Centro de Acopio Regional de Panela con registro INVIMA",
+          "Firma de 5 acuerdos comerciales directos con almacenes de cadena y exportadores"
+        ]
+      },
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$1.950 Millones COP",
+        "tir_social": "18,2%",
+        "relacion_costo_beneficio": "1,39"
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Reconversión de Hornillas y Fondas Ecoeficientes (25 Trapiches)",
+          "valor": 1450000000,
+          "apu_clave": "Hornilla pirolítica con precalentador de jugos: $58.0M / unidad"
+        },
+        {
+          "capitulo": "Capítulo 2: Dotación de Líneas de Moldeo y Empaque al Vacío",
+          "valor": 550000000,
+          "apu_clave": "Empacadora al vacío industrial con fechador: $22.0M"
+        },
+        {
+          "capitulo": "Capítulo 3: Construcción Bodega y Centro de Acopio Regional en Caparrapí",
+          "valor": 1250000000,
+          "apu_clave": "Metro cuadrado de bodega con piso epóxico sanitario: $1.4M / m²"
+        },
+        {
+          "capitulo": "Capítulo 4: Certificaciones Sanitarias INVIMA y Registro de Marca",
+          "valor": 180000000,
+          "apu_clave": "Paquete de registro y tablas nutricionales: $7.2M / línea"
+        },
+        {
+          "capitulo": "Capítulo 5: Fondo Rotatorio de Comercialización y Transporte",
+          "valor": 370000000,
+          "apu_clave": "Camión furgón térmico de 5 toneladas: $240M"
+        }
+      ],
+      "saneamiento_predial_y_ambiental": "Lote para el Centro de Acopio con escritura pública a nombre del Municipio o Asociación; conceptos sanitarios INVIMA.",
+      "requisitos_radicacion": [
+        "Plan de negocio agroindustrial y análisis de demanda de mercado",
+        "Personería jurídica de las asociaciones paneleras de Terán y San Carlos",
+        "Estudios de diseño arquitectónico y sanitario del centro de acopio",
+        "Concepto técnico de no objeción ambiental de la CAR"
+      ],
+      "checklist_tareas": [
+        {
+          "tarea": "Censo y caracterización de trapiches en Terán y San Carlos",
+          "estado": "Completado",
+          "responsable": "Asociación Panelera"
+        },
+        {
+          "tarea": "Estructuración del proyecto en metodología MGA para MinComercio/ADR",
+          "estado": "Estructurado",
+          "responsable": "Economía y Proyectos"
+        },
+        {
+          "tarea": "Acuerdo de voluntades comerciales con distribuidores mayoristas",
+          "estado": "En trámite",
+          "responsable": "Comercialización"
+        }
+      ]
+    },
+    {
+      "id": "PROY-04",
+      "codigo_bpin_propuesto": "2026-CAP-AGUA-04",
+      "codigo_producto_dnp": "4001001 - Servicio de acueducto rural provisto y optimizado",
+      "mga_fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "nombre": "Plan de Seguridad Hídrica Rural: Acueductos Confiables para San Carlos, San Pedro y Veredas",
+      "entidad_radicacion": "Ministerio de Vivienda / Viceministerio de Agua / Fondo de Inversión para la Paz",
+      "pilar_nacional": "Infraestructura Social y Eficiencia de los Recursos Públicos",
+      "mecanismo_financiacion": "Programa Agua al Campo (MinVivienda) + SGR OCAD Regional Cundinamarca",
+      "presupuesto_estimado_cop": 5200000000,
+      "poblacion_beneficiaria": "7.500 Habitantes Rurales sin Agua Apta",
+      "veredas_impacto": "San Carlos, San Pedro, Córdoba, La Magdalena, Terán y Pataló",
+      "resumen": "Construcción y optimización de 6 sistemas de acueducto veredal mediante captaciones de fondo, desarenadores, plantas de potabilización de agua (PTAP) modulares con bombeo solar híbrido y redes de distribución con macromedición comunitaria.",
+      "arbol_problemas": {
+        "problema_central": "75,7% de la población rural de Caparrapí consume agua cruda sin potabilizar y sufre desabastecimiento",
+        "causa_directa": "Bocatomas colapsadas en invierno, ausencia de sistemas de cloración/filtración y redes artesanales",
+        "causa_indirecta": "Falta de redes matrices veredales de distribución que conecten con la PTAP municipal y falta de plantas locales",
+        "efecto_directo": "Altos índices de morbilidad por enfermedades diarreicas agudas (EDA) en niños y adultos mayores",
+        "efecto_indirecto": "Inviabilidad sanitaria de negocios gastronómicos, turísticos y agropecuarios en centros poblados"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Alcanzar el 70% de cobertura de agua apta para consumo humano en centros poblados y escuelas rurales",
+        "fines_directos": [
+          "Construcción de 6 bocatomas de fondo protegidas contra crecientes torrenciales",
+          "Instalación de 6 PTAP modulares con paneles solares y filtros multicama",
+          "Tendido de 24 km de tubería RDE-21 para redes matrices veredales"
+        ]
+      },
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$2.150 Millones COP",
+        "tir_social": "17,6%",
+        "relacion_costo_beneficio": "1,41"
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Bocatomas de Fondo y Desarenadores en Concreto 3500 PSI",
+          "valor": 880000000,
+          "apu_clave": "Bocatoma lateral con rejilla de fondo y vertedero de excesos: $146M / unidad"
+        },
+        {
+          "capitulo": "Capítulo 2: Plantas de Tratamiento Compactas Modulares (6 Unidades)",
+          "valor": 1650000000,
+          "apu_clave": "PTAP modular compacta de 2.5 L/s con cloración automática: $275M / unidad"
+        },
+        {
+          "capitulo": "Capítulo 3: Sistemas de Bombeo Solar Fotovoltaico Híbrido",
+          "valor": 540000000,
+          "apu_clave": "Arreglo solar de 12 paneles de 550W con bomba sumergible trifásica: $90M / sistema"
+        },
+        {
+          "capitulo": "Capítulo 4: Redes de Conducción y Distribución en Polietileno y PVC",
+          "valor": 1580000000,
+          "apu_clave": "Metro lineal de tubería PVC presión RDE-21 de 3\" instalada con zanja: $65.000 / m"
+        },
+        {
+          "capitulo": "Capítulo 5: Macromedición, Veeduría Comunitaria e Interventoría",
+          "valor": 550000000,
+          "apu_clave": "Macromedidor electromagnético veredal instalado: $12.5M"
+        }
+      ],
+      "saneamiento_predial_y_ambiental": "Concesión de aguas otorgada por la CAR para cada fuente hídrica; escrituras o servidumbres de paso inscritas en el folio de matrícula.",
+      "requisitos_radicacion": [
+        "Resolución de concesión de aguas vigente emitida por la CAR",
+        "Diagnóstico de calidad de agua físico-química y microbiológica (IRCA veredal)",
+        "Plan de aseguramiento y sostenibilidad operativa con las juntas de acueducto",
+        "Expediente técnico radicado en el mecanismo de Ventanilla Única de MinVivienda"
+      ],
+      "checklist_tareas": [
+        {
+          "tarea": "Inventario de bocatomas y aforos de caudal en San Carlos y San Pedro",
+          "estado": "Completado",
+          "responsable": "Ingeniería Ambiental"
+        },
+        {
+          "tarea": "Expediente técnico estructurado en MGA listo para radicación",
+          "estado": "Listo para radicar",
+          "responsable": "Formulación de Proyectos"
+        },
+        {
+          "tarea": "Concertación comunitaria para conformación de la Junta Administradora",
+          "estado": "En ejecución",
+          "responsable": "Gestión Comunitaria"
+        }
+      ]
+    }
+  ],
+  "radar_convocatorias_financiamiento": [
+    {
+      "id": "CONV-01",
+      "entidad": "Agencia de Renovación del Territorio (ART) / DNP",
+      "mecanismo": "Mecanismo de Obras por Impuestos (Ley 1819/2016 Art. 238 y Decreto 1625/2016)",
+      "objeto": "Financiación directa de proyectos de infraestructura vial y acueducto por parte de empresas privadas contribuyentes del impuesto de renta.",
+      "aplicacion_caparrapi": "Caparrapí califica para postular proyectos viales (San Carlos - Cuatro Caminos - Terán) para que petroleras, cementeras y energéticas del Magdalena Centro financien las placa huellas directamente a cambio de su impuesto de renta.",
+      "requisito_clave": "Proyecto viabilizado en MGA con concepto del ministerio sectorial y registro en el banco de Obras por Impuestos.",
+      "monto_promedio_bolsa": "$250.000 Millones COP (Bolsa Anual Nacional)",
+      "enlace_oficial": "https://www.renovacionterritorio.gov.co/Especiales/obras_por_impuestos/"
+    },
+    {
+      "id": "CONV-02",
+      "entidad": "Instituto Nacional de Vías (INVIAS) / Ministerio de Transporte",
+      "mecanismo": "Caminos Comunitarios de la Paz Total / Convenios Solidarios con JAC",
+      "objeto": "Construcción de tramos de placa huella y alcantarillas mediante convenios directos con Juntas de Acción Comunal rurales.",
+      "aplicacion_caparrapi": "Postulación de las JAC de Cuatro Caminos, Las Ferias, Alto de San Carlos, Barranquillas y Buena Vista en Terán para tramos de 300m a 800m de placa huella.",
+      "requisito_clave": "RUT de la JAC activo, personería jurídica al día en IDACO y acta de concertación comunitaria.",
+      "monto_promedio_bolsa": "$200 a $400 Millones COP por JAC",
+      "enlace_oficial": "https://www.invias.gov.co"
+    },
+    {
+      "id": "CONV-03",
+      "entidad": "Ministerio de Vivienda, Ciudad y Territorio",
+      "mecanismo": "Programa Agua al Campo / Viceministerio de Agua y Saneamiento Básico",
+      "objeto": "Financiación de infraestructura de captación, potabilización y redes de distribución para acueductos veredales y escuelas rurales.",
+      "aplicacion_caparrapi": "Superar el 75,7% de déficit de agua potable rural en San Carlos, San Pedro, Terán y La Magdalena mediante plantas compactas y paneles solares.",
+      "requisito_clave": "Concesión de aguas superficiales de la CAR vigente, análisis físico-químico del agua y predio de la bocatoma legalizado a favor del municipio.",
+      "monto_promedio_bolsa": "$1.500 a $6.000 Millones COP por proyecto",
+      "enlace_oficial": "https://minvivienda.gov.co"
+    },
+    {
+      "id": "CONV-04",
+      "entidad": "Agencia de Desarrollo Rural (ADR) / Ministerio de Agricultura",
+      "mecanismo": "Convocatoria PIDAR y Alianzas Productivas para la Paz",
+      "objeto": "Cofinanciación de maquinaria, tecnificación de trapiches, biotecnología pecuaria y comercialización directa.",
+      "aplicacion_caparrapi": "Modernización de los trapiches paneleros en Terán y San Carlos y centro de acopio ganadero con pajillas de genética certificada.",
+      "requisito_clave": "Asociación campesina formalmente constituida con mínimo 30 productores, plan de negocio MGA y contrapartida del 10% al 20%.",
+      "monto_promedio_bolsa": "$1.200 a $3.500 Millones COP por alianza",
+      "enlace_oficial": "https://www.adr.gov.co"
+    },
+    {
+      "id": "CONV-05",
+      "entidad": "Sistema General de Regalías (SGR) / OCAD Regional Cundinamarca",
+      "mecanismo": "Asignación para la Inversión Regional y Fondos de Compensación Territorial",
+      "objeto": "Inversiones estratégicas de impacto subregional con recursos de regalías del petróleo y minería.",
+      "aplicacion_caparrapi": "Pavimentación y obras de arte en corredores limítrofes intermunicipales (Caparrapí - Guaduas y Caparrapí - Puerto Salgar por San Carlos).",
+      "requisito_clave": "Proyecto radicado en SUIFP-SGR con viabilidad del sector transporte del DNP y aval del Departamento.",
+      "monto_promedio_bolsa": "Convocatorias semestrales de $15.000 a $50.000 Millones COP",
+      "enlace_oficial": "https://www.sgr.gov.co"
+    }
+  ],
+  "fichas_gira_veredal": [
+    {
+      "vereda": "San Carlos",
+      "inspeccion": "San Carlos",
+      "censo_electoral": 1620,
+      "votos_estimados": 1120,
+      "lideres_clave": "Presidentes JAC Cuatro Caminos, Las Ferias, San Pablo, El Trapiche, Comité de Ganaderos y Comerciantes de la Troncal.",
+      "fallas_secop_historicas": "Contratos 2026 de afirmado por $349M en Cuatro Caminos que se lavan con cada aguacero sin resolver el problema de fondo. Solo 3 contratos específicos registrados en SECOP en los últimos 4 años ($980M en total), dejando a San Carlos abandonado frente a su peso comercial. Cero presencia permanente en salidas a Guaduas y Puerto Salgar.",
+      "propuesta_tecnica_2026": "Obras por Impuestos (ZOMAC) para pavimentación en placa huella pesada en el eje Cuatro Caminos - Las Ferias vinculando inversión privada sin burocracia municipal. Puesto satélite de biotecnología pecuaria e inseminación certificada. Puesto de control militar-policial permanente para blindar el corredor ganadero.",
+      "argumentario_reunion": "«Comunidad de San Carlos: conocemos cada metro de esta tierra y el abandono que han sufrido. En SECOP vemos que la plata se ha ido en contratos de parcheo que se desbaratan en invierno. La Presidencia 2026 nos da las herramientas: Obras por Impuestos para pavimentar de verdad, seguridad para que el ganadero trabaje sin miedo y genética de punta para que sus animales valgan en las ferias. San Carlos es el motor de Caparrapí y así lo vamos a tratar.»",
+      "fuente_oficial": "SECOP II Contratos 2020-2026 / Ficha MGA BPIN 2026-CAP-VIAS-02"
+    },
+    {
+      "vereda": "Terán",
+      "inspeccion": "Terán",
+      "censo_electoral": 1450,
+      "votos_estimados": 1020,
+      "lideres_clave": "Asociación de Productores Paneleros, JAC Barranquillas, Buena Vista, Alto del Roble, Trapiche Viejo.",
+      "fallas_secop_historicas": "Más de 300 trapiches operando con leña y ACPM costoso; cero proyectos de modernización aprobados en las alcaldías pasadas en SECOP. Intermediarios abusivos porque el municipio nunca estructuró el centro de acopio prometido. Vías hacia Barranquillas y Alto del Roble intransitables en invierno.",
+      "propuesta_tecnica_2026": "Modernización agroindustrial con líneas de fomento de MinComercio y Finagro para tecnología calórica en 25 trapiches. Centro de Acopio Regional de Panela para venta directa a almacenes nacionales eliminando el intermediario. Placa huellas modulares en pasos críticos.",
+      "argumentario_reunion": "«Amigos paneleros de Terán y veredas vecinas: aquí no venimos con promesas de saliva. Sabemos que el sustento de 2.200 familias está en la molienda. La política nacional 2026 le apuesta a la libertad económica y a la agroindustria: tecnificamos los trapiches para bajar costos y montamos el centro de acopio para que la ganancia se quede en el bolsillo del campesino de Terán.»",
+      "fuente_oficial": "SECOP II / ADR Línea Alianzas Productivas 2026 / Ficha MGA BPIN 2026-CAP-AGRO-01"
+    },
+    {
+      "vereda": "San Pedro",
+      "inspeccion": "San Pedro",
+      "censo_electoral": 1280,
+      "votos_estimados": 910,
+      "lideres_clave": "JAC San Pedro Centro, Acuaparrapí, El Silencio, Loma Alta, Criadores equinos y ganaderos.",
+      "fallas_secop_historicas": "El 70% de las casas no tiene agua potable continua a pesar de los anuncios de la PTAP municipal. Servicios rurales inexistentes: poca asistencia veterinaria oficial; criadores costean todo de su bolsillo.",
+      "propuesta_tecnica_2026": "Seguridad hídrica rural: planta de filtración compacta y micromedición comunitaria para el acueducto veredal. Unidad Móvil Veterinaria Gratuita permanente para la caballada y ganado en finca.",
+      "argumentario_reunion": "«Vecinos de San Pedro: no es justo que una de las tierras con mayor tradición y mejores vientres siga sin agua tratada y sin un veterinario que acompañe al productor. Tenemos los proyectos radicables listos para que la salud, el agua y el fomento pecuario lleguen con hechos, no con politiquería.»",
+      "fuente_oficial": "DNP TerriData Cobertura Agua / SECOP II Contrato PTAP / Ficha MGA BPIN 2026-CAP-AGRO-01"
+    },
+    {
+      "vereda": "La Magdalena",
+      "inspeccion": "La Magdalena",
+      "censo_electoral": 1150,
+      "votos_estimados": 790,
+      "lideres_clave": "JAC La Magdalena Centro, Canchimay, La Unión, Productores de cítricos y frutales.",
+      "fallas_secop_historicas": "Pérdida recurrente de puentes de herradura y pasos fluviales; maquinaria del municipio asignada de manera intermitente sin atender la cosecha frutal.",
+      "propuesta_tecnica_2026": "Construcción de pontones modulares de acero galvanizado con Fondo Adaptación e Invías; centro de acopio de frutas con cadena de frío rural solar.",
+      "argumentario_reunion": "«En La Magdalena cada cosecha que se pudre por falta de puente es una herida al bolsillo campesino. Venimos con soluciones de ingeniería rápida de Invías para que nunca más una creciente incomunique su producción.»",
+      "fuente_oficial": "SECOP II Auditoría Vías / Invías Caminos Comunitarios"
+    },
+    {
+      "vereda": "El Dindal",
+      "inspeccion": "El Dindal",
+      "censo_electoral": 980,
+      "votos_estimados": 670,
+      "lideres_clave": "Comités Cafeteros locales, JAC Peñas Blancas, La Florida, Montefrío.",
+      "fallas_secop_historicas": "Cero inversión en secado solar y beneficio ecológico de café en SECOP II durante los últimos 8 años; subsidios de fertilizantes concentrados en intermediarios.",
+      "propuesta_tecnica_2026": "Ficha MGA para microcentrales de beneficio ecológico de café con recirculación de aguas mieles; crédito ágil con tasa compensada Finagro para renovación de cafetales.",
+      "argumentario_reunion": "«El café de El Dindal tiene tasa de calidad de exportación pero el caficultor sigue pagando abonos caros y perdiendo en la pasilla. Con la metodología MGA Fase 3 radicamos directamente en MinAgricultura las microcentrales de beneficio ecológico.»",
+      "fuente_oficial": "DNP Indicadores Cafeteros / Finagro 2026 / Ficha MGA BPIN 2026-CAP-AGRO-01"
+    },
+    {
+      "vereda": "Morro Negro",
+      "inspeccion": "Morro Negro",
+      "censo_electoral": 890,
+      "votos_estimados": 610,
+      "lideres_clave": "JAC Morro Negro, Alto de Minas, El Chipal, Educadores rurales.",
+      "fallas_secop_historicas": "Aislamiento severo por derrumbes constantes en la falla geológica; desconexión digital total en escuelas veredales.",
+      "propuesta_tecnica_2026": "Estabilización de taludes con biomantos y muros gavión; dotación de internet satelital Starlink institucional para las escuelas veredales con MinTIC.",
+      "argumentario_reunion": "«Morro Negro no puede seguir incomunicado cada vez que caen dos aguaceros. Estabilizamos los taludes con ingeniería moderna y conectamos a nuestros niños al mundo con internet satelital de alta velocidad.»",
+      "fuente_oficial": "UNGRD Gestión del Riesgo / MinTIC Conectividad Rural 2026"
+    },
+    {
+      "vereda": "Córdoba",
+      "inspeccion": "Córdoba",
+      "censo_electoral": 820,
+      "votos_estimados": 560,
+      "lideres_clave": "JAC Córdoba Centro, El Guamal, Sabaneta, Productores de caña y ganado.",
+      "fallas_secop_historicas": "Vías colapsadas en pasos de herradura; ausencia de banco de maquinaria regional en época de molienda.",
+      "propuesta_tecnica_2026": "Kit de maquinaria comunitaria asignado por cuencas con operador capacitado y placa huellas en las rampas de mayor pendiente.",
+      "argumentario_reunion": "«La gente de Córdoba sabe madrugar y trabajar, lo que no aguanta más es ver las vías abandonadas mientras los presupuestos se quedan en el papel. Vamos a poner la maquinaria a trabajar en la vereda con cronograma público.»",
+      "fuente_oficial": "SECOP II Contratos Maquinaria / Plan Territorial Caparrapí"
+    },
+    {
+      "vereda": "Pataló",
+      "inspeccion": "Pataló",
+      "censo_electoral": 760,
+      "votos_estimados": 520,
+      "lideres_clave": "JAC Pataló Centro, El Trapiche, La Fría, Comités de agua veredal.",
+      "fallas_secop_historicas": "Proyectos de alcantarillado rural inconclusos y vertimientos sin tratamiento a fuentes hídricas.",
+      "propuesta_tecnica_2026": "Pozos sépticos biológicos modulares certificados e instalación de sistemas fotovoltaicos aislados para trapiches.",
+      "argumentario_reunion": "«En Pataló cuidamos el agua porque es la vida de nuestras familias. Reemplazamos los pozos tradicionales por sistemas de saneamiento ecológico y dotamos de energía limpia al campo.»",
+      "fuente_oficial": "CAR Cundinamarca / MinVivienda Agua al Campo 2026"
+    },
+    {
+      "vereda": "Cabecera Municipal",
+      "inspeccion": "Cabecera Municipal",
+      "censo_electoral": 3200,
+      "votos_estimados": 2180,
+      "lideres_clave": "Comerciantes de la plaza de mercado, transportadores urbanos, JAC barriales y juventudes.",
+      "fallas_secop_historicas": "Obras de adecuación urbana con adiciones presupuestales de más del 40% y retrasos de meses en entrega de vías principales; gasto concentrado en el nuevo palacio municipal ($3.082M) mientras el comercio reclama apoyo.",
+      "propuesta_tecnica_2026": "Modernización de la plaza de mercado municipal con área de descarga refrigerada, reactivación del terminal de transporte y digitalización de trámites tributarios.",
+      "argumentario_reunion": "«La Cabecera Municipal debe ser el motor de servicios y comercio que impulse a todo Caparrapí. Gobernaremos con transparencia SECOP en línea y obras entregadas a tiempo sin sobrecostos.»",
+      "fuente_oficial": "SECOP II Contrato Casa de Gobierno CO1.PCCNTR.9428392 / DNP TerriData"
+    }
+  ],
+  "veredas_directorio": [
+    {
+      "inspeccion": "San Carlos",
+      "poblacion_estimada": 1620,
+      "veredas": [
+        "San Carlos Centro Poblado",
+        "Cuatro Caminos",
+        "Las Ferias",
+        "San Pablo",
+        "Alto de San Carlos",
+        "El Trapiche",
+        "El Chipal",
+        "La Cabaña",
+        "El Retiro"
+      ],
+      "vias_criticas": "Eje Cuatro Caminos - Las Ferias - Conexión Guaduas y Puerto Salgar",
+      "vocacion_economica": "Ganadería de doble propósito, cacao, comercio regional, porcicultura y caña",
+      "prioridad": "Principal polo comercial, ganadero y de tránsito intermunicipal (hacia Guaduas y Puerto Salgar)"
+    },
+    {
+      "inspeccion": "Terán",
+      "poblacion_estimada": 1450,
+      "veredas": [
+        "Terán Centro Poblado",
+        "Barranquillas",
+        "Buena Vista",
+        "Alto del Roble",
+        "Trapiche Viejo",
+        "La Fría",
+        "Monteverde",
+        "El Palmar"
+      ],
+      "vias_criticas": "Corredor panelero Barranquillas - Alto del Roble y pasos de herradura",
+      "vocacion_economica": "Caña panelera, molienda comunitaria, yeguas de carga, comercio de panela",
+      "prioridad": "Eje neurálgico de la cuenca panelera y mayor concentración de trapiches"
+    },
+    {
+      "inspeccion": "San Pedro",
+      "poblacion_estimada": 1280,
+      "veredas": [
+        "San Pedro Centro Poblado",
+        "Loma Alta",
+        "Acuaparrapí",
+        "El Silencio",
+        "El Roble",
+        "La Esperanza",
+        "Hoyo Caliente",
+        "Brazuelos"
+      ],
+      "vias_criticas": "Eje Acuaparrapí - Loma Alta y acceso a fuentes hídricas",
+      "vocacion_economica": "Ganadería, cría equina, café, acueductos veredales, agricultura de pancoger",
+      "prioridad": "Centro de servicios rurales, salud comunitaria, caballada tradicional y fuentes hídricas"
+    },
+    {
+      "inspeccion": "La Magdalena",
+      "poblacion_estimada": 1150,
+      "veredas": [
+        "La Magdalena Centro Poblado",
+        "La Hoya",
+        "San Cayetano",
+        "Canchimay",
+        "La Unión",
+        "Bavaria",
+        "El Carmen"
+      ],
+      "vias_criticas": "Pasos de herradura fluviales y puentes sobre quebradas",
+      "vocacion_economica": "Frutales, caña, puentes y pasos de herradura, ganadería",
+      "prioridad": "Corredor estratégico de salida de cosechas y cuenca fluvial"
+    },
+    {
+      "inspeccion": "El Dindal",
+      "poblacion_estimada": 980,
+      "veredas": [
+        "El Dindal Centro Poblado",
+        "Montefrío",
+        "La Florida",
+        "Peñas Blancas",
+        "El Guadual",
+        "La Palma",
+        "La Cuchilla"
+      ],
+      "vias_criticas": "Conexión cafetera Montefrío - Peñas Blancas",
+      "vocacion_economica": "Café pergamino, caña, ganado de ceba, transporte a lomo de mula",
+      "prioridad": "Inspección de alta vocación cafetera, panelera y pecuaria"
+    },
+    {
+      "inspeccion": "Morro Negro",
+      "poblacion_estimada": 890,
+      "veredas": [
+        "Morro Negro",
+        "El Palmar Alto",
+        "Las Mercedes",
+        "El Cedro",
+        "La Selva",
+        "Buenos Aires"
+      ],
+      "vias_criticas": "Falla geológica activa y paso de herradura hacia Alto de Minas",
+      "vocacion_economica": "Café de altura, pancoger, educación rural, vías de herradura",
+      "prioridad": "Zona montañosa alta, reserva forestal y producción campesina familiar"
+    },
+    {
+      "inspeccion": "Córdoba",
+      "poblacion_estimada": 760,
+      "veredas": [
+        "Córdoba",
+        "La Meseta",
+        "El Totumo",
+        "El Progreso",
+        "Agua Blanca",
+        "San Francisco"
+      ],
+      "vias_criticas": "Acceso hacia El Guamal y Sabaneta",
+      "vocacion_economica": "Caña panelera, acueductos veredales artesanales, mujer rural y huertas",
+      "prioridad": "Comunidad con arraigo panelero y fuerte liderazgo comunal"
+    },
+    {
+      "inspeccion": "Pataló",
+      "poblacion_estimada": 640,
+      "veredas": [
+        "Pataló",
+        "Tatí",
+        "Otal",
+        "El Diamante",
+        "San Antonio",
+        "La Esmeralda"
+      ],
+      "vias_criticas": "Paso Pataló - La Fría y trapiches de ladera",
+      "vocacion_economica": "Cacao fino de aroma, café, ganado criollo y mular",
+      "prioridad": "Zona limítrofe tradicional con gran riqueza en café y cacao"
+    },
+    {
+      "inspeccion": "Cabecera Municipal",
+      "poblacion_estimada": 4200,
+      "veredas": [
+        "Barrios Urbanos",
+        "Perímetro Suburbano",
+        "Veredas periurbanas inmediatas"
+      ],
+      "vias_criticas": "Malla vial urbana y accesos intermunicipales",
+      "vocacion_economica": "Comercio formal, administración pública, educación técnica, juventud y servicios",
+      "prioridad": "Centro institucional, bancario y de servicios urbanos"
+    }
+  ],
+  "auditoria_gobiernos": [
+    {
+      "periodo": "2016 - 2019",
+      "alcalde": "José Joaquín Sánchez Chávez",
+      "presupuesto_total": "$64.000 Millones COP",
+      "enfoque": "Mantenimiento vial con banco de maquinaria y recebo de vías terciarias • Apoyo a productores de caña panelera y fortalecimiento ganadero • Ampliación de redes de electrificación rural en veredas apartadas",
+      "alertas": "Obras paliativas sin pavimentación definitiva de puntos críticos en San Carlos y Terán.",
+      "aval_politico": null,
+      "segundo_lugar_2023": null,
+      "plataforma_contractual": "SECOP I (Histórico Colombia Compra Eficiente)",
+      "analisis_secop_realidad": [
+        "Contratación ejecutada principalmente en la plataforma SECOP I con modalidades de mínima cuantía y convenios",
+        "Alta dispersión de recursos en mantenimientos viales temporales que se perdían en cada temporada invernal",
+        "Débil estructuración de proyectos de regalías (OCAD) perdiendo cupos de cofinanciación nacional"
+      ],
+      "auditoria_detallada_contratacion": []
+    },
+    {
+      "periodo": "2020 - 2023",
+      "alcalde": "Gonzalo Ramírez Gaitán",
+      "presupuesto_total": "$74.500 Millones COP",
+      "enfoque": "Banco de maquinaria permanente operando en San Carlos, Terán y todas las cuencas • Construcción y optimización integral de la Planta de Tratamiento de Agua Potable (PTAP) • Fortalecimiento productivo a la caña panelera y diversificación agrícola • Construcción masiva de vivienda rural y placa huellas",
+      "alertas": "Sensación generalizada de maquinaria fantasma que solo aparecía semanas antes de elecciones y falta de acueductos veredales.",
+      "aval_politico": null,
+      "segundo_lugar_2023": null,
+      "plataforma_contractual": "Transición SECOP I a SECOP II (Electrónico)",
+      "analisis_secop_realidad": [
+        "Más del 76% de los contratos tramitados por Contratación Directa (fuerte énfasis en OPS y cuotas burocráticas)",
+        "El contrato de la PTAP por $4.543 Millones (Consorcio G&C PTAP) sufrió demoras y la cobertura de agua rural continuó estancada en menos del 25%",
+        "Las vías terciarias en San Carlos (Cuatro Caminos - Las Ferias) y Terán colapsaron recurrentemente en invierno",
+        "Baja gestión de recursos del orden departamental y nacional"
+      ],
+      "auditoria_detallada_contratacion": []
+    },
+    {
+      "periodo": "2024 - 2027",
+      "alcalde": "Andrés Ardila Sánchez",
+      "presupuesto_total": "$83.200 Millones COP (Proyectado Cuatrienio)",
+      "enfoque": "Construcción del Nuevo Palacio Municipal (Casa de Gobierno de Caparrapí) • Dragado y mitigación de cauces ante la CAR y energía solar • Mantenimiento y recuperación de la red vial terciaria con banco de maquinaria • Convenios con el SENA y fortalecimiento agropecuario veredal",
+      "alertas": "Alcaldía ganada por un margen estrecho de 330 votos; concentrar $3.082M en el Palacio Municipal urbano mientras los campesinos pierden cosechas en invierno genera el caldo de cultivo perfecto para una propuesta técnica y veredal.",
+      "aval_politico": "Partido Conservador Colombiano (3.183 votos - 46,11%)",
+      "segundo_lugar_2023": "Isidro Anzola Aguirre - Caparrapí Participativo (2.853 votos - 41,32%) [Margen estrecho: 330 votos]",
+      "plataforma_contractual": "SECOP II Transaccional 100% en Vivo",
+      "analisis_secop_realidad": [
+        "Concentración urbana de la inversión: Contrato CO1.PCCNTR.9428392 por $3.082 Millones (Consorcio Casa de Gobierno / Convenio ICCU) para el Palacio Municipal, mientras el 78.4% rural sigue con vías colapsadas en invierno.",
+        "Hipertrofia de Contratación Directa: 236 contratos de prestación de servicios (OPS) por más de $4.477 Millones (79,2% del volumen total en SECOP II), absorbiendo el margen de maniobra fiscal y con alto riesgo de clientelismo tras una victoria por solo 330 votos.",
+        "Mantenimiento de maquinaria sin presencia continua: Contrato CO1.PCCNTR.7965854 por $395 Millones (Héctor Javier Vanegas) en repuestos y mano de obra, pero sin cronograma público ni cobertura fija en San Carlos (Cuatro Caminos - Las Ferias) y Terán.",
+        "Inversión deportiva en San Ramón: Contrato CO1.PCCNTR.8399622 por $1.181 Millones (Marva Construcciones SAS) con interventoría CO1.PCCNTR.8714605 ($118M a INGPROSOL LTDA) que exige veeduría estricta para evitar retrasos.",
+        "Cero gestión bajo Obras por Impuestos: No se registran proyectos radicados ante la Agencia de Renovación del Territorio (ART) ni convocatorias de cofinanciación MGA para pavimentación definitiva de vías rurales."
+      ],
+      "auditoria_detallada_contratacion": [
+        {
+          "eje": "Palacio Municipal vs. Vías Rurales",
+          "contrato_id": "CO1.PCCNTR.9428392",
+          "monto": "$3.082 Millones COP",
+          "contratista": "CONSORCIO CASA DE GOBIERNO (Convenio ICCU)",
+          "hallazgo": "Mayor inversión de infraestructura del periodo concentrada en edificio institucional urbano, en contraste con el abandono vial de San Carlos, Terán y San Pedro."
+        },
+        {
+          "eje": "Hipertrofia de OPS / Contratación Directa",
+          "contrato_id": "236 Contratos SECOP II",
+          "monto": "$4.477 Millones COP",
+          "contratista": "Múltiples personas naturales (Prestación de Servicios)",
+          "hallazgo": "El 79,2% de los contratos adjudicados son directos. Gasto burocrático recurrente con fuerte impacto clientelar tras ganar la alcaldía por apenas 330 votos."
+        },
+        {
+          "eje": "Maquinaria Amarilla sin Presencia Fija",
+          "contrato_id": "CO1.PCCNTR.7965854",
+          "monto": "$395 Millones COP",
+          "contratista": "HECTOR JAVIER VANEGAS",
+          "hallazgo": "Casi $400 millones en mantenimiento sin frentes de obra permanentes en las cuencas; campesinos siguen arreglando pasos críticos con mingas."
+        },
+        {
+          "eje": "Polideportivo Cubierto en San Ramón",
+          "contrato_id": "CO1.PCCNTR.8399622",
+          "monto": "$1.181 Millones COP",
+          "contratista": "MARVA CONSTRUCCIONES SAS",
+          "hallazgo": "Obra en centro poblado que requiere vigilancia permanente sobre actas de recibo parcial para evitar elefantes blancos."
+        }
+      ]
+    }
+  ],
+  "megaproyectos_auditados": [
+    {
+      "nombre": "CONSTRUCCIÓN DE LA FASE I DEL PLAN MAESTRO DE ACUEDUCTO Y ALCANTARILLADO DEL MUNICIPIO DE CAPARRAPÍ (PTAP)",
+      "cuantia": "",
+      "fuente": "SECOP II Oficial",
+      "estado": "Celebrado",
+      "alerta": "Veeduría comunitaria activa"
+    },
+    {
+      "nombre": "CONSTRUCCIÓN CASA DE GOBIERNO DEL MUNICIPIO DE CAPARRAPÍ; CUNDINAMARCA (Convenio ICCU - Alcaldía)",
+      "cuantia": "",
+      "fuente": "SECOP II Oficial",
+      "estado": "Celebrado",
+      "alerta": "Veeduría comunitaria activa"
+    },
+    {
+      "nombre": "PRIMERA ETAPA DE CONSTRUCCIÓN Y DOTACIÓN PLACA POLIDEPORTIVA CUBIERTA EN EL CENTRO POBLADO DE SAN RAMÓN",
+      "cuantia": "",
+      "fuente": "SECOP II Oficial",
+      "estado": "Celebrado",
+      "alerta": "Veeduría comunitaria activa"
+    },
+    {
+      "nombre": "MEJORAMIENTO DE LAS INSTITUCIONES EDUCATIVAS UBICADAS EN EL MUNICIPIO DE CAPARRAPÍ",
+      "cuantia": "",
+      "fuente": "SECOP II Oficial",
+      "estado": "Celebrado",
+      "alerta": "Veeduría comunitaria activa"
+    },
+    {
+      "nombre": "MANTENIMIENTO PREVENTIVO Y CORRECTIVO (INCLUYE MANO DE OBRA) DEL PARQUE AUTOMOTOR Y MAQUINARIA AMARILLA",
+      "cuantia": "",
+      "fuente": "SECOP II Oficial",
+      "estado": "Celebrado",
+      "alerta": "Veeduría comunitaria activa"
+    }
+  ],
+  "politicas_gobierno_nacional": [
+    {
+      "eje": "Seguridad Rural, Orden y Libertad Económica",
+      "programa": "Garantizar que el campesino, comerciante y ganadero trabaje sin zozobra, sin extorsión ni abigeato.",
+      "mecanismo": "Presencia permanente de Fuerza Pública, control territorial veredal y combate frontal al robo de ganado y maquinaria.",
+      "beneficio_caparrapi": "Blindar los corredores comerciales de San Carlos, Terán y las vías hacia Puerto Salgar y Guaduas para que el comercio fluya 24/7."
+    },
+    {
+      "eje": "Obras por Impuestos y Alianzas Público-Privadas para Vías",
+      "programa": "Superar la burocracia estatal permitiendo que grandes empresas e inversionistas ejecuten obras viales directamente a cambio de impuestos.",
+      "mecanismo": "Inclusión de Caparrapí como municipio receptor de proyectos viales financiados por el sector privado bajo régimen ZOMAC / Obras por Impuestos.",
+      "beneficio_caparrapi": "Pavimentación en placa huella pesada y asfalto de los ejes críticos: San Carlos - Cuatro Caminos, Terán y San Pedro sin depender de la lenta burocracia municipal."
+    },
+    {
+      "eje": "Agroindustria Competitiva, Desregulación y Cero Trabas",
+      "programa": "El campesino es un empresario del campo. Menos impuestos, cero permisos absurdos y apoyo directo a la comercialización.",
+      "mecanismo": "Modernización de trapiches paneleros, plantas de acopio y crédito blando ágil a través del Banco Agrario y Finagro sin trámites asfixiantes.",
+      "beneficio_caparrapi": "Caparrapí tiene 2.250 familias paneleras y miles de ganaderos. La oportunidad es transformar la panela tradicional en agroindustria de alto valor y exportación."
+    },
+    {
+      "eje": "Seguridad Jurídica de la Tierra y Titulación Masiva",
+      "programa": "Respeto irrestricto a la propiedad privada rural y entrega inmediata de títulos de propiedad a los campesinos.",
+      "mecanismo": "Jornadas exprés de formalización y titulación de predios rurales.",
+      "beneficio_caparrapi": "El 60% de los predios campesinos en Caparrapí carecen de escritura formal. Con el título en la mano, el productor puede hipotecar, invertir, tecnificar y acceder a créditos bancarios."
+    },
+    {
+      "eje": "Biotecnología Pecuaria y Genética Equina de Alto Rendimiento",
+      "programa": "Fomento a la cría, tecnificación reproductiva y bienestar animal como motor de la economía de campo.",
+      "mecanismo": "Convenios con gremios (Fedegán, Fedequinas, Agrosavia) y fondos de fomento pecuario para subsidiar semen de reproductores certificados e inseminación artificial.",
+      "beneficio_caparrapi": "Elevar la cotización de los potros, mulas y novillos de Caparrapí en las ferias ganaderas y equinas del Magdalena Centro y Cundinamarca."
+    }
+  ],
+  "radar_convocatorias_activas": [
+    {
+      "entidad": "Agencia de Renovación del Territorio (ART) / DNP",
+      "linea": "Mecanismo de Obras por Impuestos (Ley 1819/2016 Art. 238 y Decreto 1625/2016)",
+      "recursos_disponibles": "$250.000 Millones COP (Bolsa Anual Nacional)",
+      "requisito_clave": "Proyecto viabilizado en MGA con concepto del ministerio sectorial y registro en el banco de Obras por Impuestos.",
+      "enlace_oficial": "https://www.renovacionterritorio.gov.co/Especiales/obras_por_impuestos/",
+      "aplicacion": "Caparrapí califica para postular proyectos viales (San Carlos - Cuatro Caminos - Terán) para que petroleras, cementeras y energéticas del Magdalena Centro financien las placa huellas directamente a cambio de su impuesto de renta."
+    },
+    {
+      "entidad": "Instituto Nacional de Vías (INVIAS) / Ministerio de Transporte",
+      "linea": "Caminos Comunitarios de la Paz Total / Convenios Solidarios con JAC",
+      "recursos_disponibles": "$200 a $400 Millones COP por JAC",
+      "requisito_clave": "RUT de la JAC activo, personería jurídica al día en IDACO y acta de concertación comunitaria.",
+      "enlace_oficial": "https://www.invias.gov.co",
+      "aplicacion": "Postulación de las JAC de Cuatro Caminos, Las Ferias, Alto de San Carlos, Barranquillas y Buena Vista en Terán para tramos de 300m a 800m de placa huella."
+    },
+    {
+      "entidad": "Ministerio de Vivienda, Ciudad y Territorio",
+      "linea": "Programa Agua al Campo / Viceministerio de Agua y Saneamiento Básico",
+      "recursos_disponibles": "$1.500 a $6.000 Millones COP por proyecto",
+      "requisito_clave": "Concesión de aguas superficiales de la CAR vigente, análisis físico-químico del agua y predio de la bocatoma legalizado a favor del municipio.",
+      "enlace_oficial": "https://minvivienda.gov.co",
+      "aplicacion": "Superar el 75,7% de déficit de agua potable rural en San Carlos, San Pedro, Terán y La Magdalena mediante plantas compactas y paneles solares."
+    },
+    {
+      "entidad": "Agencia de Desarrollo Rural (ADR) / Ministerio de Agricultura",
+      "linea": "Convocatoria PIDAR y Alianzas Productivas para la Paz",
+      "recursos_disponibles": "$1.200 a $3.500 Millones COP por alianza",
+      "requisito_clave": "Asociación campesina formalmente constituida con mínimo 30 productores, plan de negocio MGA y contrapartida del 10% al 20%.",
+      "enlace_oficial": "https://www.adr.gov.co",
+      "aplicacion": "Modernización de los trapiches paneleros en Terán y San Carlos y centro de acopio ganadero con pajillas de genética certificada."
+    },
+    {
+      "entidad": "Sistema General de Regalías (SGR) / OCAD Regional Cundinamarca",
+      "linea": "Asignación para la Inversión Regional y Fondos de Compensación Territorial",
+      "recursos_disponibles": "Convocatorias semestrales de $15.000 a $50.000 Millones COP",
+      "requisito_clave": "Proyecto radicado en SUIFP-SGR con viabilidad del sector transporte del DNP y aval del Departamento.",
+      "enlace_oficial": "https://www.sgr.gov.co",
+      "aplicacion": "Pavimentación y obras de arte en corredores limítrofes intermunicipales (Caparrapí - Guaduas y Caparrapí - Puerto Salgar por San Carlos)."
+    }
+  ],
+  "proyectos_mga_fase3": [
+    {
+      "codigo_bpin": "2026-CAP-AGRO-01",
+      "nombre": "Programa Municipal de Mejoramiento Genético, Sanidad y Fomento Equino y Pecuario",
+      "sector": "4301032",
+      "fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "presupuesto_total": "$2.850.000.000 COP",
+      "objetivo": "Establecimiento de unidades móviles de biotecnología reproductiva con pajillas de reproductores certificados, ecografía reproductiva gratuita, banco municipal de forrajes y brigadas permanentes de sanidad animal.",
+      "beneficiarios": "1.800 Criadores y Familias Campesinas",
+      "fuente_primaria": "Ministerio de Agricultura / Fondo de Fomento Ganadero y Equino / Agrosavia",
+      "arbol_problemas": {
+        "problema_central": "Baja productividad pecuaria y estancamiento del valor comercial del ganado y caballada en Caparrapí",
+        "causa_directa": "Consanguinidad por monta natural no controlada y deficiencia nutricional en épocas secas",
+        "causa_indirecta": "Falta de acceso de pequeños productores a pajillas de genética certificada y asistencia veterinaria continua",
+        "efecto_directo": "Bajo rendimiento en kilogramos de carne, menor producción lechera y potros con bajo precio en subastas",
+        "efecto_indirecto": "Menores ingresos para 1.800 familias y migración de jóvenes rurales por falta de rentabilidad"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Incrementar en un 35% el valor de comercialización del hato ganadero y equino de Caparrapí en 3 años",
+        "fines_directos": [
+          "Introducción de 3.500 pajillas de semen certificado (razas Brahman, Gyr, Simmental y reproductores equinos)",
+          "Instalación de 4 bancos comunitarios de ensilaje y forrajes resistentes al clima seco en San Carlos y San Pedro",
+          "Cobertura de 100% de hatos con registro sanitario y control parasitario"
+        ]
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Equipamiento de Laboratorio Móvil y Tanques de Nitrógeno",
+          "valor": 480000000,
+          "apu_clave": "Unidad de termo criogénico con dotación de inseminación: $18.5M"
+        },
+        {
+          "capitulo": "Capítulo 2: Adquisición de Material Genético Certificado (Semen y Embriones)",
+          "valor": 720000000,
+          "apu_clave": "Pajilla certificada con pedigree: $95.000 / unidad"
+        },
+        {
+          "capitulo": "Capítulo 3: Bancos de Ensilaje y Parcelas Demostrativas de Pastos",
+          "valor": 650000000,
+          "apu_clave": "Hectárea de pasto de corte tecnificado con cerca eléctrica solar: $12.8M"
+        },
+        {
+          "capitulo": "Capítulo 4: Equipo Veterinario y Asistencia Técnica Veredal (3 Años)",
+          "valor": 820000000,
+          "apu_clave": "Mes de brigada veterinaria móvil con ecógrafo: $14.2M"
+        },
+        {
+          "capitulo": "Capítulo 5: Interventoría y Supervisión Técnica",
+          "valor": 180000000,
+          "apu_clave": "Auditoría de trazabilidad genética: $5.0M / mes"
+        }
+      ],
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$1.280 Millones COP",
+        "tir_social": "16,8%",
+        "relacion_costo_beneficio": "1,32"
+      },
+      "checklist_tareas": [
+        {
+          "tarea": "Censo de vientres y criadores en San Carlos, Terán y San Pedro",
+          "estado": "Listo para iniciar",
+          "responsable": "Equipo Técnico Agropecuario"
+        },
+        {
+          "tarea": "Estructuración de la Ficha MGA con árbol de problemas y presupuesto",
+          "estado": "Estructurado",
+          "responsable": "Planeación / Formulación"
+        },
+        {
+          "tarea": "Radicación en ventanilla de fomento pecuario",
+          "estado": "Listo para radicar",
+          "responsable": "Gestión Estratégica"
+        },
+        {
+          "tarea": "Socialización en asambleas de caballistas y ganaderos",
+          "estado": "En ejecución",
+          "responsable": "Liderazgo de Campaña"
+        }
+      ]
+    },
+    {
+      "codigo_bpin": "2026-CAP-VIAS-02",
+      "nombre": "Plan de Conectividad Terciaria Estratégica: Corredores San Carlos - Terán - Cuencas Veredales",
+      "sector": "2101007",
+      "fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "presupuesto_total": "$6.500.000.000 COP",
+      "objetivo": "Pavimentación en placa huella pesada (módulos prefabricados de alta resistencia) y construcción de 32 obras de arte (alcantarillas de 36 pulgadas, box culverts y cunetas revestidas) en los 15 tramos más críticos que colapsan en invierno.",
+      "beneficiarios": "11.200 Habitantes Rurales de Caparrapí",
+      "fuente_primaria": "Ministerio de Transporte / INVIAS / Obras por Impuestos (ZOMAC) / OCAD Regalías",
+      "arbol_problemas": {
+        "problema_central": "Incomunicación vial recurrente y colapso de vías terciarias en invierno en San Carlos y Terán",
+        "causa_directa": "Ausencia de obras de drenaje transversal y calzadas en tierra sin capacidad portante",
+        "causa_indirecta": "Historial de mantenimientos temporales de recebo que se lavan con las lluvias y falta de placa huellas estructurales",
+        "efecto_directo": "Fletes de transporte agrícola duplicados y pérdida de cosechas de panela, leche y cacao",
+        "efecto_indirecto": "Aislamiento comercial de las inspecciones y atraso socioeconómico veredal"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Garantizar transitabilidad permanente 365 días al año en los corredores San Carlos - Terán - Red Secundaria",
+        "fines_directos": [
+          "Construcción de 6,2 km de placa huella de alta resistencia en pendientes superiores al 12%",
+          "Instalación de 32 alcantarillas y 3 box culverts estructurales para manejo de escorrentía",
+          "Reducción del 45% en los costos de flete veredal de carga"
+        ]
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Preliminares, Topografía y Localización",
+          "valor": 195000000,
+          "apu_clave": "Topografía con estación total y replanteo: $1.2M / km"
+        },
+        {
+          "capitulo": "Capítulo 2: Movimiento de Tierras, Excavación y Subbase Granular",
+          "valor": 1250000000,
+          "apu_clave": "Metro cúbico de subbase granular compactada: $86.000 / m³"
+        },
+        {
+          "capitulo": "Capítulo 3: Obras de Arte (Alcantarillas 36\", Box Culverts y Cunetas)",
+          "valor": 1420000000,
+          "apu_clave": "Metro lineal de alcantarilla 36\" con cabezales en concreto: $680.000 / m"
+        },
+        {
+          "capitulo": "Capítulo 4: Estructura de Placa Huella (Concreto 3000 PSI + Piedra Pegada)",
+          "valor": 3120000000,
+          "apu_clave": "Metro lineal de placa huella tipo INVIAS (ancho 4.5m): $520.000 / m"
+        },
+        {
+          "capitulo": "Capítulo 5: Plan de Manejo Ambiental y Señalización",
+          "valor": 195000000,
+          "apu_clave": "Disposición final de sobrantes y revegetalización: $32.000 / m³"
+        },
+        {
+          "capitulo": "Capítulo 6: Interventoría Técnica Integral",
+          "valor": 320000000,
+          "apu_clave": "Interventoría técnica y de laboratorio: 5% del valor directo"
+        }
+      ],
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$2.840 Millones COP",
+        "tir_social": "19,4%",
+        "relacion_costo_beneficio": "1,45"
+      },
+      "checklist_tareas": [
+        {
+          "tarea": "Georreferenciación de los 15 puntos críticos en San Carlos y Terán",
+          "estado": "Completado",
+          "responsable": "Equipo Vías"
+        },
+        {
+          "tarea": "Estructuración de la Ficha MGA con APU regionalizado",
+          "estado": "Estructurado",
+          "responsable": "Planeación / Formulación"
+        },
+        {
+          "tarea": "Vinculación al mecanismo de Obras por Impuestos ante empresas del Magdalena Centro",
+          "estado": "Estructurado",
+          "responsable": "Enlace Nacional"
+        },
+        {
+          "tarea": "Radicación del expediente técnico en MinTransporte / INVIAS",
+          "estado": "Listo para radicar",
+          "responsable": "Gestión de Proyectos"
+        }
+      ]
+    },
+    {
+      "codigo_bpin": "2026-CAP-PANELA-03",
+      "nombre": "Agroindustria Panelera Competitiva: Modernización Tecnológica y Centro de Acopio Regional",
+      "sector": "4302015",
+      "fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "presupuesto_total": "$3.800.000.000 COP",
+      "objetivo": "Instalación de hornillas pirolíticas de alta eficiencia térmica (cero uso de leña y llantas) en 25 trapiches asociativos, líneas de empaque al vacío y construcción del Centro de Acopio y Comercialización Directa en Caparrapí para venta mayorista.",
+      "beneficiarios": "2.250 Familias Productoras de Panela",
+      "fuente_primaria": "Ministerio de Comercio / Ministerio de Agricultura / Finagro / ADR",
+      "arbol_problemas": {
+        "problema_central": "Baja rentabilidad y pérdidas económicas de las familias paneleras por intermediación abusiva",
+        "causa_directa": "Baja eficiencia térmica de hornillas tradicionales y presentación comercial no certificada",
+        "causa_indirecta": "Falta de capital para modernizar trapiches y ausencia de un centro de acopio con báscula y bodega climatizada",
+        "efecto_directo": "El campesino vende a $3.000/kilo a intermediarios mientras en Bogotá se comercializa a $8.000",
+        "efecto_indirecto": "Endeudamiento de familias campesinas y quiebra de trapiches en Terán y San Carlos"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Aumentar en un 40% el ingreso neto de las familias paneleras mediante comercialización directa y valor agregado",
+        "fines_directos": [
+          "Reconversión tecnológica de 25 trapiches con hornillas de combustión limpia",
+          "Construcción y dotación del Centro de Acopio Regional de Panela con registro INVIMA",
+          "Firma de 5 acuerdos comerciales directos con almacenes de cadena y exportadores"
+        ]
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Reconversión de Hornillas y Fondas Ecoeficientes (25 Trapiches)",
+          "valor": 1450000000,
+          "apu_clave": "Hornilla pirolítica con precalentador de jugos: $58.0M / unidad"
+        },
+        {
+          "capitulo": "Capítulo 2: Dotación de Líneas de Moldeo y Empaque al Vacío",
+          "valor": 550000000,
+          "apu_clave": "Empacadora al vacío industrial con fechador: $22.0M"
+        },
+        {
+          "capitulo": "Capítulo 3: Construcción Bodega y Centro de Acopio Regional en Caparrapí",
+          "valor": 1250000000,
+          "apu_clave": "Metro cuadrado de bodega con piso epóxico sanitario: $1.4M / m²"
+        },
+        {
+          "capitulo": "Capítulo 4: Certificaciones Sanitarias INVIMA y Registro de Marca",
+          "valor": 180000000,
+          "apu_clave": "Paquete de registro y tablas nutricionales: $7.2M / línea"
+        },
+        {
+          "capitulo": "Capítulo 5: Fondo Rotatorio de Comercialización y Transporte",
+          "valor": 370000000,
+          "apu_clave": "Camión furgón térmico de 5 toneladas: $240M"
+        }
+      ],
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$1.950 Millones COP",
+        "tir_social": "18,2%",
+        "relacion_costo_beneficio": "1,39"
+      },
+      "checklist_tareas": [
+        {
+          "tarea": "Censo y caracterización de trapiches en Terán y San Carlos",
+          "estado": "Completado",
+          "responsable": "Asociación Panelera"
+        },
+        {
+          "tarea": "Estructuración del proyecto en metodología MGA para MinComercio/ADR",
+          "estado": "Estructurado",
+          "responsable": "Economía y Proyectos"
+        },
+        {
+          "tarea": "Acuerdo de voluntades comerciales con distribuidores mayoristas",
+          "estado": "En trámite",
+          "responsable": "Comercialización"
+        }
+      ]
+    },
+    {
+      "codigo_bpin": "2026-CAP-AGUA-04",
+      "nombre": "Plan de Seguridad Hídrica Rural: Acueductos Confiables para San Carlos, San Pedro y Veredas",
+      "sector": "4001001",
+      "fase": "Fase 3 (Factibilidad Definitiva e Ingeniería de Detalle)",
+      "presupuesto_total": "$5.200.000.000 COP",
+      "objetivo": "Construcción y optimización de 6 sistemas de acueducto veredal mediante captaciones de fondo, desarenadores, plantas de potabilización de agua (PTAP) modulares con bombeo solar híbrido y redes de distribución con macromedición comunitaria.",
+      "beneficiarios": "7.500 Habitantes Rurales sin Agua Apta",
+      "fuente_primaria": "Ministerio de Vivienda / Viceministerio de Agua / Fondo de Inversión para la Paz",
+      "arbol_problemas": {
+        "problema_central": "75,7% de la población rural de Caparrapí consume agua cruda sin potabilizar y sufre desabastecimiento",
+        "causa_directa": "Bocatomas colapsadas en invierno, ausencia de sistemas de cloración/filtración y redes artesanales",
+        "causa_indirecta": "Falta de redes matrices veredales de distribución que conecten con la PTAP municipal y falta de plantas locales",
+        "efecto_directo": "Altos índices de morbilidad por enfermedades diarreicas agudas (EDA) en niños y adultos mayores",
+        "efecto_indirecto": "Inviabilidad sanitaria de negocios gastronómicos, turísticos y agropecuarios en centros poblados"
+      },
+      "arbol_objetivos": {
+        "objetivo_general": "Alcanzar el 70% de cobertura de agua apta para consumo humano en centros poblados y escuelas rurales",
+        "fines_directos": [
+          "Construcción de 6 bocatomas de fondo protegidas contra crecientes torrenciales",
+          "Instalación de 6 PTAP modulares con paneles solares y filtros multicama",
+          "Tendido de 24 km de tubería RDE-21 para redes matrices veredales"
+        ]
+      },
+      "capitulos_presupuesto_apu": [
+        {
+          "capitulo": "Capítulo 1: Bocatomas de Fondo y Desarenadores en Concreto 3500 PSI",
+          "valor": 880000000,
+          "apu_clave": "Bocatoma lateral con rejilla de fondo y vertedero de excesos: $146M / unidad"
+        },
+        {
+          "capitulo": "Capítulo 2: Plantas de Tratamiento Compactas Modulares (6 Unidades)",
+          "valor": 1650000000,
+          "apu_clave": "PTAP modular compacta de 2.5 L/s con cloración automática: $275M / unidad"
+        },
+        {
+          "capitulo": "Capítulo 3: Sistemas de Bombeo Solar Fotovoltaico Híbrido",
+          "valor": 540000000,
+          "apu_clave": "Arreglo solar de 12 paneles de 550W con bomba sumergible trifásica: $90M / sistema"
+        },
+        {
+          "capitulo": "Capítulo 4: Redes de Conducción y Distribución en Polietileno y PVC",
+          "valor": 1580000000,
+          "apu_clave": "Metro lineal de tubería PVC presión RDE-21 de 3\" instalada con zanja: $65.000 / m"
+        },
+        {
+          "capitulo": "Capítulo 5: Macromedición, Veeduría Comunitaria e Interventoría",
+          "valor": 550000000,
+          "apu_clave": "Macromedidor electromagnético veredal instalado: $12.5M"
+        }
+      ],
+      "evaluacion_economica_mga": {
+        "tasa_social_descuento": "12,0% (Estándar DNP)",
+        "vpn_social": "$2.150 Millones COP",
+        "tir_social": "17,6%",
+        "relacion_costo_beneficio": "1,41"
+      },
+      "checklist_tareas": [
+        {
+          "tarea": "Inventario de bocatomas y aforos de caudal en San Carlos y San Pedro",
+          "estado": "Completado",
+          "responsable": "Ingeniería Ambiental"
+        },
+        {
+          "tarea": "Expediente técnico estructurado en MGA listo para radicación",
+          "estado": "Listo para radicar",
+          "responsable": "Formulación de Proyectos"
+        },
+        {
+          "tarea": "Concertación comunitaria para conformación de la Junta Administradora",
+          "estado": "En ejecución",
+          "responsable": "Gestión Comunitaria"
+        }
+      ]
+    }
+  ]
+}

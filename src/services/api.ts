@@ -1,6 +1,7 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { CitizenNeed, CitizenLead, BaseProposal, GreenApiMessage, PurchaseItem, LaborItem, ProposalComment, PilotVoting } from '../types';
 import { BASE_PROPOSALS } from '../data/basePlanData';
+import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { getDeviceId, getClientIpAddress } from './deviceMemory';
 import { cleanHumanName } from './ramitosBrain';
 
@@ -27,6 +28,17 @@ export function initSupabase(url: string, anonKey: string): boolean {
     supabaseClient = null;
     return false;
   }
+}
+
+export function getSupabaseClient(): SupabaseClient | null {
+  if (!supabaseClient) {
+    const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
+    const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
+    if (envUrl && envKey) {
+      initSupabase(envUrl, envKey);
+    }
+  }
+  return supabaseClient;
 }
 
 // PURGA AUTOMÁTICA DE DATOS FANTASMA EN LOCALSTORAGE
@@ -190,6 +202,7 @@ export interface RamitosInteractionLog {
   sectorDetectado?: string;
   nombreCiudadano?: string;
   whatsappCiudadano?: string;
+  municipioId?: 'guaduas' | 'caparrapi' | string;
 }
 
 export async function saveRamitosInteractionLog(log: RamitosInteractionLog): Promise<void> {
@@ -204,6 +217,7 @@ export async function saveRamitosInteractionLog(log: RamitosInteractionLog): Pro
   if (supabaseClient) {
     try {
       await supabaseClient.from('interacciones_conversaciones_ramitos').insert({
+        municipio_id: log.municipioId || 'guaduas',
         device_id: deviceId,
         ip_address: ipAddress,
         nombre_ciudadano: nombreFinal,
@@ -333,16 +347,22 @@ export interface PastUserInteraction {
   timestamp: string;
 }
 
-export async function getPastInteractionsHistory(deviceId?: string): Promise<PastUserInteraction[]> {
+export async function getPastInteractionsHistory(deviceId?: string, municipioId?: 'guaduas' | 'caparrapi' | string): Promise<PastUserInteraction[]> {
   const targetDeviceId = deviceId || getDeviceId();
 
   if (supabaseClient) {
     try {
-      // Consultar estrictamente por device_id para respetar la navegación en incógnito como nuevo usuario
-      const { data, error } = await supabaseClient
+      // Consultar estrictamente por device_id y municipio_id para aislar conversaciones de cada municipio
+      let query = supabaseClient
         .from('interacciones_conversaciones_ramitos')
         .select('mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion')
-        .eq('device_id', targetDeviceId)
+        .eq('device_id', targetDeviceId);
+
+      if (municipioId) {
+        query = query.eq('municipio_id', municipioId);
+      }
+
+      const { data, error } = await query
         .order('fecha_interaccion', { ascending: true })
         .limit(20);
 
@@ -639,15 +659,15 @@ export function getCitizenNeeds(): CitizenNeed[] {
 // -------------------------------------------------------------
 // GESTIÓN DEL PLAN DE GOBIERNO (PROPOSALS)
 // -------------------------------------------------------------
-export function getBaseProposals(): BaseProposal[] {
+export function getBaseProposals(municipioId: 'guaduas' | 'caparrapi' = 'guaduas'): BaseProposal[] {
   try {
-    const raw = localStorage.getItem(LOCAL_STORAGE_PLAN);
+    const raw = localStorage.getItem(`${LOCAL_STORAGE_PLAN}_${municipioId}`);
     if (raw) return JSON.parse(raw);
   } catch (e) {
     console.error(e);
   }
-  // Retorna datos semilla por defecto
-  return BASE_PROPOSALS;
+  // Retorna datos semilla por municipio
+  return MUNICIPIOS_DATA[municipioId]?.proyectosBase || BASE_PROPOSALS;
 }
 
 export function saveBaseProposal(proposal: BaseProposal): void {
@@ -978,3 +998,157 @@ export async function voteForPilotCommunityInSupabase(votingId: string): Promise
   localStorage.setItem(LOCAL_STORAGE_PILOT_VOTINGS, JSON.stringify(updated));
   return newVotes;
 }
+
+// -------------------------------------------------------------
+// APORTES DE REENTRENAMIENTO Y PROPUESTAS DEL EQUIPO EN SUPABASE
+// -------------------------------------------------------------
+export interface TeamAporte {
+  id: string;
+  fecha: string;
+  inspeccion: string;
+  tema: string;
+  titulo: string;
+  detalle: string;
+  estado: string;
+  autor?: string;
+}
+
+export async function saveTeamContribution(
+  aporte: Omit<TeamAporte, 'id' | 'fecha' | 'estado'>,
+  municipioId: 'guaduas' | 'caparrapi'
+): Promise<TeamAporte> {
+  const newAporte: TeamAporte = {
+    id: `APORTE-${Date.now()}`,
+    fecha: new Date().toISOString().slice(0, 16).replace('T', ' '),
+    inspeccion: aporte.inspeccion,
+    tema: aporte.tema,
+    titulo: aporte.titulo,
+    detalle: aporte.detalle,
+    estado: 'Sincronizado en Supabase',
+    autor: aporte.autor || 'Equipo Estratégico'
+  };
+
+  // Guardar en Supabase
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      await client.from('interacciones_plan_gobierno').insert({
+        municipio_id: municipioId,
+        tipo_interaccion: aporte.tema || 'Aporte Estratégico',
+        comentario_sugerencia: `[${aporte.inspeccion} - ${aporte.tema}] ${aporte.titulo}: ${aporte.detalle}`,
+        dispositivo_id: getDeviceId()
+      });
+    } catch (err) {
+      console.warn('Error guardando aporte en Supabase:', err);
+    }
+  }
+
+  // Guardar en LocalStorage
+  try {
+    const key = `ialcaldia_aportes_${municipioId}`;
+    const local = localStorage.getItem(key);
+    const existing = local ? JSON.parse(local) : [];
+    existing.unshift(newAporte);
+    localStorage.setItem(key, JSON.stringify(existing));
+  } catch (e) {
+    console.warn(e);
+  }
+
+  return newAporte;
+}
+
+export async function getTeamContributions(
+  municipioId: 'guaduas' | 'caparrapi'
+): Promise<TeamAporte[]> {
+  let list: TeamAporte[] = [];
+
+  // 1. Cargar desde Supabase
+  const client = getSupabaseClient();
+  if (client) {
+    try {
+      const { data } = await client
+        .from('interacciones_plan_gobierno')
+        .select('*')
+        .eq('municipio_id', municipioId)
+        .order('fecha_interaccion', { ascending: false });
+
+      if (data && data.length > 0) {
+        list = data.map((d: any) => {
+          let inspeccion = municipioId === 'caparrapi' ? 'San Carlos' : 'Guaduero';
+          let titulo = 'Aporte del Equipo';
+          let detalle = d.comentario_sugerencia || '';
+
+          // Parse formato [Inspeccion - Tema] Titulo: Detalle
+          const match = detalle.match(/^\[(.*?)\]\s*(.*?):\s*(.*)$/);
+          if (match) {
+            inspeccion = match[1];
+            titulo = match[2];
+            detalle = match[3];
+          }
+
+          return {
+            id: `sb-${d.id}`,
+            fecha: (d.fecha_interaccion || '').slice(0, 16).replace('T', ' '),
+            inspeccion,
+            tema: d.tipo_interaccion || 'Estrategia Territorial',
+            titulo,
+            detalle,
+            estado: 'Sincronizado en Supabase',
+            autor: 'Equipo de Campaña'
+          };
+        });
+      }
+    } catch (err) {
+      console.warn('Error cargando aportes desde Supabase:', err);
+    }
+  }
+
+  // 2. Mezclar con LocalStorage
+  try {
+    const key = `ialcaldia_aportes_${municipioId}`;
+    const local = localStorage.getItem(key);
+    if (local) {
+      const parsed: TeamAporte[] = JSON.parse(local);
+      const existingIds = new Set(list.map(l => l.id));
+      for (const p of parsed) {
+        if (!existingIds.has(p.id)) {
+          list.push(p);
+        }
+      }
+    }
+  } catch (e) {
+    console.warn(e);
+  }
+
+  return list;
+}
+
+// -------------------------------------------------------------
+// CONSULTA EN TIEMPO REAL A LA API OFICIAL DE SECOP II (DATOS ABIERTOS)
+// -------------------------------------------------------------
+export async function fetchLiveSecopFromDatosGov(municipioId: 'guaduas' | 'caparrapi'): Promise<any[]> {
+  const ciudadName = municipioId === 'caparrapi' ? 'Caparrapí' : 'Guaduas';
+  const url = `https://www.datos.gov.co/resource/jbjy-vk9h.json?departamento=Cundinamarca&ciudad=${encodeURIComponent(ciudadName)}`;
+  
+  const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+  if (!response.ok) {
+    throw new Error(`Error en API SECOP II: ${response.statusText}`);
+  }
+  
+  const data = await response.json();
+  if (!Array.isArray(data)) return [];
+
+  return data.map((c: any) => ({
+    id: c.id_contrato || c.referencia_del_contrato || 'S/N',
+    entidad: c.nombre_entidad || (municipioId === 'caparrapi' ? 'ALCALDÍA DE CAPARRAPÍ' : 'ALCALDÍA DE GUADUAS'),
+    objeto: c.objeto_del_contrato || c.descripcion_del_proceso || 'Sin descripción',
+    valor: parseFloat(c.valor_del_contrato || 0),
+    modalidad: c.modalidad_de_contratacion || 'Directa',
+    proveedor: c.proveedor_adjudicado || 'No reportado',
+    fecha: (c.fecha_de_firma || '').slice(0, 10),
+    año: (c.fecha_de_firma || '').slice(0, 4),
+    estado: c.estado_contrato || 'Aprobado',
+    url: c.urlproceso && c.urlproceso.url ? c.urlproceso.url : 'https://community.secop.gov.co/'
+  })).filter((c: any) => c.valor < 50000000000);
+}
+

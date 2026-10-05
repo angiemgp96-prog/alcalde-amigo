@@ -2,13 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { CitizenNeed, CitizenLead, ActiveTab } from '../types';
 import { speechEngine, SUGGESTED_PROMPTS } from '../services/speechEngine';
 import { processRamitosConversationAsync, getGeminiApiKey, setGeminiApiKey, getGroqApiKey, setGroqApiKey, RamitosChatResponse, detectVeredaOrBarrioFromText, extractLeadInfoFromText, extractAudioCorrectionFromText } from '../services/ramitosBrain';
-import { VEREDAS_GUADUAS } from '../data/veredasGuaduas';
+import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { formatCOP } from '../utils/formatters';
 import { sendWhatsAppMessage } from '../services/greenApi';
 import { saveRamitosInteractionLog, getUserLeadInfo, checkUserLeadRegistrationInSupabase, purgePhantomLocalStorageCache, getPastInteractionsHistory } from '../services/api';
 import {
   Menu, User, Calendar, Send, Volume2, VolumeX, Sparkles, MapPin, X,
-  History, Share2, FileText, Building2, Cloud, Check, Key, Mic, Settings, Copy
+  History, Share2, FileText, Building2, Cloud, Check, Key, Mic, Settings, Copy, Shield
 } from 'lucide-react';
 
 interface RamitosChatViewProps {
@@ -16,16 +16,19 @@ interface RamitosChatViewProps {
   onOpenFullPlan: () => void;
   onOpenMenu: (tab: ActiveTab) => void;
   isSecretAdminUnlocked?: boolean;
+  municipioId?: 'guaduas' | 'caparrapi';
 }
 
 export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   onSaveNeed,
   onOpenFullPlan,
   onOpenMenu,
-  isSecretAdminUnlocked = false
+  isSecretAdminUnlocked = false,
+  municipioId = 'guaduas'
 }) => {
-  const FIRST_INTERACTION_GREETING =
-    '🌿 ¡Hola! Soy Ramitos, tu Copiloto Municipal en Guaduas. Aquí las soluciones las construimos juntos en comunidad: tu voz y las propuestas de tu vereda o barrio son la clave para transformar nuestro municipio. Cuéntame, ¿qué problemática o idea tienes hoy para Guaduas?';
+  const isCaparrapi = municipioId === 'caparrapi';
+  const munData = MUNICIPIOS_DATA[municipioId || 'guaduas'];
+  const FIRST_INTERACTION_GREETING = munData.saludoInicial;
 
   // ESTADOS PRINCIPALES DE INTERFAZ Y RAMITOS
   const [currentResponse, setCurrentResponse] = useState<string>(FIRST_INTERACTION_GREETING);
@@ -56,6 +59,17 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   const [geminiKeyInput, setGeminiKeyInput] = useState(getGeminiApiKey());
   const [groqKeyInput, setGroqKeyInput] = useState(getGroqApiKey());
   const [savedKeySuccess, setSavedKeySuccess] = useState(false);
+
+  // Actualizar saludo e historial dinámicamente al cambiar de municipio
+  useEffect(() => {
+    const greeting = munData.saludoInicial;
+    setCurrentResponse(greeting);
+    setDisplayedResponse(greeting);
+    setHistory([
+      { sender: 'ramitos', text: greeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+    ]);
+    setSelectedVereda('');
+  }, [municipioId]);
 
   // PERMISOS DE AUDIO Y MICRÓFONO CON INTERACCIÓN GESTUAL
   const [isAudioPermissionGranted, setIsAudioPermissionGranted] = useState<boolean>(() => {
@@ -211,16 +225,27 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     // Purga automática de caché local fantasma en cada inicio
     purgePhantomLocalStorageCache();
 
-    // CARGA AUTOMÁTICA EN TIEMPO REAL DEL HISTORIAL COMPLETO DE SUPABASE (POR IP Y DISPOSITIVO)
+    // CARGA AUTOMÁTICA EN TIEMPO REAL DEL HISTORIAL COMPLETO DE SUPABASE AISLADO POR MUNICIPIO
     const loadPastHistoryFromSupabase = async () => {
-      // Si la ventana/pestaña es nueva o está en modo incógnito (sessionStorage vacío), se inicia como nuevo ciudadano
-      const isReturningTab = Boolean(sessionStorage.getItem('ramitos_tab_session_active'));
+      const munNombre = isCaparrapi ? 'Caparrapí' : 'Guaduas';
+      const emojiMun = isCaparrapi ? '🛡️' : '🌿';
+      const initialGreeting = munData.saludoInicial;
+
+      // Si la ventana/pestaña es nueva o está en modo incógnito (sessionStorage vacío), se inicia con el saludo oficial del municipio
+      const sessionKey = `ramitos_tab_session_active_${municipioId}`;
+      const isReturningTab = Boolean(sessionStorage.getItem(sessionKey));
       if (!isReturningTab) {
-        sessionStorage.setItem('ramitos_tab_session_active', 'true');
+        sessionStorage.setItem(sessionKey, 'true');
+        setCurrentResponse(initialGreeting);
+        setDisplayedResponse(initialGreeting);
+        setHistory([
+          { sender: 'ramitos', text: initialGreeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+        ]);
         return;
       }
+
       try {
-        const past = await getPastInteractionsHistory();
+        const past = await getPastInteractionsHistory(undefined, municipioId);
         if (past && past.length > 0) {
           const loadedHistory: Array<{ sender: 'ramitos' | 'user'; text: string; time: string }> = [];
 
@@ -237,16 +262,16 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             }
           });
 
-          // Extraer la última intervención/tema conversado por el ciudadano
+          // Extraer la última intervención/tema conversado por el ciudadano en este municipio
           const lastUserItem = [...past].reverse().find(i => i.userText && i.userText.trim().length > 0);
           const lastUserText = lastUserItem?.userText?.trim() || '';
 
           let reconnectGreeting = '';
           if (lastUserText) {
             const topicSnippet = lastUserText.length > 45 ? lastUserText.substring(0, 42) + '...' : lastUserText;
-            reconnectGreeting = `🌿 ¡Qué gusto tenerte de nuevo por aquí! La última vez estuvimos conversando sobre "${topicSnippet}". ¿Quieres que sigamos profundizando en esa solución o tienes alguna otra sugerencia para Guaduas?`;
+            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! La última vez estuvimos conversando sobre "${topicSnippet}". ¿Quieres que sigamos profundizando en esa solución o tienes alguna otra sugerencia para ${munNombre}?`;
           } else {
-            reconnectGreeting = `🌿 ¡Qué gusto tenerte de nuevo por aquí! ¿Quieres que sigamos profundizando en lo último que conversamos o tienes alguna otra sugerencia o problemática para Guaduas?`;
+            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! ¿Quieres que sigamos profundizando en lo último que conversamos o tienes alguna otra sugerencia o problemática para ${munNombre}?`;
           }
 
           const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -258,6 +283,13 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           if (!isMuted) {
             speakRamitosVoice(reconnectGreeting, true);
           }
+        } else {
+          // Si no hay historial previo para este municipio, usar el saludo inicial limpio
+          setCurrentResponse(initialGreeting);
+          setDisplayedResponse(initialGreeting);
+          setHistory([
+            { sender: 'ramitos', text: initialGreeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+          ]);
         }
       } catch (err) {
         console.warn('Error cargando historial previo desde Supabase:', err);
@@ -267,7 +299,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     loadPastHistoryFromSupabase();
 
     return () => clearIdleTimer();
-  }, []);
+  }, [municipioId]);
 
   useEffect(() => {
     if (!isMuted && isAudioPermissionGranted && !showPermissionModal) {
@@ -359,8 +391,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     const userLead = getUserLeadInfo();
     const isUserRegistered = Boolean(leadCheck.isRegistered || (userLead && userLead.nombre && userLead.whatsapp));
 
-    // Consultar IA de Ramitos con memoria de Supabase por Dispositivo e IP
-    const response = await processRamitosConversationAsync(query, selectedVereda, updatedHistory, isUserRegistered);
+    // Consultar IA con memoria de Supabase por Dispositivo, IP y Municipio
+    const response = await processRamitosConversationAsync(query, selectedVereda, updatedHistory, isUserRegistered, municipioId);
 
     setIsThinking(false);
 
@@ -400,7 +432,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
       respuestaLimpiaRamitos: response.textoRespuesta,
       reinterpretacionEstructuradaIa: response.problematicaSintetizada || response.propuestaRamitos || undefined,
       expresionRamitos: response.expresion || 'feliz',
-      sectorDetectado: response.sector || undefined
+      sectorDetectado: response.sector || undefined,
+      municipioId: municipioId
     });
 
     if (response.problematicaSintetizada) {
@@ -547,8 +580,19 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#eef2f6] via-[#e2e8f0] to-[#cbd5e1] flex items-center justify-center p-2 sm:p-4 select-none">
+    <div className="min-h-screen bg-gradient-to-b from-[#eef2f6] via-[#e2e8f0] to-[#cbd5e1] flex flex-col items-center justify-center p-2 sm:p-4 select-none">
       
+      {/* BOTÓN DIRECTO PARA INGRESAR AL CENTRO DE MANDO (ADENTRO) */}
+      <div className="mb-3 flex justify-center animate-fadeIn">
+        <button
+          onClick={onOpenFullPlan}
+          className="px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-black shadow-2xl flex items-center gap-2 transition-all cursor-pointer hover:scale-105"
+        >
+          <Building2 className="w-4 h-4 text-cyan-400" />
+          <span>Ingresar al Centro de Mando Estratégico & MGA (Adentro) ➜</span>
+        </button>
+      </div>
+
       {/* FRAME MÓVIL VERTICAL (MATCHING IMAGE 2 EXACTAMENTE) */}
       <div className="relative w-full max-w-[440px] h-[860px] bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[44px] mobile-frame-glow border-[6px] border-white/80 overflow-hidden flex flex-col justify-between p-6 shadow-2xl">
         
@@ -758,7 +802,26 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
             <div className="relative w-72 h-72 flex items-center justify-center">
               
-              {!useCustomAssetFailed ? (
+              {isCaparrapi ? (
+                /* EMBLEMA CÍVICO E INTELIGENCIA TERRITORIAL DE CAPARRAPÍ */
+                <div className="relative w-64 h-64 flex flex-col items-center justify-center animate-fadeIn select-none">
+                  {/* Anillos concéntricos de audio y tecnología */}
+                  <div className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-ping pointer-events-none opacity-20"></div>
+                  <div className="absolute inset-2 rounded-full border border-sky-400/40 pointer-events-none"></div>
+                  <div className="absolute inset-6 rounded-full border-2 border-dashed border-indigo-400/30 animate-spin" style={{ animationDuration: '25s' }}></div>
+                  
+                  {/* Medallón Central */}
+                  <div className="relative w-48 h-48 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-4 border-blue-500/80 p-4 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.6)] transform hover:scale-105 transition-transform">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-xl border border-blue-300/40 mb-2">
+                      <Shield className="w-10 h-10 text-sky-100 drop-shadow-md" />
+                    </div>
+                    <p className="text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
+                    <span className="text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-2.5 py-0.5 rounded-full mt-1 border border-blue-400/40 shadow-xs">
+                      Copiloto Ciudadano
+                    </span>
+                  </div>
+                </div>
+              ) : !useCustomAssetFailed ? (
                 <img
                   src={`/assets/ramitos/ramitos_${currentExpresion}.png`}
                   alt={`Ramitos ${currentExpresion}`}
@@ -769,45 +832,32 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                 <>
                   {/* MUCHAS MÁS FLORES DIGITALES DINÁMICAS FLOTANDO ATRÁS */}
                   <svg className="absolute inset-0 w-full h-full" viewBox="0 0 240 240" fill="none" xmlns="http://www.w3.org/2000/svg">
-                    {/* Top Center Orange Tulip */}
                     <path d="M120 18 C128 5, 142 12, 138 26 C152 26, 152 40, 138 44 C142 58, 128 62, 120 54 C112 62, 98 58, 102 44 C88 40, 88 26, 102 26 C98 12, 112 5, 120 18 Z" stroke={currentExpresion === 'enojado' ? '#ef4444' : '#fb923c'} strokeWidth="2.8" strokeLinecap="round" />
-                    {/* Top Left Yellow Flower */}
                     <path d="M85 35 C92 24, 106 30, 101 43 C114 43, 114 57, 101 62 C106 75, 92 80, 85 70 C78 80, 64 75, 69 62 C56 57, 56 43, 69 43 C64 30, 78 24, 85 35 Z" stroke="#fde047" strokeWidth="2.8" strokeLinecap="round" />
-                    {/* Top Right Sky Blue Flower */}
                     <path d="M155 35 C162 24, 176 30, 171 43 C184 43, 184 57, 171 62 C176 75, 162 80, 155 70 C148 80, 134 75, 139 62 C126 57, 126 43, 139 43 C134 30, 148 24, 155 35 Z" stroke="#38bdf8" strokeWidth="2.8" strokeLinecap="round" />
-                    {/* Mid Left Blue Flower */}
                     <path d="M55 75 C61 64, 75 70, 70 83 C83 83, 83 97, 70 102 C75 115, 61 120, 55 110 Z" stroke="#60a5fa" strokeWidth="2.8" strokeLinecap="round" />
-                    {/* Mid Right Pink Flower */}
                     <path d="M185 75 C191 64, 205 70, 200 83 C213 83, 213 97, 200 102 C205 115, 191 120, 185 110 Z" stroke="#f472b6" strokeWidth="2.8" strokeLinecap="round" />
-                    {/* Bottom Left Coral Red Flower */}
                     <path d="M75 125 C82 114, 96 120, 91 133 C104 133, 104 147, 91 152 C96 165, 82 170, 75 160 Z" stroke="#f87171" strokeWidth="2.8" strokeLinecap="round" />
-                    {/* Bottom Right Lime Green Flower */}
                     <path d="M165 125 C172 114, 186 120, 181 133 C194 133, 194 147, 181 152 C186 165, 172 170, 165 160 Z" stroke="#a7f3d0" strokeWidth="2.8" strokeLinecap="round" />
                   </svg>
 
-                  {/* CLOUD SHAPED HEAD CON EXPRESIONES DINÁMICAS (MATCHING IMAGE 2 EXACTLY) */}
+                  {/* CLOUD SHAPED HEAD CON EXPRESIONES DINÁMICAS */}
                   <div className="relative w-44 h-40 flex items-center justify-center z-10">
                     <svg className="absolute inset-0 w-full h-full drop-shadow-2xl" viewBox="0 0 160 140" fill="none">
                       <path d="M45 110 C25 110 10 92 20 72 C8 55 24 35 44 42 C54 22 86 20 100 35 C116 22 144 32 142 52 C158 66 150 94 132 104 C120 114 90 115 80 110 Z" fill={currentExpresion === 'enojado' ? '#2d141e' : '#1b2434'} stroke="#ffffff" strokeWidth="4.5" strokeLinejoin="round" />
                     </svg>
                     
-                    {/* EXPRESIÓN DINÁMICA DE LA CARITA */}
                     <div className="relative z-10 flex flex-col items-center justify-center">
                       {renderFacialExpression(currentExpresion)}
                     </div>
                   </div>
 
-                  {/* WHITE TRUNK WITH 2 GREEN LEAF HANDS OPENING UP (MATCHING IMAGE 2 EXACTLY) */}
+                  {/* WHITE TRUNK WITH 2 GREEN LEAF HANDS */}
                   <div className="absolute bottom-5 flex flex-col items-center z-10">
-                    {/* Two Green Leaf Hands sprouting out from Trunk */}
                     <svg className="absolute -top-3 w-32 h-16 pointer-events-none" viewBox="0 0 120 60" fill="none">
-                      {/* Left Leaf Hand */}
                       <path d="M45 35 Q15 15 10 35 Q30 55 45 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
-                      {/* Right Leaf Hand */}
                       <path d="M75 35 Q105 15 110 35 Q90 55 75 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
                     </svg>
-
-                    {/* White Outlined Trunk */}
                     <div className="w-10 h-16 border-l-4 border-r-4 border-b-4 border-white rounded-b-2xl"></div>
                   </div>
                 </>
@@ -817,16 +867,18 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
           </div>
 
-          {/* RAMITOS TITLE & ESTADO DINÁMICO (SIN DESCRIPCIÓN INÚTIL) */}
+          {/* TITLE & ESTADO DINÁMICO */}
           <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
-            <h1 className="text-4xl font-extrabold text-white tracking-wide shadow-sm">Ramitos</h1>
+            <h1 className="text-4xl font-extrabold text-white tracking-wide shadow-sm">
+              {isCaparrapi ? 'Caparrapí' : 'Ramitos'}
+            </h1>
             {isThinking || currentExpresion === 'pensativo' ? (
-              <p className="text-xs font-bold text-amber-600 animate-pulse tracking-wide pt-1 flex items-center justify-center gap-1.5">
-                <span>🌿</span>
+              <p className={`text-xs font-bold ${isCaparrapi ? 'text-blue-400' : 'text-amber-600'} animate-pulse tracking-wide pt-1 flex items-center justify-center gap-1.5`}>
+                <span>{isCaparrapi ? '🛡️' : '🌿'}</span>
                 <span>Pensando...</span>
               </p>
             ) : isHoldingMic ? (
-              <p className="text-xs font-bold text-emerald-600 animate-pulse tracking-wide pt-1 flex items-center justify-center gap-1.5">
+              <p className={`text-xs font-bold ${isCaparrapi ? 'text-blue-400' : 'text-emerald-600'} animate-pulse tracking-wide pt-1 flex items-center justify-center gap-1.5`}>
                 <span>🎙️</span>
                 <span>Escuchando... ¡Suelta para responder!</span>
               </p>

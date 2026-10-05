@@ -148,9 +148,26 @@ export function extractLeadInfoFromText(text: string): { nombre?: string; whatsa
   return null;
 }
 
-// Detección dinámica de Veredas y Barrios en Guaduas
-export function detectVeredaOrBarrioFromText(text: string): string | undefined {
+// Detección dinámica de Veredas y Barrios según el municipio activo
+export function detectVeredaOrBarrioFromText(text: string, municipioId: 'guaduas' | 'caparrapi' = 'guaduas'): string | undefined {
   const t = text.toLowerCase();
+
+  if (municipioId === 'caparrapi') {
+    if (t.includes('san ramon') || t.includes('san ramón')) return 'San Ramón';
+    if (t.includes('san carlos')) return 'San Carlos';
+    if (t.includes('pitalito')) return 'Pitalito';
+    if (t.includes('el dinde') || t.includes('dinde')) return 'El Dinde';
+    if (t.includes('mata de mora')) return 'Mata de Mora';
+    if (t.includes('la chorrera') || t.includes('chorrera')) return 'La Chorrera';
+    if (t.includes('boca de monte')) return 'Boca de Monte';
+    if (t.includes('galiche')) return 'Galiche';
+    if (t.includes('el silencio')) return 'El Silencio';
+    if (t.includes('caparrapi centro') || t.includes('caparrapí centro') || t.includes('casco urbano')) return 'Caparrapí Centro';
+    if (t.includes('puerto colombia')) return 'Puerto Colombia';
+    return undefined;
+  }
+
+  // Guaduas
   if (t.includes('piedras negras')) return 'Piedras Negras';
   if (t.includes('puerto bogota') || t.includes('puerto bogotá')) return 'Puerto Bogotá';
   if (t.includes('guaduas centro') || t.includes('casco urbano') || t.includes('el centro')) return 'Guaduas Centro';
@@ -165,8 +182,23 @@ export function detectVeredaOrBarrioFromText(text: string): string | undefined {
   return undefined;
 }
 
-// SYSTEM PROMPT: Inteligencia Autónoma Generativa, Co-Creación Cívica y Diálogo Continuo
-const SYSTEM_PROMPT = `Eres "Ramitos", el personaje animado, asesor e Inteligencia Artificial de co-creación cívica de Guaduas.
+export function getSystemPromptForMunicipio(municipioId: 'guaduas' | 'caparrapi' = 'guaduas'): string {
+  if (municipioId === 'caparrapi') {
+    return `Eres el "Copiloto Ciudadano de Caparrapí", el asesor de inteligencia territorial, co-creación cívica y estructuración de proyectos de Caparrapí, Cundinamarca.
+
+OBJETIVO NÚMERO UNO:
+- Escuchar con empatía y cercanía campesina las necesidades de las 11 veredas e inspecciones de Caparrapí (San Ramón, San Carlos, Pitalito, Mata de Mora, El Dinde, La Chorrera, Galiche, El Silencio, Boca de Monte, etc.).
+- Transformar el dolor de los campesinos (producción de café, caña panelera, colapso del 78% de vías terciarias, falta de agua potable, abandono de escuelas) en soluciones pragmáticas inmediatas con Convenios Solidarios con JAC (Ley 2166 de 2021) y estructuración con rigor MGA DNP (Caminos Comunitarios Invías, MinVivienda Agua al Campo, Obras por Impuestos ART).
+- Cero promesas politiqueras vacías: Habla con datos reales, contrastando la concentración presupuestal del actual Palacio Municipal ($3.082M) y las 236 OPS ($4.477M) frente a obras reales que lleguen al campo.
+
+REGLAS DE COMUNICACIÓN:
+1. Habla con calidez, respeto campesino y precisión técnica.
+2. Si mencionan una vereda de Caparrapí, enfoca la solución específicamente en esa zona rural.
+3. Sugiere pasos viables: bombeo solar off-grid, placas huellas comunitarias, antenas Starlink veredales o comités de veeduría comunal.`;
+  }
+
+  // Guaduas
+  return `Eres "Ramitos", el personaje animado, asesor e Inteligencia Artificial de co-creación cívica de Guaduas.
 
 OBJETIVO NÚMERO UNO (POSICIONAMIENTO INTERNO):
 - Eres un cazador proactivo e inteligente de problemáticas, peticiones e ideas brillantes de la comunidad de Guaduas.
@@ -197,12 +229,14 @@ REGLA DE ORO DE LENGUAJE:
 REGLAS DE FORMATO Y ESTILO:
 1. BREVEDAD: Máximo 2 frases cortas (25-35 palabras en total). Sin viñetas ni párrafos largos.
 2. ESPAÑOL COLOMBIANO: Cálido, empático, directo y cercano.`;
+}
 
 export async function processRamitosConversationAsync(
   userInput: string,
   currentVereda?: string,
   history: { sender: 'ramitos' | 'user'; text: string }[] = [],
-  isUserRegistered: boolean = false
+  isUserRegistered: boolean = false,
+  municipioId: 'guaduas' | 'caparrapi' = 'guaduas'
 ): Promise<RamitosChatResponse> {
   const textLower = userInput.toLowerCase().trim();
 
@@ -360,20 +394,21 @@ export async function processRamitosConversationAsync(
   if (pastInteractions && pastInteractions.length > 0) {
     combinedTextForLocation += ' ' + pastInteractions.map(i => i.userText).join(' ');
   }
-  const detectedLocation = detectVeredaOrBarrioFromText(combinedTextForLocation) || (currentVereda && currentVereda.trim() && currentVereda !== 'Guaduas Centro' && currentVereda !== 'Guaduas (Centro)' ? currentVereda : undefined);
+  const detectedLocation = detectVeredaOrBarrioFromText(combinedTextForLocation, municipioId) || (currentVereda && currentVereda.trim() && currentVereda !== 'Guaduas Centro' && currentVereda !== 'Guaduas (Centro)' && currentVereda !== 'Caparrapí Centro' ? currentVereda : undefined);
 
+  const nombreMun = municipioId === 'caparrapi' ? 'Caparrapí' : 'Guaduas';
   let locationInstruction = '';
   if (detectedLocation) {
-    locationInstruction = `\nUBICACIÓN CONFIRMADA DEL CIUDADANO: "${detectedLocation}". Todo tu diálogo debe enfocarse en atender la necesidad de esta vereda/barrio.`;
+    locationInstruction = `\nUBICACIÓN CONFIRMADA DEL CIUDADANO: "${detectedLocation}". Todo tu diálogo debe enfocarse en atender la necesidad de esta vereda/sector de ${nombreMun}.`;
   } else {
-    locationInstruction = `\nREGLA DE UBICACIÓN FALTANTE: AÚN NO SE HA IDENTIFICADO la vereda o barrio del ciudadano. ¡PROHIBIDO ASUMIR "Guaduas Centro" NI INVENTAR CUALQUIER OTRA VEREDA! Jamás incluyas la frase "en Guaduas Centro" en tu respuesta. Si la conversación requiere ubicarla, pregúntale amablemente en qué vereda o barrio de Guaduas se presenta la situación para registrarla adecuadamente.`;
+    locationInstruction = `\nREGLA DE UBICACIÓN FALTANTE: AÚN NO SE HA IDENTIFICADO la vereda o sector del ciudadano en ${nombreMun}. ¡PROHIBIDO ASUMIR CUALQUIER VEREDA POR DEFECTO! Si la conversación requiere ubicarla, pregúntale amablemente en qué vereda o sector de ${nombreMun} se presenta la situación para registrarla adecuadamente.`;
   }
 
   let memoryInstruction = '';
 
   if (pastInteractions && pastInteractions.length > 0) {
     const formattedHistory = pastInteractions.map((item, idx) =>
-      `Turno ${idx + 1}: Ciudadano: "${item.userText}" | Ramitos: "${item.ramitosResponse}"`
+      `Turno ${idx + 1}: Ciudadano: "${item.userText}" | Asistente: "${item.ramitosResponse}"`
     ).join('\n');
 
     memoryInstruction += `\n\nHISTORIAL COMPLETO EN TIEMPO REAL DESDE SUPABASE PARA ESTA IP/DISPOSITIVO:\n${formattedHistory}\n\nREGLA CLAVE: Analiza todo este diálogo previo para no repetir conceptos ya dichos y dar continuidad eficiente.`;
@@ -391,17 +426,17 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
   // SI Y SOLO SI PREGUNTA POR PROYECTOS DEL PLAN DE GOBIERNO, INCLUIR CONTEXTO DE PROYECTOS DEL PLAN
   let planGobiernoContext = '';
   if (textLower.includes('plan de gobierno') || textLower.includes('proyecto') || textLower.includes('propuesta del plan') || textLower.includes('propuestas de gobierno') || textLower.includes('qué tienen para')) {
-    const proyectos = getBaseProposals();
+    const proyectos = getBaseProposals(municipioId);
     const resumenProyectos = proyectos.map(p => `- [${p.codigo}] ${p.titulo} (${p.sector}): ${p.solucionPragmatica}`).join('\n');
     planGobiernoContext = `\n\nCONSULTA EXPRESA DE PROYECTOS DEL PLAN DE GOBIERNO:\n${resumenProyectos}\nUsa esta información únicamente como respuesta a la consulta sobre el Plan de Gobierno.`;
   }
 
   // Indicaciones dinámicas sobre captura de contacto voluntaria verificando Supabase
   const contactInstruction = effectiveIsRegistered
-    ? `CONTEXTO EN SUPABASE: El ciudadano YA tiene su Nombre ("${registeredName}") y WhatsApp ("${registeredWhatsapp}") registrados. ¡ESTÁ PROHIBIDO PEDIR NÚMERO DE WHATSAPP O NOMBRE! Jamás preguntes "¿nos indicas tu WhatsApp?" ni pidas datos de contacto. Jamás llames al usuario por otro nombre distinto a "${registeredName}".`
-    : `CONTEXTO EN SUPABASE: Este ciudadano AÚN NO ha registrado sus datos en la base de datos. Profundiza en su inquietud y, cuando te dé un punto claro, pregúntale voluntariamente si desea dar su Nombre y WhatsApp para que el equipo lo contacte.`;
+    ? `\nCONTEXTO EN SUPABASE: El ciudadano YA tiene su Nombre (${registeredName}) y WhatsApp (${registeredWhatsapp}) registrados. No pidas datos de contacto.`
+    : `\nCONTEXTO EN SUPABASE: Este ciudadano aun no registra sus datos. Cuando sea oportuno, preguntale si desea dejar su Nombre y WhatsApp.`;
 
-  const systemPromptWithContext = `${SYSTEM_PROMPT}\n\n${locationInstruction}\n${contactInstruction}${memoryInstruction}${planGobiernoContext}`;
+  const systemPromptWithContext = getSystemPromptForMunicipio(municipioId) + locationInstruction + contactInstruction + memoryInstruction + planGobiernoContext;
 
   // Preparar historial previo para la IA (últimos 8 mensajes)
   const historyMessagesForGroq = history.slice(-8).map(msg => ({

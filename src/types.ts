@@ -1,6 +1,17 @@
 // Interfaces y tipos del sistema ALCALDE AMIGO con Ramitos
 
-export type ActiveTab = 'chat' | 'escucha' | 'crm' | 'copiloto' | 'cloud';
+export type ActiveTab = 
+  | 'gira' 
+  | 'radiografia' 
+  | 'veredas' 
+  | 'auditoria' 
+  | 'politicas' 
+  | 'mga' 
+  | 'speech' 
+  | 'chat' 
+  | 'escucha' 
+  | 'crm' 
+  | 'copiloto';
 
 export interface CitizenLead {
   id: string;

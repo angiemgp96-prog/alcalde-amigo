@@ -10,14 +10,16 @@ const distDir = fs.existsSync(path.join(__dirname, 'dist'))
   ? path.join(__dirname, 'dist')
   : __dirname;
 
+console.log('Serving static files from:', distDir);
+
 // Serve static frontend files
 app.use(express.static(distDir));
 
 // Fallback for Single Page Application (SPA) routing
-app.use((_req, res) => {
-  res.sendFile(path.join(distDir, 'index.html'));
+app.use((req, res) => {
+  res.sendFile('index.html', { root: distDir });
 });
 
-app.listen(PORT, () => {
-  console.log(`🚀 Servidor Express corriendo en el puerto ${PORT}`);
+app.listen(Number(PORT), '0.0.0.0', () => {
+  console.log(`🚀 iAlcaldía Servidor Express corriendo en el puerto ${PORT}`);
 });

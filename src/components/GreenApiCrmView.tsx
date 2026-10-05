@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { CitizenLead, GreenApiMessage, GreenApiConfig } from '../types';
 import { sendWhatsAppMessage, getGreenApiConfig, saveGreenApiConfig } from '../services/greenApi';
-import { VEREDAS_GUADUAS } from '../data/veredasGuaduas';
+import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { formatDate } from '../utils/formatters';
 import { Send, Phone, MapPin, Users, Key, CheckCircle2, ShieldCheck, MessageSquare, Sparkles, Filter } from 'lucide-react';
 
@@ -9,19 +9,36 @@ interface GreenApiCrmViewProps {
   leads: CitizenLead[];
   messages: GreenApiMessage[];
   onMessageSent: () => void;
+  municipioId?: 'guaduas' | 'caparrapi';
 }
 
 export const GreenApiCrmView: React.FC<GreenApiCrmViewProps> = ({
   leads,
   messages,
-  onMessageSent
+  onMessageSent,
+  municipioId = 'guaduas'
 }) => {
+  const isCaparrapi = municipioId === 'caparrapi';
+  const munData = MUNICIPIOS_DATA[municipioId || 'guaduas'];
+  const veredasList = munData.veredas;
+
   const [selectedVereda, setSelectedVereda] = useState<string>('Todas');
   const [singlePhone, setSinglePhone] = useState('');
   const [singleName, setSingleName] = useState('');
   const [messageText, setMessageText] = useState(
-    'Hola! Ramitos te informa que tu inquietud para tu vereda ya fue analizada e incluida con solución práctica en el Plan de Gobierno de Guaduas. ¡La meta la construimos entre todos!'
+    isCaparrapi
+      ? '¡Hola! Te informamos que tu inquietud para tu vereda ya fue analizada e incluida en el Banco de Proyectos de Caparrapí. ¡El futuro lo construimos entre todos!'
+      : '¡Hola! Ramitos te informa que tu inquietud para tu vereda ya fue analizada e incluida con solución práctica en el Plan de Gobierno de Guaduas. ¡La meta la construimos entre todos!'
   );
+
+  useEffect(() => {
+    setSelectedVereda('Todas');
+    setMessageText(
+      isCaparrapi
+        ? '¡Hola! Te informamos que tu inquietud para tu vereda ya fue analizada e incluida en el Banco de Proyectos de Caparrapí. ¡El futuro lo construimos entre todos!'
+        : '¡Hola! Ramitos te informa que tu inquietud para tu vereda ya fue analizada e incluida con solución práctica en el Plan de Gobierno de Guaduas. ¡La meta la construimos entre todos!'
+    );
+  }, [municipioId, isCaparrapi]);
   const [isSending, setIsSending] = useState(false);
   const [sendResult, setSendResult] = useState<string | null>(null);
 
@@ -175,7 +192,7 @@ export const GreenApiCrmView: React.FC<GreenApiCrmViewProps> = ({
             {/* Segment by Vereda */}
             <div className="space-y-2">
               <label className="text-xs font-bold uppercase tracking-wider text-slate-700 flex items-center justify-between">
-                <span>Segmentar por Vereda de Guaduas:</span>
+                <span>Segmentar por Vereda de {isCaparrapi ? 'Caparrapí' : 'Guaduas'}:</span>
                 <span className="text-emerald-700 font-extrabold">{filteredLeads.length} contactos inscritos</span>
               </label>
               <select
@@ -183,8 +200,8 @@ export const GreenApiCrmView: React.FC<GreenApiCrmViewProps> = ({
                 onChange={(e) => setSelectedVereda(e.target.value)}
                 className="w-full bg-slate-50 border border-slate-300 rounded-2xl p-3.5 text-xs sm:text-sm text-slate-900 font-bold focus:outline-none focus:ring-2 focus:ring-emerald-500 cursor-pointer"
               >
-                <option value="Todas">Todas las Veredas (Difusión General)</option>
-                {VEREDAS_GUADUAS.map((v, idx) => (
+                <option value="Todas">Todas las Veredas ({isCaparrapi ? 'Caparrapí' : 'Guaduas'})</option>
+                {veredasList.map((v, idx) => (
                   <option key={idx} value={v.nombre}>
                     {v.nombre} ({v.zona})
                   </option>
