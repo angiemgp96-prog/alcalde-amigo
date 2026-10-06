@@ -183,52 +183,24 @@ export function detectVeredaOrBarrioFromText(text: string, municipioId: 'guaduas
 }
 
 export function getSystemPromptForMunicipio(municipioId: 'guaduas' | 'caparrapi' = 'guaduas'): string {
-  if (municipioId === 'caparrapi') {
-    return `Eres el "Copiloto Ciudadano de Caparrapí", el asesor de inteligencia territorial, co-creación cívica y estructuración de proyectos de Caparrapí, Cundinamarca.
+  const isCap = municipioId === 'caparrapi';
+  const nombreMun = isCap ? 'Caparrapí' : 'Guaduas';
+  const rolName = isCap ? 'Copiloto Ciudadano de Caparrapí' : 'Ramitos (Copiloto Cívico de Guaduas)';
 
-OBJETIVO NÚMERO UNO:
-- Escuchar con empatía y cercanía campesina las necesidades de las 11 veredas e inspecciones de Caparrapí (San Ramón, San Carlos, Pitalito, Mata de Mora, El Dinde, La Chorrera, Galiche, El Silencio, Boca de Monte, etc.).
-- Transformar el dolor de los campesinos (producción de café, caña panelera, colapso del 78% de vías terciarias, falta de agua potable, abandono de escuelas) en soluciones pragmáticas inmediatas con Convenios Solidarios con JAC (Ley 2166 de 2021) y estructuración con rigor MGA DNP (Caminos Comunitarios Invías, MinVivienda Agua al Campo, Obras por Impuestos ART).
-- Cero promesas politiqueras vacías: Habla con datos reales, contrastando la concentración presupuestal del actual Palacio Municipal ($3.082M) y las 236 OPS ($4.477M) frente a obras reales que lleguen al campo.
+  return `Eres el "${rolName}", la Inteligencia Artificial de acompañamiento, escucha y captación de necesidades para la comunidad de ${nombreMun}, Cundinamarca.
 
-REGLAS DE COMUNICACIÓN:
-1. Habla con calidez, respeto campesino y precisión técnica.
-2. Si mencionan una vereda de Caparrapí, enfoca la solución específicamente en esa zona rural.
-3. Sugiere pasos viables: bombeo solar off-grid, placas huellas comunitarias, antenas Starlink veredales o comités de veeduría comunal.`;
-  }
+DIRECTIVAS ÉTICAS Y DE RESPONSABILIDAD FUNDAMENTALES (ORDEN MÁXIMA):
+1. CERO PROMESAS Y CERO FALSAS ESPERANZAS: ¡ESTÁ TERMINANTEMENTE PROHIBIDO prometer obras, fechas de entrega, presupuestos o soluciones garantizadas! Jamás te comprometas a ejecutar nada ni des falsas expectativas. No te impliques como ejecutor.
+2. ROL CLARO Y TRANSPARENTE: Tu función principal es CAPTAR LAS NECESIDADES REALES de la gente y valorar su aporte. Deja siempre claro con total transparencia que cualquier alternativa que menciones es únicamente una "posibilidad técnica preliminar planteada por esta inteligencia artificial" como guía u horizonte positivo inicial.
+3. REMISIÓN DIRECTA AL EQUIPO HUMANO: Todo reporte, inquietud o idea que recibas queda registrado en el sistema y se enviará a NUESTRO EQUIPO HUMANO DE TRABAJO, quienes son los únicos facultados para evaluar la viabilidad técnica real, determinar las verdaderas acciones y priorizar la ejecución con la ayuda de toda la comunidad.
+4. TONO EQUILIBRADO Y CONSTRUCTIVO: Ni alarmante ni catastrófico. Ni redundante ni excesivamente técnico o aburrido. Usa un español colombiano cercano, respetuoso, empático y campesino. Destaca siempre como horizonte positivo que cada aporte de la gente es la semilla viva para nutrir los proyectos que realizaremos entre todos.
+5. AISLAMIENTO TERRITORIAL ESTRICTO (SOLO ${nombreMun.toUpperCase()}): Tienes terminantemente prohibido mezclar información de otros municipios. Todo tu conocimiento y respuestas pertenecen al 100% a ${nombreMun} y sus veredas e inspecciones rurales.
+${isCap ? `   - Veredas e inspecciones clave de Caparrapí: San Carlos, Terán, San Pedro, La Florida, Otavalo, San Ramón, Pitalito, Mata de Mora, El Dinde, La Chorrera, Boca de Monte, Galiche, El Silencio, etc.` : `   - Veredas e inspecciones clave de Guaduas: Puerto Bogotá, Guaduero, La Paz, Versalles, San José, El Hato, Yaguará, Chipauta, Carbonera, Malambo, etc.`}
 
-  // Guaduas
-  return `Eres "Ramitos", el personaje animado, asesor e Inteligencia Artificial de co-creación cívica de Guaduas.
-
-OBJETIVO NÚMERO UNO (POSICIONAMIENTO INTERNO):
-- Eres un cazador proactivo e inteligente de problemáticas, peticiones e ideas brillantes de la comunidad de Guaduas.
-- Haz que los ciudadanos se sientan escuchados y parte activa de la solución mediante votaciones cívicas, encuestas de necesidades y participación veredal.
-- Muestra siempre un sentido de oportunidad promocionando beneficios, proyectos comunitarios y votaciones de planes piloto para su vereda/barrio.
-
-REGLAS DE LENGUAJE VARIADO Y RUMBO CLARO (PROHIBIDO "SE PODRÍAN" REPETITIVO):
-1. VARIEDAD DE LENGUAJE: ¡PROHIBIDO repetir la coletilla "Se podrían..." en cada mensaje! Usa alternativas variadas y naturales como: "Una opción práctica es...", "Podríamos proponer al equipo...", "Una alternativa a evaluar sería...", "Plantearemos la propuesta de...", "Sugeriremos al equipo...".
-2. DAR RUMBO Y CONCLUSIÓN PROPOSITIVA: No dejes la conversación flotando sin rumbo. Cuando el ciudadano plantee un punto o pida ideas, haz una síntesis práctica y lleva la conversación hacia un resultado concreto.
-
-REGLA ABSOLUTA DE UBICACIÓN (¡PROHIBIDO ASUMIR "GUADUAS CENTRO" O CUALQUIER OTRA VEREDA!):
-- ¡PROHIBIDO ASUMIR CUALQUIER VEREDA O BARRIO POR DEFECTO! Jamás agregues "en Guaduas Centro" ni ninguna otra ubicación a tu respuesta si el ciudadano no la ha mencionado explícitamente.
-- SI EL CIUDADANO NO HA DICHO SU UBICACIÓN: No inventes ninguna vereda ni barrio. Si la conversación lo requiere para la propuesta, pregúntale amablemente: "¿En qué vereda o barrio de Guaduas se presenta esta situación?" para ubicar correctamente su planteamiento.
-
-CIERRE Y REGISTRO SEGÚN ESTADO DE DATOS:
-- CASO A (SI EL CIUDADANO YA DIO SU NOMBRE Y/O WHATSAPP): ¡PROHIBIDO VOLVER A PEDIR SU CONTACTO! Reconoce amablemente sus datos registrados y enfócate en concretar la solución para el equipo humano.
-- CASO B (SI AÚN NO HA REGISTRADO NOMBRE Y WHATSAPP): Tras concretar la idea y ubicación, pregúntale amablemente: "¿Te gustaría compartirnos tu Nombre y WhatsApp para que el equipo humano te informe cuando evalúen la propuesta?"
-
-OBJETIVO PRINCIPAL DE IDENTIFICACIÓN:
-1. SI QUIERE ESCUCHAR IDEAS: Propón opciones de forma propositiva y clara con variaciones de lenguaje.
-2. SI PLANTEA SUS PROPIAS IDEAS: Valida su experiencia ("Solo quien vive la situación entiende la problemática") y ayuda a enriquecer su planteamiento.
-3. SI LA PROPUESTA ESTÁ LISTA: Conclúyela de forma propositiva proponiendo una votación piloto o entrega a la mesa técnica.
-
-REGLA DE ORO DE LENGUAJE:
-- PROHIBIDO HABLAR DE POLÍTICA O GOBIERNO: Jamás menciones la palabra gobierno, política ni temas electorales o discursos oficiales. Enfócate 100% en soluciones comunitarias, necesidades locales de veredas/barrios y propuestas prácticas para Guaduas.
-- Las acciones las ejecuta el equipo humano de trabajo, NO la IA. Tu rol como IA es acompañar, guiar, captar necesidades, construir propuestas y redactarlas para el equipo humano de trabajo.
-
-REGLAS DE FORMATO Y ESTILO:
-1. BREVEDAD: Máximo 2 frases cortas (25-35 palabras en total). Sin viñetas ni párrafos largos.
-2. ESPAÑOL COLOMBIANO: Cálido, empático, directo y cercano.`;
+REGLAS DE FORMATO:
+- Breve, directo y muy humano (máximo 2 a 3 frases en total).
+- Si el ciudadano no ha mencionado su vereda o sector, pregúntasela amablemente para registrar con precisión su caso.
+- Si ya concretaron la necesidad y el ciudadano aún no ha registrado sus datos, pregúntale con calidez: "¿A qué nombre y WhatsApp podemos enviarte información cuando el equipo humano revise técnicamente este aporte en tu vereda?"`;
 }
 
 export async function processRamitosConversationAsync(
@@ -456,7 +428,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
   // 1. PRIORIDAD 1: GROQ CLOUD
   const groqKey = activeGroqKey || DEFAULT_GROQ_KEY;
   if (groqKey.trim()) {
-    const groqModels = ['groq/compound', 'openai/gpt-oss-20b'];
+    const groqModels = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'];
     for (const model of groqModels) {
       try {
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -473,7 +445,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
               { role: 'user', content: userInput }
             ],
             temperature: 0.7,
-            max_tokens: 120
+            max_tokens: 140
           })
         });
 
@@ -495,7 +467,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
   if (!finalResponse) {
     const geminiKey = activeGeminiKey || DEFAULT_GEMINI_KEY;
     if (geminiKey.trim()) {
-      const geminiModels = ['gemini-2.5-flash', 'gemini-3.6-flash', 'gemini-flash-latest'];
+      const geminiModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash'];
 
       for (const model of geminiModels) {
         try {
@@ -530,7 +502,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
 
   // 3. FALLBACK INTELIGENTE LOCAL (Si fallan las APIs de IA)
   if (!finalResponse) {
-    finalResponse = buildLocalFallbackResponse(textLower, effectiveVereda, userInput, savedMemory);
+    finalResponse = buildLocalFallbackResponse(textLower, effectiveVereda, userInput, savedMemory, municipioId);
   }
 
   // GUARDAR / ACTUALIZAR MEMORIA HISTÓRICA EN SUPABASE DE FORMA ASÍNCRONA
@@ -582,34 +554,87 @@ function detectExpression(text: string): RamitosChatResponse['expresion'] {
   return 'feliz';
 }
 
-function buildLocalFallbackResponse(textLower: string, currentVereda: string, originalInput: string, savedMemory?: any): RamitosChatResponse {
-  const isGreeting = /^hola\b|^buenas\b|^que tal\b|^saludos\b|^hola ramitos\b/i.test(textLower) && textLower.length < 25;
+function buildLocalFallbackResponse(
+  textLower: string,
+  currentVereda: string,
+  originalInput: string,
+  savedMemory?: any,
+  municipioId: 'guaduas' | 'caparrapi' = 'guaduas'
+): RamitosChatResponse {
+  const isCap = municipioId === 'caparrapi';
+  const nombreMun = isCap ? 'Caparrapí' : 'Guaduas';
+  const detectedLoc = detectVeredaOrBarrioFromText(originalInput, municipioId) || (currentVereda && currentVereda !== 'Por definir' ? currentVereda : '');
+  const sector = detectSector(textLower);
+
+  const isGreeting = /^hola\b|^buenas\b|^que tal\b|^saludos\b|^buenos dias\b|^buenas tardes\b|^buenas noches\b/i.test(textLower) && textLower.length < 35;
   const isSummaryReq = textLower.includes('resumen') || textLower.includes('lo que hemos hablado') || textLower.includes('hablábamos') || textLower.includes('de que hablabamos');
 
   if (isSummaryReq && savedMemory && savedMemory.ultimaConclusion) {
     return {
-      textoRespuesta: `Podríamos resumir que la última conclusión alcanzada sobre ${savedMemory.temaPrincipal || 'nuestra charla'} fue: ${savedMemory.ultimaConclusion}. ¿Te gustaría añadir algún detalle o enfoque para seguir puliendo la propuesta?`,
-      expresion: 'curioso'
+      textoRespuesta: `Podríamos resumir que la última conclusión registrada sobre ${savedMemory.temaPrincipal || 'nuestra conversación'} fue: ${savedMemory.ultimaConclusion}. Este análisis queda consignado para la revisión del equipo humano. ¿Deseas agregar algún detalle adicional?`,
+      expresion: 'curioso',
+      sector: sector,
+      urgencia: 'Media'
     };
   }
 
   if (isGreeting) {
     return {
-      textoRespuesta: `¡Hola! Qué gusto saludarte 🌿 Solo quien vive el día a día entiende las problemáticas. ¿Qué idea o inquietud te gustaría que evaluemos para nuestra comunidad?`,
+      textoRespuesta: `¡Hola! Qué gusto saludarte. Soy el copiloto cívico de ${nombreMun}. Mi labor principal es escuchar y captar las necesidades de nuestra comunidad para nutrir las propuestas del equipo humano. ¿De qué vereda o sector nos escribes y qué situación te gustaría que registremos?`,
       expresion: 'feliz'
     };
   }
 
+  // Identificar si aún no se tiene ubicación
+  const faltaUbicacion = !detectedLoc || detectedLoc === 'Por definir' || (detectedLoc.toLowerCase().includes('centro') && !textLower.includes('centro'));
+
+  // Posibilidades técnicas preliminares formuladas por la IA según sector y municipio (CERO PROMESAS, SOLO GUÍA)
+  let posibilidadIa = '';
+  if (sector === 'Energía e Infraestructura' && (textLower.includes('via') || textLower.includes('vía') || textLower.includes('camino') || textLower.includes('carretera') || textLower.includes('placa huella') || textLower.includes('derrumbe') || textLower.includes('puente') || textLower.includes('hueco') || textLower.includes('trocha'))) {
+    posibilidadIa = isCap
+      ? 'una posibilidad técnica analizada preliminarmente por esta IA sería postular tramos críticos a convenios de caminos comunitarios de Invías con placa huella de concreto y filtros'
+      : 'una alternativa técnica que formula esta IA como guía inicial sería priorizar tramos críticos de placa huella y cunetas en la red terciaria rural';
+  } else if (sector === 'Agua Potable y Saneamiento') {
+    posibilidadIa = isCap
+      ? 'una opción técnica que plantea esta IA como guía es estructurar la captación con desarenador y tanques de almacenamiento comunitario junto a la JAC'
+      : 'un horizonte técnico preliminar planteado por esta IA sería evaluar la optimización de redes de acueducto veredal y tanques de distribución';
+  } else if (sector === 'Educación y Conectividad') {
+    posibilidadIa = 'una alternativa técnica viable desde esta IA sería gestionar conectividad satelital comunitaria y dotación básica para la escuela veredal';
+  } else if (sector === 'Campo y Desarrollo Agrícola') {
+    posibilidadIa = isCap
+      ? 'una posibilidad técnica desde la IA sería articular proyectos asociativos para renovación de cafetales y modernización de trapiches paneleros ante la ADR'
+      : 'un camino técnico que plantea la IA como guía es canalizar líneas de crédito asociativo y asistencia técnica para los productores de la zona';
+  } else if (textLower.includes('salud') || textLower.includes('medico') || textLower.includes('médico') || textLower.includes('hospital') || textLower.includes('puesto de salud') || textLower.includes('ambulancia')) {
+    posibilidadIa = 'una posibilidad técnica preliminar sería coordinar brigadas veredales preventivas y telemedicina conectada con el centro de salud principal';
+  } else if (textLower.includes('luz') || textLower.includes('energia') || textLower.includes('energía') || textLower.includes('solar') || textLower.includes('alumbrado') || textLower.includes('poste')) {
+    posibilidadIa = 'una posibilidad técnica analizada por la IA sería plantear soluciones solares autónomas o gestión de redes eléctricas rurales';
+  } else {
+    posibilidadIa = `una alternativa inicial analizada por esta IA para el área de ${sector.toLowerCase()} sería estructurar un proyecto comunitario formal`;
+  }
+
+  const locRef = detectedLoc ? ` para ${detectedLoc}` : ` en ${nombreMun}`;
+
+  let textoRespuesta = '';
+  if (faltaUbicacion) {
+    textoRespuesta = `Tu aporte sobre esta situación es fundamental para nutrir las iniciativas de ${nombreMun}. Como guía técnica preliminar, ${posibilidadIa}. Dejo tu reporte registrado para que el equipo humano determine las verdaderas acciones viables; ¿en qué vereda o sector se presenta exactamente y cómo te llamas?`;
+  } else {
+    textoRespuesta = `Tu aporte sobre la situación de ${detectedLoc} es muy valioso. Como posibilidad técnica preliminar planteada por esta IA, ${posibilidadIa}${locRef}. Este reporte queda formalmente registrado para que nuestro equipo humano determine las verdaderas acciones y ejecute en terreno con la ayuda de todos. ¿A qué WhatsApp podemos compartirte novedades cuando el equipo evalúe la propuesta?`;
+  }
+
   return {
-    textoRespuesta: `Me parece un planteamiento muy valioso. Se podrían explorar diferentes alternativas con el equipo humano; ¿qué opción te gustaría proponer?`,
+    textoRespuesta: textoRespuesta,
+    problematicaSintetizada: `Reporte de ${sector} en ${detectedLoc || nombreMun}: "${originalInput}"`,
+    sector: sector,
+    urgencia: 'Alta',
+    propuestaRamitos: `Posibilidad preliminar de IA: ${posibilidadIa}. Reporte formalmente trasladado al equipo humano para viabilidad real.`,
     expresion: 'pensativo'
   };
 }
 
 function detectSector(text: string): CitizenNeed['sector'] {
-  if (text.includes('agua') || text.includes('bomba') || text.includes('filtro')) return 'Agua Potable y Saneamiento';
-  if (text.includes('internet') || text.includes('escuela') || text.includes('starlink')) return 'Educación y Conectividad';
-  if (text.includes('cosecha') || text.includes('campesino') || text.includes('campo')) return 'Campo y Desarrollo Agrícola';
-  if (text.includes('parque') || text.includes('niño') || text.includes('juego')) return 'Infancia y Familia';
+  if (text.includes('agua') || text.includes('bomba') || text.includes('filtro') || text.includes('manguera') || text.includes('quebrada') || text.includes('pozo') || text.includes('alcantarillado')) return 'Agua Potable y Saneamiento';
+  if (text.includes('internet') || text.includes('escuela') || text.includes('colegio') || text.includes('starlink') || text.includes('computador') || text.includes('niño') || text.includes('niña')) return 'Educación y Conectividad';
+  if (text.includes('cosecha') || text.includes('campesino') || text.includes('campo') || text.includes('café') || text.includes('cafe') || text.includes('panela') || text.includes('trapiche') || text.includes('ganado') || text.includes('cultivo') || text.includes('abono')) return 'Campo y Desarrollo Agrícola';
+  if (text.includes('parque') || text.includes('juego') || text.includes('cancha') || text.includes('deporte') || text.includes('juventud')) return 'Infancia y Familia';
   return 'Energía e Infraestructura';
 }
