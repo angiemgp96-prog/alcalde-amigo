@@ -131,7 +131,7 @@ class SpeechEngine {
         .replace(/[\u{2600}-\u{27BF}]/gu, '')
         .replace(/[\u{2300}-\u{23FF}]/gu, '')
         .replace(/[\u{2B00}-\u{2BFF}]/gu, '')
-        .replace(/[🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️💡🤝🏛️📊📢🇨🇴🛡️]/gu, '')
+        .replace(/[🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️💡🤝🏛️📊📢🇨🇴🛡️🐎🐴]/gu, '')
         .replace(/[*_#~`]/g, '') // Elimina caracteres markdown
         .replace(/https?:\/\/\S+/gi, '') // Elimina links
         .replace(/\s+/g, ' ')

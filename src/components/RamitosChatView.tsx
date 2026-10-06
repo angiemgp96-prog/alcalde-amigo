@@ -37,6 +37,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   const [useCustomAssetFailed, setUseCustomAssetFailed] = useState(false);
   const [displayedResponse, setDisplayedResponse] = useState(FIRST_INTERACTION_GREETING);
   const [copied, setCopied] = useState(false);
+  const [copiedHistory, setCopiedHistory] = useState(false);
 
   const [isRamitosSpeaking, setIsRamitosSpeaking] = useState(false);
   const [isMuted, setIsMuted] = useState(false);
@@ -278,7 +279,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     // CARGA AUTOMÁTICA EN TIEMPO REAL DEL HISTORIAL COMPLETO DE SUPABASE AISLADO POR MUNICIPIO
     const loadPastHistoryFromSupabase = async () => {
       const munNombre = isCaparrapi ? 'Caparrapí' : 'Guaduas';
-      const emojiMun = isCaparrapi ? '🛡️' : '🌿';
+      const emojiMun = isCaparrapi ? '🐎' : '🌿';
       const initialGreeting = munData.saludoInicial;
 
       try {
@@ -490,7 +491,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     if (!targetPhone.trim() || !currentResponse) return;
 
     const message = isCaparrapi
-      ? `🛡️ *iALCALDÍA (Caparrapí)*\n\nHola ${targetName || 'amigo'}, he registrado tu propuesta:\n\n"${currentResponse}"\n\nEl equipo humano de Caparrapí revisará la situación para evaluar acciones viables. ¡Construimos juntos!`
+      ? `🐎 *iALCALDÍA (Caparrapí)*\n\nHola ${targetName || 'amigo'}, he registrado tu propuesta:\n\n"${currentResponse}"\n\nEl equipo humano de Caparrapí revisará la situación para evaluar acciones viables. ¡Construimos juntos!`
       : `🌿 *ALCALDE AMIGO con Ramitos (Guaduas)*\n\nHola ${targetName || 'amigo'}, Ramitos te informa que he capturado tu propuesta:\n\n"${currentResponse}"\n\nNuestro equipo humano de trabajo se pondrá en contacto contigo a este número. ¡La meta la construimos juntos!`;
 
     await sendWhatsAppMessage(targetPhone.trim(), message, selectedVereda, 'Directo');
@@ -499,6 +500,24 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
       setShareSuccess(false);
       setShowShareModal(false);
     }, 2000);
+  };
+
+  // COPIAR HISTORIAL COMPLETO AL PORTAPAPELES (DISCRETO)
+  const handleCopyHistory = () => {
+    if (!history || history.length === 0) return;
+    const transcript = history.map(h => {
+      const senderName = h.sender === 'user' ? 'Ciudadano' : (isCaparrapi ? 'Copiloto Caparrapí' : 'Ramitos');
+      return `[${h.time || ''}] ${senderName}:\n${h.text}`;
+    }).join('\n\n---\n\n');
+
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(transcript).then(() => {
+        setCopiedHistory(true);
+        setTimeout(() => setCopiedHistory(false), 2000);
+      }).catch(err => {
+        console.warn('Error al copiar historial:', err);
+      });
+    }
   };
 
   // RENDERIZADO DE LAS 9 EXPRESIONES FACIALES SEGÚN LA GUÍA DEL USUARIO
@@ -836,7 +855,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   {/* Medallón Central */}
                   <div className="relative w-48 h-48 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-4 border-blue-500/80 p-4 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.6)] transform hover:scale-105 transition-transform">
                     <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-xl border border-blue-300/40 mb-2">
-                      <Shield className="w-10 h-10 text-sky-100 drop-shadow-md" />
+                      <span className="text-4xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
                     </div>
                     <p className="text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
                     <span className="text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-2.5 py-0.5 rounded-full mt-1 border border-blue-400/40 shadow-xs">
@@ -897,7 +916,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             </h1>
             {isThinking || currentExpresion === 'pensativo' ? (
               <p className={`text-xs font-bold ${isCaparrapi ? 'text-blue-400' : 'text-amber-600'} animate-pulse tracking-wide pt-1 flex items-center justify-center gap-1.5`}>
-                <span>{isCaparrapi ? '🛡️' : '🌿'}</span>
+                <span>{isCaparrapi ? '🐎' : '🌿'}</span>
                 <span>Pensando...</span>
               </p>
             ) : isHoldingMic ? (
@@ -976,7 +995,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                       : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
                   }`}
                 >
-                  <span>{isCaparrapi ? '🛡️ Conversar con Copiloto' : '🌿 Conversar con Ramitos'}</span>
+                  <span>{isCaparrapi ? '🐎 Conversar con Copiloto' : '🌿 Conversar con Ramitos'}</span>
                 </button>
 
                 <button
@@ -1010,10 +1029,23 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-[#0f172a] text-slate-100 p-6 space-y-4 shadow-2xl flex flex-col justify-between animate-fadeIn">
           <div className="space-y-4 flex-1 flex flex-col overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <div className="flex items-center gap-2">
                 <History className="w-4 h-4 text-sky-400" />
-                <span>Historial de Conversación</span>
-              </h3>
+                <h3 className="text-sm font-bold text-white">Historial de Conversación</h3>
+                {/* Botón discreto de copiar (dos cuadritos simulando 2 hojas de papel) */}
+                <button
+                  type="button"
+                  onClick={handleCopyHistory}
+                  title="Copiar historial al portapapeles"
+                  className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer ml-0.5"
+                >
+                  {copiedHistory ? (
+                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                  ) : (
+                    <Copy className="w-3.5 h-3.5" />
+                  )}
+                </button>
+              </div>
               <button onClick={() => setShowHistoryDrawer(false)} className="text-slate-400 hover:text-white">
                 <X className="w-5 h-5" />
               </button>
@@ -1028,7 +1060,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                 }`}>
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 border-b border-slate-800/60 pb-1">
                     <span className={h.sender === 'user' ? 'text-indigo-300 font-bold' : (isCaparrapi ? 'text-sky-400 font-bold' : 'text-emerald-400 font-bold')}>
-                      {h.sender === 'user' ? '👤 Tú' : (isCaparrapi ? '🛡️ Copiloto Caparrapí' : '🌿 Ramitos')}
+                      {h.sender === 'user' ? '👤 Tú' : (isCaparrapi ? '🐎 Copiloto Caparrapí' : '🌿 Ramitos')}
                     </span>
                     <span className="font-mono text-[10px] text-slate-400">{h.time}</span>
                   </div>

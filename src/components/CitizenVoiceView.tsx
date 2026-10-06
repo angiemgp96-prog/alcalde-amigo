@@ -71,7 +71,7 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
       <div className="frosted-glass rounded-3xl p-6 border border-slate-800 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
-            <span>{isCaparrapi ? '🛡️' : '🌿'}</span>
+            <span>{isCaparrapi ? '🐎' : '🌿'}</span>
             <span>Escucha Activa & Formulario Complementario ({isCaparrapi ? 'Caparrapí' : 'Guaduas'})</span>
           </h3>
           <span className="text-xs font-mono text-cyan-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
