@@ -18,8 +18,11 @@ const DEFAULT_GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
 let storedGroq = typeof localStorage !== 'undefined' ? localStorage.getItem('alcalde_amigo_groq_key') : null;
-if (storedGroq && (storedGroq.includes('uq2BgjVC') || storedGroq.trim() === '')) {
-  try { localStorage.removeItem('alcalde_amigo_groq_key'); } catch (e) {}
+// Si la clave guardada en el navegador es la vieja revocada o está vacía, limpiarla
+if (storedGroq && (storedGroq.includes('uq2BgjVC') || storedGroq.trim().length < 20)) {
+  if (typeof localStorage !== 'undefined') {
+    try { localStorage.removeItem('alcalde_amigo_groq_key'); } catch (e) {}
+  }
   storedGroq = null;
 }
 let activeGroqKey: string = storedGroq || DEFAULT_GROQ_KEY;
@@ -436,9 +439,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
     const groqModels = [
       'openai/gpt-oss-120b',
       'qwen/qwen3.8-27b',
-      'openai/gpt-oss-20b',
-      'llama-3.3-70b-versatile',
-      'llama-3.1-8b-instant'
+      'openai/gpt-oss-20b'
     ];
     for (const model of groqModels) {
       try {
@@ -467,6 +468,9 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
             finalResponse = buildResponseObject(groqText, textLower, effectiveVereda, userInput, effectiveIsRegistered);
             break;
           }
+        } else {
+          const errData = await groqRes.json().catch(() => null);
+          console.warn(`Groq ${model} falló (${groqRes.status}):`, errData);
         }
       } catch (e) {
         console.warn(`Error en Groq ${model}:`, e);
