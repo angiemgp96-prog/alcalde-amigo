@@ -17,8 +17,13 @@ export interface RamitosChatResponse {
 const DEFAULT_GROQ_KEY = import.meta.env.VITE_GROQ_API_KEY || '';
 const DEFAULT_GEMINI_KEY = import.meta.env.VITE_GEMINI_API_KEY || '';
 
-let activeGroqKey: string = localStorage.getItem('alcalde_amigo_groq_key') || DEFAULT_GROQ_KEY;
-let activeGeminiKey: string = localStorage.getItem('alcalde_amigo_gemini_key') || DEFAULT_GEMINI_KEY;
+let storedGroq = typeof localStorage !== 'undefined' ? localStorage.getItem('alcalde_amigo_groq_key') : null;
+if (storedGroq && (storedGroq.includes('uq2BgjVC') || storedGroq.trim() === '')) {
+  try { localStorage.removeItem('alcalde_amigo_groq_key'); } catch (e) {}
+  storedGroq = null;
+}
+let activeGroqKey: string = storedGroq || DEFAULT_GROQ_KEY;
+let activeGeminiKey: string = (typeof localStorage !== 'undefined' ? localStorage.getItem('alcalde_amigo_gemini_key') : null) || DEFAULT_GEMINI_KEY;
 
 export function setGroqApiKey(key: string): void {
   activeGroqKey = key;
@@ -428,7 +433,13 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
   // 1. PRIORIDAD 1: GROQ CLOUD
   const groqKey = activeGroqKey || DEFAULT_GROQ_KEY;
   if (groqKey.trim()) {
-    const groqModels = ['llama-3.3-70b-versatile', 'llama-3.1-8b-instant', 'mixtral-8x7b-32768'];
+    const groqModels = [
+      'openai/gpt-oss-120b',
+      'qwen/qwen3.8-27b',
+      'openai/gpt-oss-20b',
+      'llama-3.3-70b-versatile',
+      'llama-3.1-8b-instant'
+    ];
     for (const model of groqModels) {
       try {
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
@@ -444,8 +455,8 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
               ...historyMessagesForGroq,
               { role: 'user', content: userInput }
             ],
-            temperature: 0.7,
-            max_tokens: 140
+            temperature: 0.6,
+            max_tokens: 350
           })
         });
 
