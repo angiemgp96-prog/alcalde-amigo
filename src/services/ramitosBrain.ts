@@ -252,9 +252,12 @@ export async function processRamitosConversationAsync(
     };
   }
 
-  // 1. CONSULTA EN TIEMPO REAL A SUPABASE: REGISTRO Y HISTORIAL DE ESTE DISPOSITIVO/IP
-  const leadCheck = await checkUserLeadRegistrationInSupabase();
-  const pastInteractions = await getPastInteractionsHistory();
+  // 1. CONSULTA EN TIEMPO REAL A SUPABASE EN PARALELO (BAJA LATENCIA, CONCURRENTE)
+  const [leadCheck, pastInteractions, savedMemory] = await Promise.all([
+    checkUserLeadRegistrationInSupabase().catch(() => ({ isRegistered: false, nombre: undefined, whatsapp: undefined })),
+    getPastInteractionsHistory(undefined, municipioId).catch(() => []),
+    getRamitosMemory().catch(() => null)
+  ]);
 
   // EXTRACCIÓN DE INFORMACIÓN DE CONTACTO DEL MENSAJE ACTUAL DE ESTA INTERACCIÓN
   const newlyExtractedInInput = extractLeadInfoFromText(userInput);
@@ -363,8 +366,6 @@ export async function processRamitosConversationAsync(
     }
   }
 
-  // 2. CONSULTA EN TIEMPO REAL A SUPABASE: CONCLUSIONES PREVIAS DE ESTA IP
-  const savedMemory = await getRamitosMemory();
   const effectiveIsRegistered = isUserRegistered || leadCheck.isRegistered || Boolean(autoExtracted?.whatsapp);
   const registeredName = leadCheck.nombre || autoExtracted?.nombre || 'Ciudadano';
   const registeredWhatsapp = leadCheck.whatsapp || autoExtracted?.whatsapp || '';
@@ -437,9 +438,9 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
   const groqKey = activeGroqKey || DEFAULT_GROQ_KEY;
   if (groqKey.trim()) {
     const groqModels = [
-      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b',
       'qwen/qwen3.8-27b',
-      'openai/gpt-oss-20b'
+      'openai/gpt-oss-120b'
     ];
     for (const model of groqModels) {
       try {
@@ -457,7 +458,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
               { role: 'user', content: userInput }
             ],
             temperature: 0.6,
-            max_tokens: 350
+            max_tokens: 220
           })
         });
 

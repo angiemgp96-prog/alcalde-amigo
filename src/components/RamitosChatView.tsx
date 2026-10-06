@@ -468,7 +468,9 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     e.preventDefault();
     if (!targetPhone.trim() || !currentResponse) return;
 
-    const message = `🌿 *ALCALDE AMIGO con Ramitos (Guaduas)*\n\nHola ${targetName || 'amigo'}, Ramitos te informa que he capturado tu propuesta:\n\n"${currentResponse}"\n\nNuestro equipo humano de trabajo se pondrá en contacto contigo a este número. ¡La meta la construimos juntos!`;
+    const message = isCaparrapi
+      ? `🛡️ *iALCALDÍA (Caparrapí)*\n\nHola ${targetName || 'amigo'}, he registrado tu propuesta:\n\n"${currentResponse}"\n\nEl equipo humano de Caparrapí revisará la situación para evaluar acciones viables. ¡Construimos juntos!`
+      : `🌿 *ALCALDE AMIGO con Ramitos (Guaduas)*\n\nHola ${targetName || 'amigo'}, Ramitos te informa que he capturado tu propuesta:\n\n"${currentResponse}"\n\nNuestro equipo humano de trabajo se pondrá en contacto contigo a este número. ¡La meta la construimos juntos!`;
 
     await sendWhatsAppMessage(targetPhone.trim(), message, selectedVereda, 'Directo');
     setShareSuccess(true);
@@ -947,16 +949,20 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               <nav className="space-y-2 text-xs font-bold">
                 <button
                   onClick={() => { setShowSideMenu(false); onOpenMenu('chat'); }}
-                  className="w-full text-left p-3 rounded-xl bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 flex items-center space-x-3"
+                  className={`w-full text-left p-3 rounded-xl flex items-center space-x-3 border ${
+                    isCaparrapi
+                      ? 'bg-blue-500/10 text-sky-300 border-blue-500/30'
+                      : 'bg-emerald-500/10 text-emerald-300 border-emerald-500/30'
+                  }`}
                 >
-                  <span>🌿 Conversar con Ramitos</span>
+                  <span>{isCaparrapi ? '🛡️ Conversar con Copiloto' : '🌿 Conversar con Ramitos'}</span>
                 </button>
 
                 <button
                   onClick={() => { setShowSideMenu(false); onOpenMenu('copiloto'); }}
                   className="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center space-x-3"
                 >
-                  <Building2 className="w-4 h-4 text-emerald-400" />
+                  <Building2 className={`w-4 h-4 ${isCaparrapi ? 'text-sky-400' : 'text-emerald-400'}`} />
                   <span>Alcaldía Copiloto</span>
                 </button>
 
@@ -964,7 +970,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   onClick={() => { setShowSideMenu(false); onOpenMenu('crm'); }}
                   className="w-full text-left p-3 rounded-xl bg-slate-900 text-slate-300 hover:bg-slate-800 flex items-center space-x-3"
                 >
-                  <Share2 className="w-4 h-4 text-emerald-400" />
+                  <Share2 className={`w-4 h-4 ${isCaparrapi ? 'text-sky-400' : 'text-emerald-400'}`} />
                   <span>WhatsApp CRM (Green API)</span>
                 </button>
 
@@ -972,7 +978,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             </div>
 
             <div className="text-[11px] text-slate-400 text-center">
-              Guaduas, Cundinamarca • Cero Burocracia
+              {isCaparrapi ? 'Caparrapí, Cundinamarca • Cero Burocracia' : 'Guaduas, Cundinamarca • Cero Burocracia'}
             </div>
           </div>
         </div>
@@ -1000,8 +1006,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                     : 'bg-slate-900/90 border border-slate-700/60 text-slate-100 mr-3'
                 }`}>
                   <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 border-b border-slate-800/60 pb-1">
-                    <span className={h.sender === 'user' ? 'text-indigo-300 font-bold' : 'text-emerald-400 font-bold'}>
-                      {h.sender === 'user' ? '👤 Tú' : '🌿 Ramitos'}
+                    <span className={h.sender === 'user' ? 'text-indigo-300 font-bold' : (isCaparrapi ? 'text-sky-400 font-bold' : 'text-emerald-400 font-bold')}>
+                      {h.sender === 'user' ? '👤 Tú' : (isCaparrapi ? '🛡️ Copiloto Caparrapí' : '🌿 Ramitos')}
                     </span>
                     <span className="font-mono text-[10px] text-slate-400">{h.time}</span>
                   </div>
