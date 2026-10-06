@@ -553,17 +553,21 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
             </p>
           </div>
 
-          {/* KPIs Clave en Header */}
+          {/* KPIs Clave en Header - HUD Tactical Metrics */}
           <div className="grid grid-cols-2 gap-3 shrink-0">
-            <div className="bg-slate-900/80 backdrop-blur-md rounded-2xl p-3 border border-slate-700/80 text-center">
-              <p className="text-[10px] uppercase font-bold text-slate-400">Población Total</p>
-              <p className="text-lg font-black text-cyan-400">{m.poblacion_total.toLocaleString('es-CO')}</p>
-              <p className="text-[10px] text-emerald-400 font-semibold">{m.poblacion_rural_pct}% Rural</p>
+            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/80 shadow-lg shadow-black/40 text-center flex flex-col justify-between">
+              <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">POBLACIÓN TOTAL</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-cyan-400 tracking-tight my-0.5">
+                {m.poblacion_total.toLocaleString('es-CO')}
+              </div>
+              <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider">{m.poblacion_rural_pct}% RURAL</span>
             </div>
-            <div className="bg-slate-900/80 backdrop-blur-md rounded-2xl p-3 border border-slate-700/80 text-center">
-              <p className="text-[10px] uppercase font-bold text-slate-400">Censo Electoral</p>
-              <p className="text-lg font-black text-emerald-400">{m.censo_electoral.toLocaleString('es-CO')}</p>
-              <p className="text-[10px] text-slate-400">{m.participacion_pct}% participación</p>
+            <div className="bg-slate-900/90 backdrop-blur-md rounded-2xl p-3.5 border border-slate-700/80 shadow-lg shadow-black/40 text-center flex flex-col justify-between">
+              <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">CENSO ELECTORAL</span>
+              <div className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight my-0.5">
+                {m.censo_electoral.toLocaleString('es-CO')}
+              </div>
+              <span className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">{m.participacion_pct}% PARTICIPACIÓN</span>
             </div>
           </div>
         </div>
@@ -657,15 +661,19 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                       </p>
                     </div>
 
-                    <div className="flex items-center gap-4 bg-slate-950/60 p-3.5 rounded-2xl border border-slate-800">
-                      <div className="text-center px-2">
-                        <p className="text-[10px] uppercase font-bold text-slate-400">Censo Veredal</p>
-                        <p className="text-lg font-black text-cyan-400">{activeFicha.censo_electoral?.toLocaleString('es-CO') || 'N/A'}</p>
+                    <div className="flex items-center gap-5 bg-slate-950/80 p-3.5 sm:p-4 rounded-2xl border border-slate-800 shadow-inner">
+                      <div className="text-center px-3">
+                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">CENSO VEREDAL</span>
+                        <span className="text-2xl sm:text-3xl font-black font-mono text-cyan-400 tracking-tight block mt-0.5">
+                          {activeFicha.censo_electoral?.toLocaleString('es-CO') || 'N/A'}
+                        </span>
                       </div>
-                      <div className="w-px h-8 bg-slate-800"></div>
-                      <div className="text-center px-2">
-                        <p className="text-[10px] uppercase font-bold text-slate-400">Votos Estimados</p>
-                        <p className="text-lg font-black text-emerald-400">~{activeFicha.votos_estimados?.toLocaleString('es-CO') || 'N/A'}</p>
+                      <div className="w-px h-10 bg-slate-800"></div>
+                      <div className="text-center px-3">
+                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">VOTOS ESTIMADOS</span>
+                        <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight block mt-0.5">
+                          ~{activeFicha.votos_estimados?.toLocaleString('es-CO') || 'N/A'}
+                        </span>
                       </div>
                     </div>
                   </div>
@@ -728,30 +736,46 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
           {activeTab === 'radiografia' && (
             <div className="space-y-6 animate-fadeIn">
               
-              {/* KPIs Principales */}
+              {/* KPIs Principales - Estilo HUD Táctico */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Población Total</span>
-                  <div className="text-2xl font-black text-white mt-1">{m.poblacion_total.toLocaleString('es-CO')}</div>
-                  <div className="text-xs text-cyan-400 font-semibold mt-1">Rural: {m.poblacion_rural_pct}% ({m.poblacion_rural.toLocaleString('es-CO')} hab)</div>
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">POBLACIÓN TOTAL</span>
+                  <div className="text-3xl sm:text-4xl font-black font-mono text-white tracking-tight my-1">
+                    {m.poblacion_total.toLocaleString('es-CO')}
+                  </div>
+                  <div className="text-[10px] text-cyan-400 font-bold uppercase tracking-wider">
+                    RURAL: {m.poblacion_rural_pct}% ({m.poblacion_rural.toLocaleString('es-CO')} HAB)
+                  </div>
                 </div>
 
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Censo Electoral</span>
-                  <div className="text-2xl font-black text-emerald-400 mt-1">{m.censo_electoral.toLocaleString('es-CO')}</div>
-                  <div className="text-xs text-slate-300 mt-1">Participación: {m.participacion_pct}% (~{m.votantes_promedio.toLocaleString('es-CO')} votos)</div>
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl hover:border-emerald-500/40 transition-all flex flex-col justify-between">
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">CENSO ELECTORAL</span>
+                  <div className="text-3xl sm:text-4xl font-black font-mono text-emerald-400 tracking-tight my-1">
+                    {m.censo_electoral.toLocaleString('es-CO')}
+                  </div>
+                  <div className="text-[10px] text-slate-400 font-bold uppercase tracking-wider">
+                    PARTICIPACIÓN: {m.participacion_pct}% (~{m.votantes_promedio.toLocaleString('es-CO')} VOTOS)
+                  </div>
                 </div>
 
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Vías Terciarias Críticas</span>
-                  <div className="text-2xl font-black text-rose-400 mt-1">{m.vias_terciarias_mal_estado_pct}%</div>
-                  <div className="text-xs text-rose-300 mt-1">{m.red_vial_terciaria_km} km de red rural</div>
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl hover:border-rose-500/40 transition-all flex flex-col justify-between">
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">VÍAS TERCIARIAS CRÍTICAS</span>
+                  <div className="text-3xl sm:text-4xl font-black font-mono text-rose-400 tracking-tight my-1">
+                    {m.vias_terciarias_mal_estado_pct}%
+                  </div>
+                  <div className="text-[10px] text-rose-300 font-bold uppercase tracking-wider">
+                    {m.red_vial_terciaria_km} KM RED RURAL AFECTADA
+                  </div>
                 </div>
 
-                <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-5 shadow-lg">
-                  <span className="text-[10px] uppercase font-bold text-slate-400">Déficit Agua Rural</span>
-                  <div className="text-2xl font-black text-amber-400 mt-1">{(100 - m.cobertura_agua_potable_rural_pct).toFixed(1)}%</div>
-                  <div className="text-xs text-amber-300 mt-1">Sin acueducto potabilizado</div>
+                <div className="bg-slate-900/90 border border-slate-800 rounded-2xl p-5 shadow-xl hover:border-amber-500/40 transition-all flex flex-col justify-between">
+                  <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">DÉFICIT AGUA RURAL</span>
+                  <div className="text-3xl sm:text-4xl font-black font-mono text-amber-400 tracking-tight my-1">
+                    {(100 - m.cobertura_agua_potable_rural_pct).toFixed(1)}%
+                  </div>
+                  <div className="text-[10px] text-amber-300 font-bold uppercase tracking-wider">
+                    SIN ACUEDUCTO POTABILIZADO
+                  </div>
                 </div>
               </div>
 
@@ -828,8 +852,13 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                   const elecsHistoricas = intelData?.historial_electoral_oficial?.filter((e: any) => e.año !== 2023) || [];
                   return (
                     <div className="space-y-6">
-                      {elec2023 && (
-                        <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-7 shadow-xl shadow-emerald-950/20 space-y-4">
+                      {elec2023 && (() => {
+                        const totalDuelo = (elec2023.votos_ganador || 0) + (elec2023.votos_segundo || 0);
+                        const winPctBar = totalDuelo > 0 ? Math.round((elec2023.votos_ganador / totalDuelo) * 100) : 50;
+                        const lossPctBar = 100 - winPctBar;
+
+                        return (
+                        <div className="bg-gradient-to-br from-slate-900 via-slate-950 to-slate-900 border-2 border-emerald-500/60 rounded-3xl p-6 sm:p-7 shadow-2xl shadow-emerald-950/30 space-y-5">
                           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
                             <div className="flex items-center gap-2">
                               <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
@@ -837,36 +866,92 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                               </span>
                               <span className="text-xs text-slate-400 font-mono">{elec2023.fecha}</span>
                             </div>
-                            <span className="text-xs font-bold text-amber-400 bg-amber-950/40 px-3 py-1 rounded-xl border border-amber-500/30">
-                              ⚖️ Margen decisivo: {elec2023.diferencia_votos.toLocaleString('es-CO')} votos
+                            <span className="text-xs font-black tracking-wider uppercase text-amber-400 bg-amber-950/60 px-3.5 py-1.5 rounded-xl border border-amber-500/40 shadow-sm shadow-amber-950/50 flex items-center gap-1.5">
+                              <span>⚖️</span>
+                              <span>MARGEN DECISIVO: {elec2023.diferencia_votos.toLocaleString('es-CO')} VOTOS</span>
                             </span>
                           </div>
 
                           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                             {/* Ganador 2023 */}
-                            <div className="bg-emerald-950/30 border-2 border-emerald-500/60 p-4 rounded-2xl space-y-2">
-                              <span className="text-[10px] text-emerald-400 font-black uppercase tracking-wider">
-                                ALCALDE ELECTO QUE GOBIERNA HOY
-                              </span>
-                              <h4 className="text-xl font-black text-white">{elec2023.ganador}</h4>
-                              <p className="text-xs text-emerald-200/80 font-medium">{elec2023.partido_ganador}</p>
-                              <div className="flex justify-between items-baseline pt-2 border-t border-emerald-800/50">
-                                <span className="text-lg font-black text-emerald-400">{elec2023.votos_ganador.toLocaleString('es-CO')} votos</span>
-                                <span className="text-xs font-black text-white px-2 py-0.5 rounded bg-emerald-900/60">{elec2023.porcentaje_ganador}</span>
+                            <div className="bg-emerald-950/30 border-2 border-emerald-500/70 p-5 rounded-2xl flex flex-col justify-between shadow-lg shadow-emerald-950/20 hover:border-emerald-400 transition-all">
+                              <div>
+                                <span className="text-[9px] text-emerald-400 font-black uppercase tracking-widest block">
+                                  ALCALDE ELECTO (GOBIERNA HOY)
+                                </span>
+                                <h4 className="text-xl sm:text-2xl font-black text-white mt-0.5 tracking-tight">{elec2023.ganador}</h4>
+                                <p className="text-xs text-emerald-200/80 font-medium truncate mt-0.5">{elec2023.partido_ganador}</p>
+                              </div>
+
+                              <div className="mt-4 pt-3 border-t border-emerald-800/60 flex items-baseline justify-between">
+                                <div>
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400/90 block">
+                                    VOTOS REGISTRADOS
+                                  </span>
+                                  <span className="text-4xl sm:text-5xl font-black font-mono text-emerald-400 tracking-tight">
+                                    {elec2023.votos_ganador.toLocaleString('es-CO')}
+                                  </span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-emerald-400/90 block">
+                                    PARTICIPACIÓN
+                                  </span>
+                                  <span className="text-xl sm:text-2xl font-black font-mono text-white px-3 py-1 rounded-xl bg-emerald-900/80 border border-emerald-500/50 inline-block">
+                                    {elec2023.porcentaje_ganador}
+                                  </span>
+                                </div>
                               </div>
                             </div>
 
                             {/* Segundo Lugar 2023 */}
-                            <div className="bg-rose-950/20 border border-rose-500/40 p-4 rounded-2xl space-y-2">
-                              <span className="text-[10px] text-rose-400 font-black uppercase tracking-wider">
-                                SEGUNDO LUGAR (OPOSICIÓN INMEDIATA)
-                              </span>
-                              <h4 className="text-lg font-bold text-slate-200">{elec2023.segundo_lugar}</h4>
-                              <p className="text-xs text-rose-200/70 font-medium">{elec2023.partido_segundo}</p>
-                              <div className="flex justify-between items-baseline pt-2 border-t border-rose-800/50">
-                                <span className="text-lg font-black text-rose-400">{elec2023.votos_segundo.toLocaleString('es-CO')} votos</span>
-                                <span className="text-xs font-black text-slate-300 px-2 py-0.5 rounded bg-rose-900/40">{elec2023.porcentaje_segundo}</span>
+                            <div className="bg-rose-950/20 border-2 border-rose-500/50 p-5 rounded-2xl flex flex-col justify-between shadow-lg shadow-rose-950/20 hover:border-rose-400 transition-all">
+                              <div>
+                                <span className="text-[9px] text-rose-400 font-black uppercase tracking-widest block">
+                                  SEGUNDO LUGAR (OPOSICIÓN INMEDIATA)
+                                </span>
+                                <h4 className="text-xl sm:text-2xl font-black text-slate-200 mt-0.5 tracking-tight">{elec2023.segundo_lugar}</h4>
+                                <p className="text-xs text-rose-200/70 font-medium truncate mt-0.5">{elec2023.partido_segundo}</p>
                               </div>
+
+                              <div className="mt-4 pt-3 border-t border-rose-800/60 flex items-baseline justify-between">
+                                <div>
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-rose-400/90 block">
+                                    VOTOS REGISTRADOS
+                                  </span>
+                                  <span className="text-4xl sm:text-5xl font-black font-mono text-rose-400 tracking-tight">
+                                    {elec2023.votos_segundo.toLocaleString('es-CO')}
+                                  </span>
+                                </div>
+                                <div className="text-right">
+                                  <span className="text-[9px] font-bold uppercase tracking-widest text-rose-400/90 block">
+                                    PARTICIPACIÓN
+                                  </span>
+                                  <span className="text-xl sm:text-2xl font-black font-mono text-slate-200 px-3 py-1 rounded-xl bg-rose-900/70 border border-rose-500/40 inline-block">
+                                    {elec2023.porcentaje_segundo}
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Barra Táctica de Duelo Proporcional (Estilo HUD Match Bar) */}
+                          <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800/80 space-y-2">
+                            <div className="flex justify-between items-center text-[10px] font-mono uppercase tracking-wider">
+                              <span className="text-emerald-400 font-bold flex items-center gap-1.5">
+                                <span className="w-2 h-2 rounded-full bg-emerald-400"></span>
+                                {elec2023.ganador} ({winPctBar}%)
+                              </span>
+                              <span className="text-amber-400 font-bold bg-amber-950/60 px-2.5 py-0.5 rounded border border-amber-500/30">
+                                BRECHA: {elec2023.diferencia_votos.toLocaleString('es-CO')} VOTOS
+                              </span>
+                              <span className="text-rose-400 font-bold flex items-center gap-1.5">
+                                {elec2023.segundo_lugar} ({lossPctBar}%)
+                                <span className="w-2 h-2 rounded-full bg-rose-400"></span>
+                              </span>
+                            </div>
+                            <div className="h-3 w-full rounded-full bg-slate-900 p-0.5 border border-slate-800 flex overflow-hidden">
+                              <div style={{ width: `${winPctBar}%` }} className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-l-full shadow-md shadow-emerald-500/40 transition-all duration-500"></div>
+                              <div style={{ width: `${lossPctBar}%` }} className="h-full bg-gradient-to-r from-rose-500 to-red-600 rounded-r-full shadow-md shadow-rose-500/40 transition-all duration-500"></div>
                             </div>
                           </div>
 
@@ -886,7 +971,8 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                             </div>
                           </div>
                         </div>
-                      )}
+                        );
+                      })()}
 
                       {/* Elecciones de Referencia Histórica (2015 y 2019) */}
                       {elecsHistoricas.length > 0 && (
@@ -910,23 +996,28 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                                   <span className="text-[10px] text-slate-400 font-mono">{elec.fecha}</span>
                                 </div>
 
-                                <div className="space-y-1">
-                                  <div className="flex justify-between items-baseline text-xs">
-                                    <span className="font-bold text-slate-200">{elec.ganador}</span>
-                                    <span className="text-emerald-400 font-mono font-bold">{elec.votos_ganador.toLocaleString('es-CO')} votos ({elec.porcentaje_ganador})</span>
+                                <div className="grid grid-cols-2 gap-3 pt-1">
+                                  <div className="bg-slate-900/80 p-3 rounded-xl border border-emerald-500/20">
+                                    <span className="text-[9px] uppercase font-bold tracking-widest text-emerald-400/90 block">GANADOR ({elec.porcentaje_ganador})</span>
+                                    <p className="text-xs font-bold text-white truncate mt-0.5">{elec.ganador}</p>
+                                    <span className="text-lg sm:text-xl font-black font-mono text-emerald-400 block mt-1">
+                                      {elec.votos_ganador.toLocaleString('es-CO')}
+                                    </span>
                                   </div>
-                                  <p className="text-[11px] text-slate-400">{elec.partido_ganador}</p>
+                                  <div className="bg-slate-900/80 p-3 rounded-xl border border-rose-500/20">
+                                    <span className="text-[9px] uppercase font-bold tracking-widest text-rose-400/90 block">2º LUGAR</span>
+                                    <p className="text-xs font-bold text-slate-300 truncate mt-0.5">{elec.segundo_lugar}</p>
+                                    <span className="text-lg sm:text-xl font-black font-mono text-rose-400 block mt-1">
+                                      {elec.votos_segundo.toLocaleString('es-CO')}
+                                    </span>
+                                  </div>
                                 </div>
 
-                                <div className="pt-2 border-t border-slate-800/60 space-y-1 text-xs">
-                                  <div className="flex justify-between items-baseline">
-                                    <span className="text-slate-400">{elec.segundo_lugar}</span>
-                                    <span className="text-rose-400 font-mono">{elec.votos_segundo.toLocaleString('es-CO')} votos</span>
-                                  </div>
-                                  <div className="flex justify-between items-center text-[11px] text-amber-400/90 pt-1">
-                                    <span>Margen de victoria:</span>
-                                    <span className="font-mono font-bold">{elec.diferencia_votos.toLocaleString('es-CO')} votos</span>
-                                  </div>
+                                <div className="flex justify-between items-center text-[10px] text-amber-400 font-mono font-bold pt-2 border-t border-slate-800/80">
+                                  <span className="tracking-wider uppercase text-slate-400">MARGEN DE VICTORIA:</span>
+                                  <span className="bg-amber-950/60 px-2 py-0.5 rounded border border-amber-500/30">
+                                    {elec.diferencia_votos.toLocaleString('es-CO')} VOTOS
+                                  </span>
                                 </div>
                               </div>
                             ))}
@@ -1052,50 +1143,52 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-2 bg-slate-950/80 p-4 rounded-2xl border border-slate-800">
-                      <span className="text-[10px] uppercase font-bold text-slate-400">Presupuesto Cuatrienio Proyectado:</span>
-                      <span className="text-xl sm:text-2xl font-black text-emerald-400">{gobiernoActual.presupuesto_total}</span>
-                      <span className="text-[10px] text-cyan-400/90 font-mono">SECOP II Transaccional Activo</span>
+                    <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-1.5 bg-slate-950/90 p-4 rounded-2xl border border-slate-800 shadow-md">
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">PRESUPUESTO CUATRIENIO PROYECTADO</span>
+                      <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">{gobiernoActual.presupuesto_total}</span>
+                      <span className="text-[9px] text-cyan-400 font-mono uppercase tracking-wider">SECOP II TRANSACCIONAL ACTIVO</span>
                     </div>
                   </div>
 
-                  {/* 4 KPIs Clave de Auditoría Forense del Mandato Actual */}
+                  {/* 4 KPIs Clave de Auditoría Forense del Mandato Actual - HUD Scoreboard */}
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-                    <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-1">
-                      <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">Contratos OPS (Burocracia)</span>
-                      <p className="text-lg font-black text-amber-400">
-                        {isCaparrapi ? '236 Contratos' : '184 Contratos'}
+                    <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-1 shadow-lg hover:border-amber-500/40 transition-all flex flex-col justify-between">
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">CONTRATOS OPS (BUROCRACIA)</span>
+                      <p className="text-3xl sm:text-4xl font-black font-mono text-amber-400 tracking-tight my-1">
+                        {isCaparrapi ? '236' : '184'}
                       </p>
-                      <p className="text-[11px] text-slate-400 leading-tight">
-                        {isCaparrapi ? '$4.477 Millones en prestación de servicios.' : '$3.800 Millones en nómina paralela.'}
-                      </p>
-                    </div>
-
-                    <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-1">
-                      <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">Inversión Casco Urbano</span>
-                      <p className="text-lg font-black text-cyan-400">
-                        {isCaparrapi ? '64% Centralizado' : '58% Centralizado'}
-                      </p>
-                      <p className="text-[11px] text-slate-400 leading-tight">
-                        {isCaparrapi ? 'Prioridad Palacio Municipal vs abandono de 63 veredas.' : 'Concentración urbana vs cuencas rurales y ribera.'}
+                      <p className="text-[10px] text-amber-200/90 font-medium uppercase tracking-wider">
+                        {isCaparrapi ? '$4.477M EN PRESTACIÓN DE SERVICIOS' : '$3.800M EN NÓMINA PARALELA'}
                       </p>
                     </div>
 
-                    <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-1">
-                      <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">Margen de Gobernabilidad</span>
-                      <p className="text-lg font-black text-rose-400">
-                        {isCaparrapi ? '330 Votos' : '924 Votos'}
+                    <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-1 shadow-lg hover:border-cyan-500/40 transition-all flex flex-col justify-between">
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">INVERSIÓN CASCO URBANO</span>
+                      <p className="text-3xl sm:text-4xl font-black font-mono text-cyan-400 tracking-tight my-1">
+                        {isCaparrapi ? '64%' : '58%'}
                       </p>
-                      <p className="text-[11px] text-slate-400 leading-tight">
-                        {isCaparrapi ? 'Margen ultraestrecho de 2023 explica la alta presión de cuotas burocráticas.' : 'Margen estrecho de 2023 frente a Efraín Contreras explica presión de contratación directa.'}
+                      <p className="text-[10px] text-cyan-200/90 font-medium uppercase tracking-wider">
+                        {isCaparrapi ? 'PALACIO MUNICIPAL VS 63 VEREDAS' : 'CONCENTRACIÓN URBANA VS RIBERA'}
                       </p>
                     </div>
 
-                    <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 space-y-1">
-                      <span className="text-[10px] uppercase font-black tracking-wider text-slate-400">Obras por Impuestos</span>
-                      <p className="text-lg font-black text-slate-300">$0 Gestionados</p>
-                      <p className="text-[11px] text-slate-400 leading-tight">
-                        Sin proyectos radicados ante empresas para compensación fiscal.
+                    <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-1 shadow-lg hover:border-rose-500/40 transition-all flex flex-col justify-between">
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">MARGEN DE GOBERNABILIDAD</span>
+                      <p className="text-3xl sm:text-4xl font-black font-mono text-rose-400 tracking-tight my-1">
+                        {isCaparrapi ? '330' : '924'}
+                      </p>
+                      <p className="text-[10px] text-rose-200/90 font-medium uppercase tracking-wider">
+                        {isCaparrapi ? 'VOTOS DE VENTAJA (ALTA FRAGILIDAD)' : 'VOTOS DE VENTAJA (PRESIÓN BUROCRÁTICA)'}
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950/80 p-5 rounded-2xl border border-slate-800 space-y-1 shadow-lg hover:border-slate-600 transition-all flex flex-col justify-between">
+                      <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">OBRAS POR IMPUESTOS</span>
+                      <p className="text-3xl sm:text-4xl font-black font-mono text-slate-300 tracking-tight my-1">
+                        $0
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-medium uppercase tracking-wider">
+                        SIN PROYECTOS RADICADOS ART. 238
                       </p>
                     </div>
                   </div>
@@ -1459,15 +1552,20 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {radarConvocatorias.map((r: any, idx: number) => (
-                    <div key={idx} className="bg-slate-950/60 rounded-2xl p-5 border border-slate-800 space-y-2">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-cyan-950 text-cyan-300 border border-cyan-800">
-                        {r.entidad}
-                      </span>
+                    <div key={idx} className="bg-slate-950/70 rounded-2xl p-5 border border-slate-800 space-y-2.5 hover:border-cyan-500/30 transition-all">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span className="px-2.5 py-0.5 rounded text-[9px] font-black uppercase tracking-wider bg-cyan-950 text-cyan-300 border border-cyan-800">
+                          {r.entidad}
+                        </span>
+                        <div className="text-right">
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">RECURSOS ASIGNADOS</span>
+                          <span className="text-sm sm:text-base font-black font-mono text-emerald-400">{r.recursos_disponibles}</span>
+                        </div>
+                      </div>
                       <h4 className="text-sm font-black text-white mt-1">{r.linea}</h4>
-                      <p className="text-xs text-emerald-400 font-bold">{r.recursos_disponibles}</p>
-                      <p className="text-xs text-slate-400"><strong className="text-slate-300">Requisito Clave:</strong> {r.requisito_clave}</p>
+                      <p className="text-xs text-slate-300"><strong className="text-slate-400 uppercase text-[10px] tracking-wider">Requisito Clave:</strong> {r.requisito_clave}</p>
                       {r.aplicacion && (
-                        <p className="text-[11px] text-cyan-300 pt-1 border-t border-slate-800">{r.aplicacion}</p>
+                        <p className="text-[11px] text-cyan-300 pt-1.5 border-t border-slate-800/80">{r.aplicacion}</p>
                       )}
                     </div>
                   ))}
@@ -1479,11 +1577,14 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                 {bancoProyectosMga.map((p: any, idx: number) => (
                   <div key={idx} className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
                     <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                          {p.codigo_bpin}
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                        <span className="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
+                          BPIN: {p.codigo_bpin}
                         </span>
-                        <span className="text-xs font-black text-emerald-400">{p.presupuesto_total}</span>
+                        <div className="text-right">
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">PRESUPUESTO PROYECTADO</span>
+                          <span className="text-lg sm:text-xl font-black font-mono text-emerald-400 tracking-tight">{p.presupuesto_total}</span>
+                        </div>
                       </div>
 
                       <h4 className="text-base font-black text-white leading-snug">{p.nombre}</h4>
