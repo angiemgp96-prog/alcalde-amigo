@@ -27,12 +27,25 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
 }) => {
   const isCaparrapi = municipioId === 'caparrapi';
 
-  // Sub-pestañas principales
-  const [activeTab, setActiveTab] = useState<string>(currentTab || 'gira');
+  // Sub-pestañas principales (Por defecto: Votación & Historial Electoral)
+  const [activeTab, setActiveTab] = useState<string>(
+    currentTab === 'gira' || currentTab === 'veredas' ? 'territorio' : (currentTab || 'radiografia')
+  );
+  const [territorioSubTab, setTerritorioSubTab] = useState<'gira' | 'directorio'>(
+    currentTab === 'veredas' ? 'directorio' : 'gira'
+  );
 
   useEffect(() => {
     if (currentTab) {
-      setActiveTab(currentTab);
+      if (currentTab === 'veredas') {
+        setActiveTab('territorio');
+        setTerritorioSubTab('directorio');
+      } else if (currentTab === 'gira') {
+        setActiveTab('territorio');
+        setTerritorioSubTab('gira');
+      } else {
+        setActiveTab(currentTab);
+      }
     }
   }, [currentTab]);
 
@@ -595,30 +608,90 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
           </div>
         </div>
 
-        {/* 3. SUB-NAVEGACIÓN INTERACTIVA DE TODOS LOS MÓDULOS */}
-        <div className="flex flex-wrap gap-2 mt-6 pt-6 border-t border-slate-800">
+        {/* 3. SUB-NAVEGACIÓN INTERACTIVA DE TODOS LOS MÓDULOS (DISEÑO COCKPIT DE ALTO NIVEL) */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2.5 mt-6 pt-6 border-t border-slate-800/80">
           {[
-            { id: 'gira', label: 'Ficha de Gira (1 Clic)', icon: '🚗' },
-            { id: 'radiografia', label: 'Radiografía & Votación', icon: '📊' },
-            { id: 'veredas', label: isCaparrapi ? 'San Carlos & Veredas' : 'Veredas Guaduas', icon: '📍' },
-            { id: 'auditoria', label: `Auditoría SECOP II (${contracts.length})`, icon: '🔍' },
-            { id: 'politicas', label: 'Oportunidad Presidencial 2026', icon: '🏛️' },
-            { id: 'mga', label: 'Banco MGA & Reentrenamiento', icon: '📁' },
-            { id: 'speech', label: 'Simulador de Discurso', icon: '🎤' }
-          ].map(tab => (
-            <button
-              key={tab.id}
-              onClick={() => handleSelectTab(tab.id)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-black transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-950/40 border border-emerald-400/40'
-                  : 'bg-slate-900/80 text-slate-300 hover:bg-slate-800 hover:text-white border border-slate-800'
-              }`}
-            >
-              <span>{tab.icon}</span>
-              <span>{tab.label}</span>
-            </button>
-          ))}
+            { 
+              id: 'radiografia', 
+              badge: 'REGISTRADURÍA',
+              label: 'Votación & Historial', 
+              sublabel: 'Elecciones 2023 • 2019 • 2015',
+              icon: '🗳️',
+              activeColor: 'from-blue-600 via-indigo-600 to-cyan-600 border-cyan-400/50 shadow-cyan-950/50'
+            },
+            { 
+              id: 'auditoria', 
+              badge: 'SECOP II',
+              label: 'Auditoría Contratación', 
+              sublabel: `${contracts.length} Contratos Auditados`,
+              icon: '🔍',
+              activeColor: 'from-emerald-600 via-teal-600 to-emerald-700 border-emerald-400/50 shadow-emerald-950/50'
+            },
+            { 
+              id: 'politicas', 
+              badge: 'PROYECTOS NACIÓN',
+              label: 'Fondos & Líneas 2026', 
+              sublabel: 'Convocatorias Presidenciales',
+              icon: '🏛️',
+              activeColor: 'from-amber-600 via-yellow-600 to-orange-600 border-amber-400/50 shadow-amber-950/50'
+            },
+            { 
+              id: 'mga', 
+              badge: 'INVERSIÓN DNP',
+              label: 'Banco Proyectos MGA', 
+              sublabel: 'Fichas BPIN & Reentrenamiento',
+              icon: '📁',
+              activeColor: 'from-purple-600 via-violet-600 to-indigo-600 border-purple-400/50 shadow-purple-950/50'
+            },
+            { 
+              id: 'speech', 
+              badge: 'ORATORIA',
+              label: 'Simulador de Discurso', 
+              sublabel: 'Argumentario Técnico Veredal',
+              icon: '🎤',
+              activeColor: 'from-rose-600 via-pink-600 to-rose-700 border-rose-400/50 shadow-rose-950/50'
+            },
+            { 
+              id: 'territorio', 
+              badge: isCaparrapi ? '63 VEREDAS' : 'INSPECCIONES',
+              label: 'Gira & Diagnóstico Rural', 
+              sublabel: isCaparrapi ? 'San Carlos & Fichas 1 Clic' : 'Corredores & Fichas 1 Clic',
+              icon: '🗺️',
+              activeColor: 'from-teal-600 via-emerald-600 to-cyan-700 border-teal-400/50 shadow-teal-950/50'
+            }
+          ].map(tab => {
+            const isActive = activeTab === tab.id || (tab.id === 'territorio' && (activeTab === 'gira' || activeTab === 'veredas'));
+            return (
+              <button
+                key={tab.id}
+                onClick={() => handleSelectTab(tab.id)}
+                className={`group relative text-left p-3 rounded-2xl transition-all duration-200 cursor-pointer flex flex-col justify-between border ${
+                  isActive
+                    ? `bg-gradient-to-br ${tab.activeColor} text-white shadow-xl scale-[1.02] ring-1 ring-white/20`
+                    : 'bg-slate-900/90 text-slate-300 hover:bg-slate-800/90 hover:text-white border-slate-800/90 hover:border-slate-700 shadow-md'
+                }`}
+              >
+                <div className="flex items-center justify-between w-full mb-2">
+                  <span className="text-xl sm:text-2xl group-hover:scale-110 transition-transform">{tab.icon}</span>
+                  <span className={`text-[9px] font-black uppercase tracking-wider px-2 py-0.5 rounded-full border ${
+                    isActive 
+                      ? 'bg-black/30 text-white border-white/20' 
+                      : 'bg-slate-800/80 text-slate-400 border-slate-700/60'
+                  }`}>
+                    {tab.badge}
+                  </span>
+                </div>
+                <div>
+                  <h4 className="text-xs font-black tracking-tight leading-snug line-clamp-1">{tab.label}</h4>
+                  <p className={`text-[10px] mt-0.5 line-clamp-1 ${
+                    isActive ? 'text-white/80 font-medium' : 'text-slate-400'
+                  }`}>
+                    {tab.sublabel}
+                  </p>
+                </div>
+              </button>
+            );
+          })}
         </div>
       </div>
 
@@ -629,130 +702,6 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
         </div>
       ) : (
         <>
-          {/* ========================================================================= */}
-          {/* TAB 0: FICHA DE GIRA VEREDAL (1 CLIC)                                     */}
-          {/* ========================================================================= */}
-          {activeTab === 'gira' && (
-            <div className="space-y-6 animate-fadeIn">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">
-                  MODO CAMPAÑA EN TERRITORIO
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
-                  Ficha de Bolsillo para Gira Veredal (1 Clic)
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Selecciona la vereda o inspección que vas a visitar. Te entregamos en una sola pantalla limpia: 
-                  <strong> votos en juego, qué les falló antes en SECOP, la propuesta técnica con fuente 2026 y qué decir textualmente en la reunión</strong>.
-                </p>
-
-                {/* Botones Selectores Rápidos de Inspecciones */}
-                <div className="flex flex-wrap gap-2 mt-5">
-                  {(fichasGira.length > 0 ? fichasGira : veredas).map((v: any, idx: number) => {
-                    const name = v.vereda || v.inspeccion;
-                    return (
-                      <button
-                        key={idx}
-                        onClick={() => setSelectedVeredaIndex(idx)}
-                        className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
-                          selectedVeredaIndex === idx
-                            ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40 border border-emerald-400/50'
-                            : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
-                        }`}
-                      >
-                        <MapPin className="w-3.5 h-3.5 text-cyan-400" />
-                        <span>{name}</span>
-                      </button>
-                    );
-                  })}
-                </div>
-              </div>
-
-              {/* Ficha de Bolsillo Dinámica */}
-              {activeFicha && (
-                <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
-                  
-                  {/* Header de la Ficha */}
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
-                    <div>
-                      <span className="text-xs font-black uppercase text-cyan-400">Briefing Territorial Inmediato</span>
-                      <h2 className="text-2xl sm:text-3xl font-black text-white mt-1 flex items-center gap-2">
-                        <span>📍 {activeFicha.vereda || activeFicha.inspeccion}</span>
-                      </h2>
-                      <p className="text-xs text-slate-400 mt-1 font-mono">
-                        Fuente oficial: {activeFicha.fuente_oficial}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-5 bg-slate-950/80 p-3.5 sm:p-4 rounded-2xl border border-slate-800 shadow-inner">
-                      <div className="text-center px-3">
-                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">CENSO VEREDAL</span>
-                        <span className="text-2xl sm:text-3xl font-black font-mono text-cyan-400 tracking-tight block mt-0.5">
-                          {activeFicha.censo_electoral?.toLocaleString('es-CO') || 'N/A'}
-                        </span>
-                      </div>
-                      <div className="w-px h-10 bg-slate-800"></div>
-                      <div className="text-center px-3">
-                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">VOTOS ESTIMADOS</span>
-                        <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight block mt-0.5">
-                          ~{activeFicha.votos_estimados?.toLocaleString('es-CO') || 'N/A'}
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* 3 Columnas Clave: Líderes, Falla SECOP y Solución MGA */}
-                  <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
-                    {/* Líderes Clave */}
-                    <div className="bg-slate-950/50 rounded-2xl p-5 border border-slate-800 space-y-2">
-                      <span className="text-[11px] font-black uppercase text-cyan-400 flex items-center gap-1.5">
-                        <Users className="w-4 h-4 text-cyan-400" /> Líderes & Actores Clave
-                      </span>
-                      <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                        {activeFicha.lideres_clave}
-                      </p>
-                    </div>
-
-                    {/* Qué les falló en el Mandato Actual & Histórico */}
-                    <div className="bg-red-950/20 rounded-2xl p-5 border border-red-500/40 space-y-2 shadow-lg shadow-red-950/20">
-                      <span className="text-[11px] font-black uppercase text-red-400 flex items-center gap-1.5">
-                        <AlertTriangle className="w-4 h-4 text-red-400" /> Qué les Falló en el Mandato Actual (2024–2027) & Histórico
-                      </span>
-                      <p className="text-xs text-red-200/95 leading-relaxed">
-                        {activeFicha.fallas_secop_historicas}
-                      </p>
-                    </div>
-
-                    {/* Propuesta Técnica 2026 */}
-                    <div className="bg-emerald-950/20 rounded-2xl p-5 border border-emerald-500/30 space-y-2">
-                      <span className="text-[11px] font-black uppercase text-emerald-400 flex items-center gap-1.5">
-                        <Award className="w-4 h-4 text-emerald-400" /> Propuesta Técnica (Fuente 2026)
-                      </span>
-                      <p className="text-xs text-emerald-200/90 leading-relaxed font-medium">
-                        {activeFicha.propuesta_tecnica_2026}
-                      </p>
-                    </div>
-                  </div>
-
-                  {/* QUÉ DECIR EN LA REUNIÓN (ARGUMENTARIO EXACTO) */}
-                  <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/40 rounded-2xl p-6 border border-cyan-500/30 shadow-lg space-y-3">
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs font-black uppercase text-cyan-300 flex items-center gap-2">
-                        <Mic className="w-4 h-4 text-cyan-400" /> Qué Decir en la Reunión Veredal (Argumentario Técnico)
-                      </span>
-                      <span className="text-[10px] text-slate-400 uppercase font-mono">Discurso de Alta Autoridad</span>
-                    </div>
-
-                    <div className="bg-slate-950/80 rounded-xl p-4 border border-slate-800/80 text-xs sm:text-sm text-slate-200 leading-relaxed italic">
-                      "{activeFicha.argumentario_reunion}"
-                    </div>
-                  </div>
-
-                </div>
-              )}
-            </div>
-          )}
-
           {/* ========================================================================= */}
           {/* TAB 1: RADIOGRAFÍA TERRITORIAL & HISTORIAL ELECTORAL REGISTRADURÍA        */}
           {/* ========================================================================= */}
@@ -1052,62 +1001,6 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                 })()}
               </div>
 
-            </div>
-          )}
-
-          {/* ========================================================================= */}
-          {/* TAB 2: DIRECTORIO DE TODAS LAS VEREDAS E INSPECCIONES                      */}
-          {/* ========================================================================= */}
-          {activeTab === 'veredas' && (
-            <div className="space-y-6 animate-fadeIn">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-rose-500/20 text-rose-400 border border-rose-400/30">
-                  MAPA TERRITORIAL EXHAUSTIVO
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
-                  {isCaparrapi 
-                    ? 'San Carlos y las 8 Inspecciones de Caparrapí con sus Veredas Adscritas' 
-                    : 'Inspecciones y Veredas de Guaduas'}
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Inventario completo de los centros poblados y más de 60 veredas, con su potencial electoral, vocación económica y ejes estratégicos.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {veredasDirectorio.map((item: any, idx: number) => (
-                  <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4">
-                    <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                      <div>
-                        <span className="text-[10px] font-bold text-slate-400 uppercase">Inspección / Corredor</span>
-                        <h4 className="text-lg font-black text-white flex items-center gap-1.5 mt-0.5">
-                          <MapPin className="w-4 h-4 text-cyan-400" /> {item.inspeccion}
-                        </h4>
-                      </div>
-                      <span className="px-3 py-1 rounded-full text-xs font-black bg-cyan-950 text-cyan-300 border border-cyan-800">
-                        ~{item.poblacion_estimada.toLocaleString('es-CO')} hab
-                      </span>
-                    </div>
-
-                    <div>
-                      <span className="text-[10px] font-bold text-slate-400 uppercase">Veredas Adscritas:</span>
-                      <div className="flex flex-wrap gap-1.5 mt-1.5">
-                        {item.veredas?.map((v: string, vIdx: number) => (
-                          <span key={vIdx} className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-800 text-slate-200 border border-slate-700">
-                            {v}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="space-y-2 text-xs pt-2 border-t border-slate-800">
-                      <p><strong className="text-rose-400">Vías Críticas:</strong> <span className="text-slate-300">{item.vias_criticas}</span></p>
-                      <p><strong className="text-cyan-400">Vocación Económica:</strong> <span className="text-slate-300">{item.vocacion_economica}</span></p>
-                      <p><strong className="text-emerald-400">Prioridad Estratégica:</strong> <span className="text-slate-200 font-semibold">{item.prioridad}</span></p>
-                    </div>
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
@@ -1890,6 +1783,235 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                   )}
                 </div>
               </div>
+            </div>
+          )}
+
+          {/* ========================================================================= */}
+          {/* TAB 6 (FINAL): DIAGNÓSTICO RURAL & FICHAS DE GIRA EN TERRITORIO           */}
+          {/* ========================================================================= */}
+          {(activeTab === 'territorio' || activeTab === 'gira' || activeTab === 'veredas') && (
+            <div className="space-y-6 animate-fadeIn">
+              {/* Barra de Alternancia y Título del Módulo Territorial */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider bg-teal-500/20 text-teal-300 border border-teal-400/30">
+                      MÓDULO TERRITORIAL UNIFICADO
+                    </span>
+                    <span className="text-xs text-slate-400 font-mono">
+                      {isCaparrapi ? 'San Carlos & 8 Inspecciones • 63 Veredas' : 'Inspecciones & Corredores Guaduas'}
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white mt-1 flex items-center gap-2">
+                    <span>🗺️ Diagnóstico Rural & Despliegue en Territorio</span>
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-400 max-w-2xl">
+                    Unificamos la ficha ejecutiva de gira en 1 clic para visitas de campo con el directorio completo de veredas, vocación productiva y prioridades de la comunidad.
+                  </p>
+                </div>
+
+                {/* Switcher Segmentado de Sub-Pestañas */}
+                <div className="flex items-center gap-2 p-1.5 bg-slate-950 rounded-2xl border border-slate-800 self-start lg:self-auto shrink-0 shadow-inner">
+                  <button
+                    onClick={() => setTerritorioSubTab('gira')}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                      territorioSubTab === 'gira'
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-lg shadow-emerald-950/50 border border-emerald-400/40'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                    }`}
+                  >
+                    <span>🚗</span>
+                    <span>Ficha de Gira (1 Clic)</span>
+                  </button>
+                  <button
+                    onClick={() => setTerritorioSubTab('directorio')}
+                    className={`px-4 py-2.5 rounded-xl text-xs font-black transition-all flex items-center gap-2 cursor-pointer ${
+                      territorioSubTab === 'directorio'
+                        ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-950/50 border border-cyan-400/40'
+                        : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                    }`}
+                  >
+                    <span>📋</span>
+                    <span>{isCaparrapi ? 'San Carlos & Directorio Veredal' : 'Directorio de Veredas'}</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* VISTA 1: FICHA DE GIRA DE BOLSILLO (1 CLIC) */}
+              {territorioSubTab === 'gira' && (
+                <div className="space-y-6">
+                  <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                    <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">
+                      MODO CAMPAÑA EN TERRITORIO
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+                      Ficha de Bolsillo para Gira Veredal (1 Clic)
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                      Selecciona la vereda o inspección que vas a visitar. Te entregamos en una sola pantalla limpia: 
+                      <strong> votos en juego, qué les falló antes en SECOP, la propuesta técnica con fuente 2026 y qué decir textualmente en la reunión</strong>.
+                    </p>
+
+                    {/* Botones Selectores Rápidos de Inspecciones */}
+                    <div className="flex flex-wrap gap-2 mt-5">
+                      {(fichasGira.length > 0 ? fichasGira : veredas).map((v: any, idx: number) => {
+                        const name = v.vereda || v.inspeccion;
+                        return (
+                          <button
+                            key={idx}
+                            onClick={() => setSelectedVeredaIndex(idx)}
+                            className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                              selectedVeredaIndex === idx
+                                ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/40 border border-emerald-400/50'
+                                : 'bg-slate-800 text-slate-300 hover:bg-slate-700 border border-slate-700/60'
+                            }`}
+                          >
+                            <MapPin className="w-3.5 h-3.5 text-cyan-400" />
+                            <span>{name}</span>
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+
+                  {/* Ficha de Bolsillo Dinámica */}
+                  {activeFicha && (
+                    <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-8 shadow-2xl space-y-6">
+                      
+                      {/* Header de la Ficha */}
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-6 border-b border-slate-800 gap-4">
+                        <div>
+                          <span className="text-xs font-black uppercase text-cyan-400">Briefing Territorial Inmediato</span>
+                          <h2 className="text-2xl sm:text-3xl font-black text-white mt-1 flex items-center gap-2">
+                            <span>📍 {activeFicha.vereda || activeFicha.inspeccion}</span>
+                          </h2>
+                          <p className="text-xs text-slate-400 mt-1 font-mono">
+                            Fuente oficial: {activeFicha.fuente_oficial}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-5 bg-slate-950/80 p-3.5 sm:p-4 rounded-2xl border border-slate-800 shadow-inner">
+                          <div className="text-center px-3">
+                            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">CENSO VEREDAL</span>
+                            <span className="text-2xl sm:text-3xl font-black font-mono text-cyan-400 tracking-tight block mt-0.5">
+                              {activeFicha.censo_electoral?.toLocaleString('es-CO') || 'N/A'}
+                            </span>
+                          </div>
+                          <div className="w-px h-10 bg-slate-800"></div>
+                          <div className="text-center px-3">
+                            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">VOTOS ESTIMADOS</span>
+                            <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight block mt-0.5">
+                              ~{activeFicha.votos_estimados?.toLocaleString('es-CO') || 'N/A'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+
+                      {/* 3 Columnas Clave: Líderes, Falla SECOP y Solución MGA */}
+                      <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+                        {/* Líderes Clave */}
+                        <div className="bg-slate-950/50 rounded-2xl p-5 border border-slate-800 space-y-2">
+                          <span className="text-[11px] font-black uppercase text-cyan-400 flex items-center gap-1.5">
+                            <Users className="w-4 h-4 text-cyan-400" /> Líderes & Actores Clave
+                          </span>
+                          <p className="text-xs text-slate-300 leading-relaxed font-medium">
+                            {activeFicha.lideres_clave}
+                          </p>
+                        </div>
+
+                        {/* Qué les falló en el Mandato Actual & Histórico */}
+                        <div className="bg-red-950/20 rounded-2xl p-5 border border-red-500/40 space-y-2 shadow-lg shadow-red-950/20">
+                          <span className="text-[11px] font-black uppercase text-red-400 flex items-center gap-1.5">
+                            <AlertTriangle className="w-4 h-4 text-red-400" /> Qué les Falló en el Mandato Actual (2024–2027) & Histórico
+                          </span>
+                          <p className="text-xs text-red-200/95 leading-relaxed">
+                            {activeFicha.fallas_secop_historicas}
+                          </p>
+                        </div>
+
+                        {/* Propuesta Técnica 2026 */}
+                        <div className="bg-emerald-950/20 rounded-2xl p-5 border border-emerald-500/30 space-y-2">
+                          <span className="text-[11px] font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                            <Award className="w-4 h-4 text-emerald-400" /> Propuesta Técnica (Fuente 2026)
+                          </span>
+                          <p className="text-xs text-emerald-200/90 leading-relaxed font-medium">
+                            {activeFicha.propuesta_tecnica_2026}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* QUÉ DECIR EN LA REUNIÓN (ARGUMENTARIO EXACTO) */}
+                      <div className="bg-gradient-to-r from-slate-950 via-slate-900 to-cyan-950/40 rounded-2xl p-6 border border-cyan-500/30 shadow-lg space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-black uppercase text-cyan-300 flex items-center gap-2">
+                            <Mic className="w-4 h-4 text-cyan-400" /> Qué Decir en la Reunión Veredal (Argumentario Técnico)
+                          </span>
+                          <span className="text-[10px] text-slate-400 uppercase font-mono">Discurso de Alta Autoridad</span>
+                        </div>
+
+                        <div className="bg-slate-950/80 rounded-xl p-4 border border-slate-800/80 text-xs sm:text-sm text-slate-200 leading-relaxed italic">
+                          "{activeFicha.argumentario_reunion}"
+                        </div>
+                      </div>
+
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* VISTA 2: DIRECTORIO COMPLETO DE VEREDAS E INSPECCIONES */}
+              {territorioSubTab === 'directorio' && (
+                <div className="space-y-6">
+                  <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
+                    <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-teal-500/20 text-teal-400 border border-teal-400/30">
+                      MAPA TERRITORIAL EXHAUSTIVO
+                    </span>
+                    <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+                      {isCaparrapi 
+                        ? 'San Carlos y las 8 Inspecciones de Caparrapí con sus Veredas Adscritas' 
+                        : 'Inspecciones y Veredas de Guaduas'}
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-400 mt-1">
+                      Inventario completo de los centros poblados y más de 60 veredas, con su potencial electoral, vocación económica y ejes estratégicos.
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                    {veredasDirectorio.map((item: any, idx: number) => (
+                      <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-4 hover:border-slate-700 transition-all">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+                          <div>
+                            <span className="text-[10px] font-bold text-slate-400 uppercase">Inspección / Corredor</span>
+                            <h4 className="text-lg font-black text-white flex items-center gap-1.5 mt-0.5">
+                              <MapPin className="w-4 h-4 text-cyan-400" /> {item.inspeccion}
+                            </h4>
+                          </div>
+                          <span className="px-3 py-1 rounded-full text-xs font-black bg-cyan-950 text-cyan-300 border border-cyan-800">
+                            ~{item.poblacion_estimada.toLocaleString('es-CO')} hab
+                          </span>
+                        </div>
+
+                        <div>
+                          <span className="text-[10px] font-bold text-slate-400 uppercase">Veredas Adscritas:</span>
+                          <div className="flex flex-wrap gap-1.5 mt-1.5">
+                            {item.veredas?.map((v: string, vIdx: number) => (
+                              <span key={vIdx} className="px-2 py-0.5 rounded-md text-[11px] font-semibold bg-slate-800 text-slate-200 border border-slate-700">
+                                {v}
+                              </span>
+                            ))}
+                          </div>
+                        </div>
+
+                        <div className="space-y-2 text-xs pt-2 border-t border-slate-800">
+                          <p><strong className="text-rose-400">Vías Críticas:</strong> <span className="text-slate-300">{item.vias_criticas}</span></p>
+                          <p><strong className="text-cyan-400">Vocación Económica:</strong> <span className="text-slate-300">{item.vocacion_economica}</span></p>
+                          <p><strong className="text-emerald-400">Prioridad Estratégica:</strong> <span className="text-slate-200 font-semibold">{item.prioridad}</span></p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </>

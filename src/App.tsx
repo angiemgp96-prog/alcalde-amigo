@@ -145,7 +145,7 @@ export function App() {
       {/* Main Content Area */}
       <main className="flex-1 w-full mx-auto pb-12">
         {/* MÓDULOS DE INTELIGENCIA TERRITORIAL, SECOP II, MGA Y ELECCIONES */}
-        {['gira', 'radiografia', 'veredas', 'auditoria', 'politicas', 'mga', 'speech'].includes(activeTab) && (
+        {['radiografia', 'auditoria', 'politicas', 'mga', 'speech', 'territorio', 'gira', 'veredas'].includes(activeTab) && (
           <CentroMandoView
             municipioId={municipioId}
             currentTab={activeTab}

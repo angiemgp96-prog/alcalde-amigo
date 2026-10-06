@@ -29,7 +29,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   const [showMunDropdown, setShowMunDropdown] = useState(false);
   const isCaparrapi = municipioId === 'caparrapi';
 
-  const isAdentro = ['gira', 'radiografia', 'veredas', 'auditoria', 'politicas', 'mga', 'speech'].includes(activeTab);
+  const isAdentro = ['radiografia', 'auditoria', 'politicas', 'mga', 'speech', 'territorio', 'gira', 'veredas'].includes(activeTab);
 
   return (
     <header className="sticky top-0 z-40 bg-[#0a0f1d]/95 backdrop-blur-md border-b border-slate-800 shadow-xl">
@@ -110,7 +110,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
             {/* ADENTRO: CENTRO DE MANDO & MGA */}
             <button
-              onClick={() => setActiveTab(isAdentro ? activeTab : 'gira')}
+              onClick={() => setActiveTab(isAdentro ? activeTab : 'radiografia')}
               className={`flex items-center gap-2 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
                 isAdentro
                   ? 'bg-gradient-to-r from-cyan-600 to-blue-600 text-white shadow-lg shadow-cyan-950/50 border border-cyan-400/40'

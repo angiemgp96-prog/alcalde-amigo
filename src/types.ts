@@ -1,6 +1,7 @@
 // Interfaces y tipos del sistema ALCALDE AMIGO con Ramitos
 
 export type ActiveTab = 
+  | 'territorio'
   | 'gira' 
   | 'radiografia' 
   | 'veredas' 
