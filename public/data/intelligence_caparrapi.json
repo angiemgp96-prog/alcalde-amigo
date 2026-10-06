@@ -1250,38 +1250,48 @@
   "megaproyectos_auditados": [
     {
       "nombre": "CONSTRUCCIÓN DE LA FASE I DEL PLAN MAESTRO DE ACUEDUCTO Y ALCANTARILLADO DEL MUNICIPIO DE CAPARRAPÍ (PTAP)",
-      "cuantia": "",
+      "cuantia": "$4.543.032.234 COP",
+      "contrato_id": "CO1.PCCNTR.9643444",
+      "contratista": "CONSORCIO G&C PTAP",
       "fuente": "SECOP II Oficial",
-      "estado": "Celebrado",
-      "alerta": "Veeduría comunitaria activa"
+      "estado": "En ejecución / Modificado",
+      "alerta": "Obra crítica para suministro de agua potable urbana y veredal. Requiere veeduría permanente."
     },
     {
-      "nombre": "CONSTRUCCIÓN CASA DE GOBIERNO DEL MUNICIPIO DE CAPARRAPÍ; CUNDINAMARCA (Convenio ICCU - Alcaldía)",
-      "cuantia": "",
+      "nombre": "CONSTRUCCIÓN CASA DE GOBIERNO DEL MUNICIPIO DE CAPARRAPÍ (Convenio ICCU - Alcaldía)",
+      "cuantia": "$3.082.074.871 COP",
+      "contrato_id": "CO1.PCCNTR.9428392",
+      "contratista": "CONSORCIO CASA DE GOBIERNO",
       "fuente": "SECOP II Oficial",
-      "estado": "Celebrado",
-      "alerta": "Veeduría comunitaria activa"
+      "estado": "En ejecución",
+      "alerta": "Mayor inversión urbana de infraestructura del periodo. Financiado con apoyo ICCU."
     },
     {
       "nombre": "PRIMERA ETAPA DE CONSTRUCCIÓN Y DOTACIÓN PLACA POLIDEPORTIVA CUBIERTA EN EL CENTRO POBLADO DE SAN RAMÓN",
-      "cuantia": "",
+      "cuantia": "$1.181.795.375 COP",
+      "contrato_id": "CO1.PCCNTR.8399622",
+      "contratista": "MARVA CONSTRUCCIONES SAS",
       "fuente": "SECOP II Oficial",
-      "estado": "Celebrado",
-      "alerta": "Veeduría comunitaria activa"
+      "estado": "En ejecución",
+      "alerta": "Infraestructura comunitaria en centro poblado rural. Interventoría INGPROSOL ($118M)."
     },
     {
       "nombre": "MEJORAMIENTO DE LAS INSTITUCIONES EDUCATIVAS UBICADAS EN EL MUNICIPIO DE CAPARRAPÍ",
-      "cuantia": "",
+      "cuantia": "$398.000.000 COP",
+      "contrato_id": "CO1.PCCNTR.8652248",
+      "contratista": "CONSORCIO MANTENIMIENTO ESCUELAS 2025",
       "fuente": "SECOP II Oficial",
-      "estado": "Celebrado",
-      "alerta": "Veeduría comunitaria activa"
+      "estado": "Terminado",
+      "alerta": "Mantenimiento locativo y baterías sanitarias en escuelas rurales de inspecciones."
     },
     {
-      "nombre": "MANTENIMIENTO PREVENTIVO Y CORRECTIVO (INCLUYE MANO DE OBRA) DEL PARQUE AUTOMOTOR Y MAQUINARIA AMARILLA",
-      "cuantia": "",
+      "nombre": "MANTENIMIENTO PREVENTIVO Y CORRECTIVO DEL PARQUE AUTOMOTOR Y MAQUINARIA AMARILLA",
+      "cuantia": "$395.197.982 COP",
+      "contrato_id": "CO1.PCCNTR.7965854",
+      "contratista": "HECTOR JAVIER VANEGAS",
       "fuente": "SECOP II Oficial",
-      "estado": "Celebrado",
-      "alerta": "Veeduría comunitaria activa"
+      "estado": "Terminado",
+      "alerta": "Mantenimiento de motoniveladoras y volquetas; se exige control de bitácoras en frentes veredales."
     }
   ],
   "politicas_gobierno_nacional": [

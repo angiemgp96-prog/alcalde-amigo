@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
   ShieldAlert, FileSpreadsheet, Vote, MapPin, ExternalLink, AlertTriangle, 
   CheckCircle2, ChevronRight, TrendingUp, Search, Filter, Database, Users, 
@@ -117,7 +117,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
         }
 
         // 2. Consulta en tiempo real no bloqueante a datos.gov.co para asegurar datos 100% dinámicos y frescos
-        fetchLiveSecopFromDatosGov(municipioId)
+        fetchLiveSecopFromDatosGov(municipioId, secopRes || [])
           .then(liveContracts => {
             if (liveContracts && liveContracts.length > 0 && isMounted) {
               setContracts(liveContracts);
@@ -176,9 +176,9 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
       if (filtroPeriodo === '2024') {
         result = result.filter(c => c.año === 2024 || c.año === '2024' || (c.fecha && c.fecha.includes('2024')) || (c.fecha && c.fecha.includes('2025')) || (c.fecha && c.fecha.includes('2026')));
       } else if (filtroPeriodo === '2020-2023') {
-        result = result.filter(c => [2020, 2021, 2022, 2023].includes(Number(c.año)));
+        result = result.filter(c => [2020, 2021, 2022, 2023].includes(Number(c.año)) || (c.fecha && (c.fecha.includes('2020') || c.fecha.includes('2021') || c.fecha.includes('2022') || c.fecha.includes('2023'))));
       } else if (filtroPeriodo === '2016-2019') {
-        result = result.filter(c => [2016, 2017, 2018, 2019].includes(Number(c.año)));
+        result = result.filter(c => [2016, 2017, 2018, 2019].includes(Number(c.año)) || (c.fecha && (c.fecha.includes('2016') || c.fecha.includes('2017') || c.fecha.includes('2018') || c.fecha.includes('2019'))));
       }
     }
 
@@ -266,7 +266,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
     setIsSyncingApi(true);
     setApiSyncMsg(null);
     try {
-      const liveData = await fetchLiveSecopFromDatosGov(municipioId);
+      const liveData = await fetchLiveSecopFromDatosGov(municipioId, contracts);
       if (liveData && liveData.length > 0) {
         setContracts(liveData);
         setFilteredContracts(liveData);
@@ -399,13 +399,36 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
   const gobiernosPasados = auditoriaGobiernos.filter((g: any) => !g.periodo.includes('2024'));
 
   // Normalización dinámica de Megaproyectos Auditados
-  const megaproyectosAuditados: any[] = (intelData?.megaproyectos_auditados || intelData?.top_megaproyectos_auditados || []).map((proj: any) => ({
-    cuantia: proj.cuantia || (typeof proj.valor_cop === 'number' ? formatCOP(proj.valor_cop) : proj.valor || '$1.000M+'),
-    nombre: proj.nombre || proj.objeto || proj.contratista,
-    fuente: proj.fuente || proj.plataforma || 'SECOP II Oficial',
-    estado: proj.estado || proj.alcaldia || 'Celebrado',
-    alerta: proj.alerta || proj.hallazgo_auditoria || proj.impacto_fiscal || 'Veeduría comunitaria activa'
-  }));
+  const megaproyectosAuditados: any[] = (intelData?.megaproyectos_auditados || intelData?.top_megaproyectos_auditados || []).map((proj: any) => {
+    let cuantiaStr = proj.cuantia;
+    if (!cuantiaStr || cuantiaStr.includes('$1.000M+')) {
+      if (typeof proj.valor === 'number' && proj.valor > 0) {
+        cuantiaStr = formatCOP(proj.valor);
+      } else if (typeof proj.valor_cop === 'number' && proj.valor_cop > 0) {
+        cuantiaStr = formatCOP(proj.valor_cop);
+      } else if (proj.monto) {
+        cuantiaStr = proj.monto;
+      }
+    }
+    return {
+      cuantia: cuantiaStr || 'Valor en auditoría',
+      nombre: proj.nombre || proj.objeto || proj.contratista,
+      contrato_id: proj.contrato_id || proj.id_proceso,
+      contratista: proj.contratista || proj.proveedor,
+      fuente: proj.fuente || proj.plataforma || 'SECOP II Oficial',
+      estado: proj.estado || proj.alcaldia || 'En ejecución',
+      alerta: proj.alerta || proj.hallazgo || proj.hallazgo_auditoria || proj.analisis_auditoria || 'Veeduría comunitaria activa'
+    };
+  });
+
+  // Totales y cálculos para coherencia de cifras entre Plan de Desarrollo y SECOP II
+  const contratosMandatoActual = useMemo(() => {
+    return contracts.filter(c => c.año === 2024 || c.año === '2024' || (c.fecha && (c.fecha.includes('2024') || c.fecha.includes('2025') || c.fecha.includes('2026'))));
+  }, [contracts]);
+
+  const totalContratadoMandatoActual = useMemo(() => {
+    return contratosMandatoActual.reduce((acc, c) => acc + (c.valor || 0), 0);
+  }, [contratosMandatoActual]);
 
   // Normalización dinámica de Políticas Presidencia 2026
   const politicasGobierno: any[] = (intelData?.politicas_gobierno_nacional || intelData?.politicas_presidencia_2026 || []).map((pol: any) => ({
@@ -1143,10 +1166,23 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                       )}
                     </div>
 
-                    <div className="flex flex-col sm:flex-row lg:flex-col items-start lg:items-end gap-1.5 bg-slate-950/90 p-4 rounded-2xl border border-slate-800 shadow-md">
-                      <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">PRESUPUESTO CUATRIENIO PROYECTADO</span>
-                      <span className="text-2xl sm:text-3xl font-black font-mono text-emerald-400 tracking-tight">{gobiernoActual.presupuesto_total}</span>
-                      <span className="text-[9px] text-cyan-400 font-mono uppercase tracking-wider">SECOP II TRANSACCIONAL ACTIVO</span>
+                    <div className="bg-slate-950/90 p-4 rounded-2xl border border-slate-800 shadow-md space-y-2 min-w-[280px]">
+                      <div className="flex items-center justify-between gap-3">
+                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">PLAN DE DESARROLLO (4 AÑOS):</span>
+                        <span className="text-sm sm:text-base font-black font-mono text-emerald-400">{gobiernoActual.presupuesto_total}</span>
+                      </div>
+                      <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-slate-800/80">
+                        <span className="text-[9px] uppercase font-bold tracking-widest text-cyan-400">CONTRATADO SECOP II A LA FECHA:</span>
+                        <span className="text-xs sm:text-sm font-black font-mono text-cyan-300">
+                          {formatCOP(totalContratadoMandatoActual)}
+                        </span>
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-medium flex items-center justify-between pt-0.5">
+                        <span>Ejecución del cuatrienio:</span>
+                        <span className="font-bold text-amber-300 font-mono">
+                          {((totalContratadoMandatoActual / (isCaparrapi ? 83200000000 : 70000000000)) * 100).toFixed(1)}% ({contratosMandatoActual.length} contratos)
+                        </span>
+                      </div>
                     </div>
                   </div>
 
@@ -1401,6 +1437,49 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                   </button>
                 </div>
 
+                {/* Banner de Contexto y Coherencia de Cifras por Mandato */}
+                {filtroPeriodo === '2024' && (
+                  <div className="p-3.5 rounded-2xl bg-rose-950/30 border border-rose-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🔴</span>
+                      <span>
+                        <strong>Mandato Actual en Ejecución (2024–2027):</strong> Mostrando {filteredContracts.length} contratos oficiales registrados en SECOP II por {formatCOP(filteredContracts.reduce((acc, c) => acc + (c.valor || 0), 0))}.
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-cyan-300 bg-cyan-950/80 px-2.5 py-1 rounded-lg border border-cyan-800/60 shrink-0">
+                      Ejecución: {((filteredContracts.reduce((acc, c) => acc + (c.valor || 0), 0) / (isCaparrapi ? 83200000000 : 70000000000)) * 100).toFixed(1)}% del Plan Cuatrienal ({isCaparrapi ? '$83.200M' : '$70.000M'})
+                    </span>
+                  </div>
+                )}
+
+                {filtroPeriodo === '2020-2023' && (
+                  <div className="p-3.5 rounded-2xl bg-cyan-950/30 border border-cyan-500/30 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🏛️</span>
+                      <span>
+                        <strong>Mandato {isCaparrapi ? 'Gonzalo Ramírez' : 'Germán Herrera'} (2020–2023) [Referencia Histórica]:</strong> Mostrando {filteredContracts.length} contratos oficiales auditados (Plataforma SECOP I / Transición SECOP II en datos.gov.co).
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800/60 shrink-0">
+                      Total Auditado: {formatCOP(filteredContracts.reduce((acc, c) => acc + (c.valor || 0), 0))}
+                    </span>
+                  </div>
+                )}
+
+                {filtroPeriodo === '2016-2019' && (
+                  <div className="p-3.5 rounded-2xl bg-slate-900 border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300">
+                    <div className="flex items-center gap-2">
+                      <span className="text-base">🏛️</span>
+                      <span>
+                        <strong>Mandato {isCaparrapi ? 'Joaquín Sánchez' : 'Jesús Edisson Ramírez'} (2016–2019) [Línea Base Histórica]:</strong> Mostrando {filteredContracts.length} contratos oficiales registrados en SECOP I documental.
+                      </span>
+                    </div>
+                    <span className="text-[11px] font-mono text-emerald-300 bg-emerald-950/80 px-2.5 py-1 rounded-lg border border-emerald-800/60 shrink-0">
+                      Total Auditado: {formatCOP(filteredContracts.reduce((acc, c) => acc + (c.valor || 0), 0))}
+                    </span>
+                  </div>
+                )}
+
                 {/* Filtros de Búsqueda */}
                 <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                   <div className="sm:col-span-2 relative">
@@ -1452,30 +1531,39 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-slate-800 bg-slate-900/60">
-                      {filteredContracts.slice(0, 150).map((c, idx) => (
-                        <tr key={idx} className="hover:bg-slate-800/60 transition-colors">
-                          <td className="p-3 font-mono text-[11px] text-cyan-400 whitespace-nowrap">{c.id}</td>
-                          <td className="p-3 font-medium text-slate-200 max-w-md">{c.objeto}</td>
-                          <td className="p-3 font-black text-emerald-400 whitespace-nowrap">{formatCOP(c.valor)}</td>
-                          <td className="p-3 whitespace-nowrap">
-                            <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300">
-                              {c.modalidad}
-                            </span>
-                          </td>
-                          <td className="p-3 text-slate-400 whitespace-nowrap">{c.fecha}</td>
-                          <td className="p-3 whitespace-nowrap">
-                            <a
-                              href={c.url}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="px-2.5 py-1 rounded text-[10px] font-bold bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 transition-colors flex items-center gap-1 w-fit"
-                            >
-                              <span>SECOP II</span>
-                              <ExternalLink className="w-3 h-3" />
-                            </a>
+                      {filteredContracts.length === 0 ? (
+                        <tr>
+                          <td colSpan={6} className="p-8 text-center text-slate-400">
+                            <p className="text-sm font-semibold">No se encontraron contratos con los filtros seleccionados.</p>
+                            <p className="text-xs text-slate-500 mt-1">Prueba seleccionando "Todos los Mandatos" o limpiando el texto de búsqueda.</p>
                           </td>
                         </tr>
-                      ))}
+                      ) : (
+                        filteredContracts.slice(0, 150).map((c, idx) => (
+                          <tr key={idx} className="hover:bg-slate-800/60 transition-colors">
+                            <td className="p-3 font-mono text-[11px] text-cyan-400 whitespace-nowrap">{c.id}</td>
+                            <td className="p-3 font-medium text-slate-200 max-w-md">{c.objeto}</td>
+                            <td className="p-3 font-black text-emerald-400 whitespace-nowrap">{formatCOP(c.valor)}</td>
+                            <td className="p-3 whitespace-nowrap">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-800 text-slate-300">
+                                {c.modalidad}
+                              </span>
+                            </td>
+                            <td className="p-3 text-slate-400 whitespace-nowrap">{c.fecha}</td>
+                            <td className="p-3 whitespace-nowrap">
+                              <a
+                                href={c.url}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-2.5 py-1 rounded text-[10px] font-bold bg-cyan-950 hover:bg-cyan-900 text-cyan-300 border border-cyan-800 transition-colors flex items-center gap-1 w-fit"
+                              >
+                                <span>{(c.url && c.url.includes('secop-i')) || (Number(c.año) < 2024 && !c.id.includes('PCCNTR')) ? 'SECOP I' : 'SECOP II'}</span>
+                                <ExternalLink className="w-3 h-3" />
+                              </a>
+                            </td>
+                          </tr>
+                        ))
+                      )}
                     </tbody>
                   </table>
                 </div>

@@ -1188,29 +1188,46 @@ export async function getTeamContributions(
 // -------------------------------------------------------------
 // CONSULTA EN TIEMPO REAL A LA API OFICIAL DE SECOP II (DATOS ABIERTOS)
 // -------------------------------------------------------------
-export async function fetchLiveSecopFromDatosGov(municipioId: 'guaduas' | 'caparrapi'): Promise<any[]> {
+export async function fetchLiveSecopFromDatosGov(municipioId: 'guaduas' | 'caparrapi', baseContracts: any[] = []): Promise<any[]> {
   const ciudadName = municipioId === 'caparrapi' ? 'Caparrapí' : 'Guaduas';
-  const url = `https://www.datos.gov.co/resource/jbjy-vk9h.json?departamento=Cundinamarca&ciudad=${encodeURIComponent(ciudadName)}`;
+  const url = `https://www.datos.gov.co/resource/jbjy-vk9h.json?departamento=Cundinamarca&ciudad=${encodeURIComponent(ciudadName)}&$limit=2000`;
   
-  const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
-  if (!response.ok) {
-    throw new Error(`Error en API SECOP II: ${response.statusText}`);
-  }
-  
-  const data = await response.json();
-  if (!Array.isArray(data)) return [];
+  try {
+    const response = await fetch(url, { headers: { 'Accept': 'application/json' } });
+    if (!response.ok) {
+      console.warn(`Aviso en API SECOP II: ${response.statusText}`);
+      return baseContracts;
+    }
+    
+    const data = await response.json();
+    if (!Array.isArray(data)) return baseContracts;
 
-  return data.map((c: any) => ({
-    id: c.id_contrato || c.referencia_del_contrato || 'S/N',
-    entidad: c.nombre_entidad || (municipioId === 'caparrapi' ? 'ALCALDÍA DE CAPARRAPÍ' : 'ALCALDÍA DE GUADUAS'),
-    objeto: c.objeto_del_contrato || c.descripcion_del_proceso || 'Sin descripción',
-    valor: parseFloat(c.valor_del_contrato || 0),
-    modalidad: c.modalidad_de_contratacion || 'Directa',
-    proveedor: c.proveedor_adjudicado || 'No reportado',
-    fecha: (c.fecha_de_firma || '').slice(0, 10),
-    año: (c.fecha_de_firma || '').slice(0, 4),
-    estado: c.estado_contrato || 'Aprobado',
-    url: c.urlproceso && c.urlproceso.url ? c.urlproceso.url : 'https://community.secop.gov.co/'
-  })).filter((c: any) => c.valor < 50000000000);
+    const liveContracts = data.map((c: any) => ({
+      id: c.id_contrato || c.referencia_del_contrato || 'S/N',
+      entidad: c.nombre_entidad || (municipioId === 'caparrapi' ? 'ALCALDÍA DE CAPARRAPÍ' : 'ALCALDÍA DE GUADUAS'),
+      objeto: c.objeto_del_contrato || c.descripcion_del_proceso || 'Sin descripción',
+      valor: parseFloat(c.valor_del_contrato || 0),
+      modalidad: c.modalidad_de_contratacion || 'Directa',
+      proveedor: c.proveedor_adjudicado || 'No reportado',
+      fecha: (c.fecha_de_firma || '').slice(0, 10),
+      año: (c.fecha_de_firma || '').slice(0, 4),
+      estado: c.estado_contrato || 'Aprobado',
+      url: c.urlproceso && c.urlproceso.url ? c.urlproceso.url : 'https://community.secop.gov.co/'
+    })).filter((c: any) => c.valor > 0 && c.valor < 50000000000);
+
+    // Fusionar contratos en vivo con la base histórica completa (SECOP I y II)
+    const map = new Map<string, any>();
+    liveContracts.forEach(c => map.set(c.id, c));
+    baseContracts.forEach(c => {
+      if (!map.has(c.id)) {
+        map.set(c.id, c);
+      }
+    });
+
+    return Array.from(map.values());
+  } catch (err) {
+    console.warn('Error conectando a datos.gov.co, manteniendo base local:', err);
+    return baseContracts;
+  }
 }
 
