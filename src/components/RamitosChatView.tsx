@@ -5,10 +5,10 @@ import { processRamitosConversationAsync, getGeminiApiKey, setGeminiApiKey, getG
 import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { formatCOP } from '../utils/formatters';
 import { sendWhatsAppMessage } from '../services/greenApi';
-import { saveRamitosInteractionLog, getUserLeadInfo, checkUserLeadRegistrationInSupabase, purgePhantomLocalStorageCache, getPastInteractionsHistory } from '../services/api';
+import { saveRamitosInteractionLog, getUserLeadInfo, checkUserLeadRegistrationInSupabase, purgePhantomLocalStorageCache, getPastInteractionsHistory, clearConversationHistory } from '../services/api';
 import {
   Menu, User, Calendar, Send, Volume2, VolumeX, Sparkles, MapPin, X,
-  History, Share2, FileText, Building2, Cloud, Check, Key, Mic, Settings, Copy, Shield
+  History, Share2, FileText, Building2, Cloud, Check, Key, Mic, Settings, Copy, Shield, Trash2
 } from 'lucide-react';
 
 interface RamitosChatViewProps {
@@ -200,26 +200,76 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     speakRamitosVoice(nudgeText, true);
   };
 
-  // EFECTO MÁQUINA DE ESCRIBIR (Typewriter effect)
-  useEffect(() => {
-    if (!currentResponse || !isAudioPermissionGranted || showPermissionModal) return;
-    let index = 0;
-    setDisplayedResponse('');
-    const interval = setInterval(() => {
-      if (index < currentResponse.length) {
-        setDisplayedResponse(currentResponse.substring(0, index + 1));
-        index++;
-      } else {
-        clearInterval(interval);
-        // Si el audio está silenciado (isMuted), al terminar de escribir inician los 2 segundos sólo si no hay propuesta abierta
-        if (isMuted && hasUserSentMessageRef.current && !isNudgeActiveRef.current) {
-          scheduleIdleNudgeTimer(currentResponse);
-        }
-      }
-    }, 25);
+  // CONTROLADOR UNIFICADO DE VOZ Y ESCRITURA SINCRONIZADA (EFECTO CONSTRUCCIÓN EN TIEMPO REAL)
+  const typewriterTimerRef = useRef<any>(null);
 
-    return () => clearInterval(interval);
-  }, [currentResponse, isMuted, isAudioPermissionGranted, showPermissionModal]);
+  const clearTypewriterTimer = () => {
+    if (typewriterTimerRef.current) {
+      clearInterval(typewriterTimerRef.current);
+      typewriterTimerRef.current = null;
+    }
+  };
+
+  const speakRamitosVoice = (text: string, isNudge: boolean = false) => {
+    clearIdleTimer();
+    clearTypewriterTimer();
+
+    // Caso 1: En silencio o sin permisos concedidos (efecto mecanografía visual ágil)
+    if (isMuted || !isAudioPermissionGranted || showPermissionModal) {
+      setIsRamitosSpeaking(false);
+      let charIdx = 0;
+      setDisplayedResponse('');
+      typewriterTimerRef.current = setInterval(() => {
+        charIdx += 2;
+        if (charIdx >= text.length) {
+          clearTypewriterTimer();
+          setDisplayedResponse(text);
+          if (hasUserSentMessageRef.current && !isNudge && !isNudgeActiveRef.current) {
+            scheduleIdleNudgeTimer(text);
+          }
+        } else {
+          setDisplayedResponse(text.substring(0, charIdx));
+        }
+      }, 20);
+      return;
+    }
+
+    // Caso 2: Con voz activa: SINCRONIZACIÓN PRECISA PALABRA POR PALABRA (TELEPROMPTER EN TIEMPO REAL)
+    setIsRamitosSpeaking(true);
+    setDisplayedResponse('');
+
+    let hasBoundaryReceived = false;
+    let fallbackCharIndex = 0;
+
+    // Respaldo cadencial al compás natural de la voz (avanza palabras cada ~200ms) por si el sintetizador no emite onboundary
+    typewriterTimerRef.current = setInterval(() => {
+      if (!hasBoundaryReceived && fallbackCharIndex < text.length) {
+        const nextSpace = text.indexOf(' ', fallbackCharIndex + 1);
+        fallbackCharIndex = nextSpace !== -1 ? nextSpace : fallbackCharIndex + 4;
+        setDisplayedResponse(text.substring(0, Math.min(fallbackCharIndex, text.length)));
+      }
+    }, 190);
+
+    speechEngine.speakRamitos(
+      text,
+      // onEnd:
+      () => {
+        clearTypewriterTimer();
+        setIsRamitosSpeaking(false);
+        setDisplayedResponse(text);
+        if (hasUserSentMessageRef.current && !isNudge && !isNudgeActiveRef.current) {
+          scheduleIdleNudgeTimer(text);
+        }
+      },
+      // onBoundary (evento oficial palabra a palabra de Web Speech API):
+      (charIndex: number, charLength: number = 0) => {
+        hasBoundaryReceived = true;
+        // Revela el texto exactamente hasta la palabra que la voz está pronunciando en este instante
+        const visibleLength = Math.min(text.length, charIndex + (charLength || 4));
+        setDisplayedResponse(text.substring(0, visibleLength));
+      }
+    );
+  };
 
   useEffect(() => {
     // Purga automática de caché local fantasma en cada inicio
@@ -230,19 +280,6 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
       const munNombre = isCaparrapi ? 'Caparrapí' : 'Guaduas';
       const emojiMun = isCaparrapi ? '🛡️' : '🌿';
       const initialGreeting = munData.saludoInicial;
-
-      // Si la ventana/pestaña es nueva o está en modo incógnito (sessionStorage vacío), se inicia con el saludo oficial del municipio
-      const sessionKey = `ramitos_tab_session_active_${municipioId}`;
-      const isReturningTab = Boolean(sessionStorage.getItem(sessionKey));
-      if (!isReturningTab) {
-        sessionStorage.setItem(sessionKey, 'true');
-        setCurrentResponse(initialGreeting);
-        setDisplayedResponse(initialGreeting);
-        setHistory([
-          { sender: 'ramitos', text: initialGreeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
-        ]);
-        return;
-      }
 
       try {
         const past = await getPastInteractionsHistory(undefined, municipioId);
@@ -269,9 +306,9 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           let reconnectGreeting = '';
           if (lastUserText) {
             const topicSnippet = lastUserText.length > 45 ? lastUserText.substring(0, 42) + '...' : lastUserText;
-            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! La última vez estuvimos conversando sobre "${topicSnippet}". ¿Quieres que sigamos profundizando en esa solución o tienes alguna otra sugerencia para ${munNombre}?`;
+            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! La última vez estuvimos conversando sobre "${topicSnippet}". ¿Quieres que sigamos profundizando en esa propuesta o tienes alguna otra idea o necesidad para ${munNombre}?`;
           } else {
-            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! ¿Quieres que sigamos profundizando en lo último que conversamos o tienes alguna otra sugerencia o problemática para ${munNombre}?`;
+            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! ¿Deseas continuar donde quedamos o plantear una nueva inquietud para ${munNombre}?`;
           }
 
           const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -280,8 +317,10 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           setHistory(loadedHistory);
           setCurrentResponse(reconnectGreeting);
           setCurrentExpresion('entusiasmado');
-          if (!isMuted) {
+          if (!isMuted && isAudioPermissionGranted && !showPermissionModal) {
             speakRamitosVoice(reconnectGreeting, true);
+          } else {
+            setDisplayedResponse(reconnectGreeting);
           }
         } else {
           // Si no hay historial previo para este municipio, usar el saludo inicial limpio
@@ -298,35 +337,17 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
     loadPastHistoryFromSupabase();
 
-    return () => clearIdleTimer();
+    return () => {
+      clearIdleTimer();
+      clearTypewriterTimer();
+    };
   }, [municipioId]);
 
   useEffect(() => {
-    if (!isMuted && isAudioPermissionGranted && !showPermissionModal) {
+    if (!isMuted && isAudioPermissionGranted && !showPermissionModal && currentResponse) {
       speakRamitosVoice(currentResponse, true); // Saludo inicial sólo cuando hay permisos
     }
   }, [isAudioPermissionGranted, showPermissionModal]);
-
-  const speakRamitosVoice = (text: string, isNudge: boolean = false) => {
-    clearIdleTimer();
-    if (isMuted || !isAudioPermissionGranted) {
-      setIsRamitosSpeaking(false);
-      if (hasUserSentMessageRef.current && !isNudge && !isNudgeActiveRef.current) {
-        scheduleIdleNudgeTimer(text);
-      }
-      return;
-    }
-
-    setIsRamitosSpeaking(true);
-
-    speechEngine.speakRamitos(text, () => {
-      setIsRamitosSpeaking(false);
-      // HASTA AHORA QUE TERMINÓ DE HABLAR LA VOZ COMPLETAMENTE:
-      if (hasUserSentMessageRef.current && !isNudge && !isNudgeActiveRef.current) {
-        scheduleIdleNudgeTimer(text);
-      }
-    });
-  };
 
   const handleStartHoldMic = (e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault();
@@ -1019,12 +1040,31 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             </div>
           </div>
 
-          <button
-            onClick={() => setShowHistoryDrawer(false)}
-            className="w-full py-2.5 bg-slate-900 text-slate-300 text-xs font-bold rounded-xl"
-          >
-            Cerrar Historial
-          </button>
+          <div className="space-y-2 pt-2 border-t border-slate-800">
+            {history.length > 1 && (
+              <button
+                type="button"
+                onClick={() => {
+                  clearConversationHistory(municipioId);
+                  const greeting = munData.saludoInicial;
+                  setHistory([{ sender: 'ramitos', text: greeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+                  setCurrentResponse(greeting);
+                  setDisplayedResponse(greeting);
+                  setShowHistoryDrawer(false);
+                }}
+                className="w-full py-2 bg-red-950/40 hover:bg-red-900/60 text-red-300 border border-red-800/40 text-xs font-bold rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
+              >
+                <Trash2 className="w-3.5 h-3.5 text-red-400" />
+                <span>Reiniciar Diálogo de {isCaparrapi ? 'Caparrapí' : 'Guaduas'}</span>
+              </button>
+            )}
+            <button
+              onClick={() => setShowHistoryDrawer(false)}
+              className="w-full py-2.5 bg-slate-900 hover:bg-slate-800 text-slate-300 text-xs font-bold rounded-xl transition-all cursor-pointer"
+            >
+              Cerrar Historial
+            </button>
+          </div>
         </div>
       )}
 

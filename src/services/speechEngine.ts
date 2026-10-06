@@ -115,8 +115,12 @@ class SpeechEngine {
     }
   }
 
-  // VOZ HABLADA DE RAMITOS (SpeechSynthesis confiable)
-  public speakRamitos(text: string, onEnd?: () => void): void {
+  // VOZ HABLADA DE RAMITOS (SpeechSynthesis confiable con sincronización palabra a palabra)
+  public speakRamitos(
+    text: string,
+    onEnd?: () => void,
+    onBoundary?: (charIndex: number, charLength?: number) => void
+  ): void {
     if (!this.voiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
 
     try {
@@ -127,7 +131,7 @@ class SpeechEngine {
         .replace(/[\u{2600}-\u{27BF}]/gu, '')
         .replace(/[\u{2300}-\u{23FF}]/gu, '')
         .replace(/[\u{2B00}-\u{2BFF}]/gu, '')
-        .replace(/[🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️💡🤝🏛️📊📢🇨🇴]/gu, '')
+        .replace(/[🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️💡🤝🏛️📊📢🇨🇴🛡️]/gu, '')
         .replace(/[*_#~`]/g, '') // Elimina caracteres markdown
         .replace(/https?:\/\/\S+/gi, '') // Elimina links
         .replace(/\s+/g, ' ')
@@ -143,7 +147,7 @@ class SpeechEngine {
           window.speechSynthesis.cancel();
           const utterance = new SpeechSynthesisUtterance(cleanText);
           utterance.lang = 'es-CO';
-          utterance.rate = 1.02;
+          utterance.rate = 1.0;
           utterance.pitch = 1.05;
 
           const voices = window.speechSynthesis.getVoices();
@@ -155,6 +159,14 @@ class SpeechEngine {
           );
           if (esVoice) {
             utterance.voice = esVoice;
+          }
+
+          if (onBoundary) {
+            utterance.onboundary = (e: any) => {
+              if (e.name === 'word' || typeof e.charIndex === 'number') {
+                onBoundary(e.charIndex, e.charLength || 0);
+              }
+            };
           }
 
           if (onEnd) {

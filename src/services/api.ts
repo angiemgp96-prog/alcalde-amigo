@@ -208,16 +208,33 @@ export interface RamitosInteractionLog {
 export async function saveRamitosInteractionLog(log: RamitosInteractionLog): Promise<void> {
   const deviceId = getDeviceId();
   const ipAddress = await getClientIpAddress();
+  const munId = log.municipioId || 'guaduas';
 
   // Buscar información de lead previa si no viene dada
   const savedLead = getUserLeadInfo();
   const nombreFinal = log.nombreCiudadano || savedLead?.nombre || null;
   const whatsappFinal = log.whatsappCiudadano || savedLead?.whatsapp || null;
 
+  // 1. Guardar de inmediato en LocalStorage (persistencia garantizada por dispositivo a 0ms)
+  try {
+    const key = `ialcaldia_chat_history_v2_${munId}`;
+    const raw = localStorage.getItem(key);
+    const list: Array<{ sender: 'user' | 'ramitos'; text: string; time: string; timestamp?: string }> = raw ? JSON.parse(raw) : [];
+    const nowTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const nowIso = new Date().toISOString();
+    list.push({ sender: 'user', text: log.mensajeTextualCiudadano, time: nowTime, timestamp: nowIso });
+    list.push({ sender: 'ramitos', text: log.respuestaLimpiaRamitos, time: nowTime, timestamp: nowIso });
+    if (list.length > 50) list.splice(0, list.length - 50);
+    localStorage.setItem(key, JSON.stringify(list));
+  } catch (e) {
+    console.warn('Error guardando en caché local de conversación:', e);
+  }
+
+  // 2. Guardar en Supabase
   if (supabaseClient) {
     try {
       await supabaseClient.from('interacciones_conversaciones_ramitos').insert({
-        municipio_id: log.municipioId || 'guaduas',
+        municipio_id: munId,
         device_id: deviceId,
         ip_address: ipAddress,
         nombre_ciudadano: nombreFinal,
@@ -349,6 +366,7 @@ export interface PastUserInteraction {
 
 export async function getPastInteractionsHistory(deviceId?: string, municipioId?: 'guaduas' | 'caparrapi' | string): Promise<PastUserInteraction[]> {
   const targetDeviceId = deviceId || getDeviceId();
+  const munId = municipioId || 'guaduas';
 
   if (supabaseClient) {
     try {
@@ -358,26 +376,70 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
         .select('mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion')
         .eq('device_id', targetDeviceId);
 
-      if (municipioId) {
-        query = query.eq('municipio_id', municipioId);
+      if (munId) {
+        query = query.eq('municipio_id', munId);
       }
 
       const { data, error } = await query
         .order('fecha_interaccion', { ascending: true })
-        .limit(20);
+        .limit(40);
 
       if (data && data.length > 0) {
-        return data.map((item: any) => ({
+        const parsed = data.map((item: any) => ({
           userText: item.mensaje_textual_ciudadano,
           ramitosResponse: item.respuesta_limpia_ramitos,
           timestamp: item.fecha_interaccion
         }));
+
+        // Actualizar el caché local con los datos reales de Supabase
+        try {
+          const key = `ialcaldia_chat_history_v2_${munId}`;
+          const formattedForLocal = [];
+          for (const item of parsed) {
+            const timeStr = item.timestamp
+              ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+              : new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+            formattedForLocal.push({ sender: 'user', text: item.userText, time: timeStr, timestamp: item.timestamp });
+            formattedForLocal.push({ sender: 'ramitos', text: item.ramitosResponse, time: timeStr, timestamp: item.timestamp });
+          }
+          localStorage.setItem(key, JSON.stringify(formattedForLocal));
+        } catch (e) {}
+
+        return parsed;
       }
     } catch (err) {
       console.warn('Error obteniendo historial completo de interacciones:', err);
     }
   }
+
+  // Fallback garantizado desde LocalStorage si Supabase está cargando o offline
+  try {
+    const raw = localStorage.getItem(`ialcaldia_chat_history_v2_${munId}`);
+    if (raw) {
+      const list = JSON.parse(raw);
+      const res: PastUserInteraction[] = [];
+      for (let i = 0; i < list.length; i += 2) {
+        const u = list[i];
+        const r = list[i + 1];
+        if (u && r) {
+          res.push({
+            userText: u.text,
+            ramitosResponse: r.text,
+            timestamp: u.timestamp || new Date().toISOString()
+          });
+        }
+      }
+      return res;
+    }
+  } catch (e) {}
+
   return [];
+}
+
+export function clearConversationHistory(municipioId: 'guaduas' | 'caparrapi' | string): void {
+  try {
+    localStorage.removeItem(`ialcaldia_chat_history_v2_${municipioId}`);
+  } catch (e) {}
 }
 
 // -------------------------------------------------------------

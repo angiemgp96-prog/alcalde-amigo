@@ -199,16 +199,18 @@ export function getSystemPromptForMunicipio(municipioId: 'guaduas' | 'caparrapi'
 
 DIRECTIVAS ÉTICAS Y DE RESPONSABILIDAD FUNDAMENTALES (ORDEN MÁXIMA):
 1. CERO PROMESAS Y CERO FALSAS ESPERANZAS: ¡ESTÁ TERMINANTEMENTE PROHIBIDO prometer obras, fechas de entrega, presupuestos o soluciones garantizadas! Jamás te comprometas a ejecutar nada ni des falsas expectativas. No te impliques como ejecutor.
-2. ROL CLARO Y TRANSPARENTE: Tu función principal es CAPTAR LAS NECESIDADES REALES de la gente y valorar su aporte. Deja siempre claro con total transparencia que cualquier alternativa que menciones es únicamente una "posibilidad técnica preliminar planteada por esta inteligencia artificial" como guía u horizonte positivo inicial.
-3. REMISIÓN DIRECTA AL EQUIPO HUMANO: Todo reporte, inquietud o idea que recibas queda registrado en el sistema y se enviará a NUESTRO EQUIPO HUMANO DE TRABAJO, quienes son los únicos facultados para evaluar la viabilidad técnica real, determinar las verdaderas acciones y priorizar la ejecución con la ayuda de toda la comunidad.
-4. TONO EQUILIBRADO Y CONSTRUCTIVO: Ni alarmante ni catastrófico. Ni redundante ni excesivamente técnico o aburrido. Usa un español colombiano cercano, respetuoso, empático y campesino. Destaca siempre como horizonte positivo que cada aporte de la gente es la semilla viva para nutrir los proyectos que realizaremos entre todos.
-5. AISLAMIENTO TERRITORIAL ESTRICTO (SOLO ${nombreMun.toUpperCase()}): Tienes terminantemente prohibido mezclar información de otros municipios. Todo tu conocimiento y respuestas pertenecen al 100% a ${nombreMun} y sus veredas e inspecciones rurales.
+2. ROL CLARO Y TRANSPARENTE: Tu función principal es CAPTAR LAS NECESIDADES REALES de la gente y valorar su aporte. Deja siempre claro con total transparencia que cualquier alternativa técnica que menciones es una orientación preliminar planteada por esta IA como guía inicial, y que todo se envía al equipo humano de la alcaldía para evaluar viabilidad real y ejecutar en terreno.
+3. FLUIDEZ HUMANA Y CERO MU-LETILLAS REPETITIVAS: ¡PROHIBIDO empezar siempre con la misma frase ("Tu aporte sobre esta situación es fundamental...", "Como guía técnica preliminar...")! Varía tus inicios con naturalidad: "Comprendo lo que nos cuentas...", "Es un punto clave para la vereda...", "Entendido perfectamente...", "¡Qué buena sugerencia!...".
+4. MEMORIA ACTIVA Y CONTEXTO: Si el ciudadano ya mencionó su nombre o vereda anteriormente, ¡ÚSALOS con calidez natural! No vuelvas a preguntar lo que ya te dijeron. Si retoman un tema previo, da continuidad inmediata.
+5. RESPUESTA PRECISA A PREGUNTAS DIRECTAS: Si preguntan por tus capacidades o quién eres, explica de forma concisa tus 3 roles: (1) Escuchar y registrar necesidades e ideas comunitarias, (2) Orientar posibles alternativas técnicas preliminares, y (3) Trasladar cada reporte al equipo humano de ${nombreMun} para estudio en terreno.
+6. TONO CERCANO Y CAMPESINO: Empático, respetuoso, constructivo y positivo. Sin tecnicismos aburridos ni tono burocrático.
+7. AISLAMIENTO TERRITORIAL ESTRICTO (SOLO ${nombreMun.toUpperCase()}): Tienes terminantemente prohibido mezclar información de otros municipios. Todo tu conocimiento pertenece a ${nombreMun} y sus veredas.
 ${isCap ? `   - Veredas e inspecciones clave de Caparrapí: San Carlos, Terán, San Pedro, La Florida, Otavalo, San Ramón, Pitalito, Mata de Mora, El Dinde, La Chorrera, Boca de Monte, Galiche, El Silencio, etc.` : `   - Veredas e inspecciones clave de Guaduas: Puerto Bogotá, Guaduero, La Paz, Versalles, San José, El Hato, Yaguará, Chipauta, Carbonera, Malambo, etc.`}
 
 REGLAS DE FORMATO:
 - Breve, directo y muy humano (máximo 2 a 3 frases en total).
-- Si el ciudadano no ha mencionado su vereda o sector, pregúntasela amablemente para registrar con precisión su caso.
-- Si ya concretaron la necesidad y el ciudadano aún no ha registrado sus datos, pregúntale con calidez: "¿A qué nombre y WhatsApp podemos enviarte información cuando el equipo humano revise técnicamente este aporte en tu vereda?"`;
+- Solo pregunta por la vereda si aún no se conoce y es indispensable para registrar la necesidad.
+- Pide el WhatsApp con calidez únicamente cuando la propuesta o problemática ya esté madura en el diálogo, nunca de forma atropellada o invasiva.`;
 }
 
 export async function processRamitosConversationAsync(
@@ -419,15 +421,31 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
 
   const systemPromptWithContext = getSystemPromptForMunicipio(municipioId) + locationInstruction + contactInstruction + memoryInstruction + planGobiernoContext;
 
-  // Preparar historial previo para la IA (últimos 8 mensajes)
-  const historyMessagesForGroq = history.slice(-8).map(msg => ({
-    role: msg.sender === 'user' ? 'user' : 'assistant',
-    content: msg.text
-  }));
+  // Preparar historial previo combinado (Memoria histórica persistente de Supabase + Sesión activa)
+  const combinedTurns: { role: 'user' | 'assistant'; content: string }[] = [];
 
-  const historyContentsForGemini = history.slice(-8).map(msg => ({
-    role: msg.sender === 'user' ? 'user' : 'model',
-    parts: [{ text: msg.text }]
+  if (pastInteractions && pastInteractions.length > 0) {
+    const previousRecent = pastInteractions.slice(-6);
+    previousRecent.forEach(p => {
+      if (p.userText && p.userText.trim()) combinedTurns.push({ role: 'user', content: p.userText.trim() });
+      if (p.ramitosResponse && p.ramitosResponse.trim()) combinedTurns.push({ role: 'assistant', content: p.ramitosResponse.trim() });
+    });
+  }
+
+  // Integrar turnos de la sesión activa evitando duplicados directos
+  history.slice(-8).forEach(msg => {
+    const role = msg.sender === 'user' ? 'user' : 'assistant';
+    const textTrimmed = msg.text.trim();
+    if (textTrimmed && (!combinedTurns.length || combinedTurns[combinedTurns.length - 1].content !== textTrimmed)) {
+      combinedTurns.push({ role, content: textTrimmed });
+    }
+  });
+
+  const historyMessagesForGroq = combinedTurns.slice(-10);
+
+  const historyContentsForGemini = historyMessagesForGroq.map(msg => ({
+    role: msg.role === 'user' ? 'user' : 'model',
+    parts: [{ text: msg.content }]
   }));
 
   let finalResponse: RamitosChatResponse | null = null;
@@ -601,6 +619,17 @@ function buildLocalFallbackResponse(
     };
   }
 
+  const isCapacidades = textLower.includes('capacidades') || textLower.includes('qué haces') || textLower.includes('que haces') || textLower.includes('puedes hacer') || textLower.includes('quién eres') || textLower.includes('quien eres') || textLower.includes('para qué sirves') || textLower.includes('para que sirves');
+
+  if (isCapacidades) {
+    return {
+      textoRespuesta: isCap
+        ? `¡Con gusto! Como Copiloto de Caparrapí estoy para escucharte y registrar las necesidades o ideas de tu vereda, orientar posibles alternativas técnicas preliminares y conectar cada caso con nuestro equipo humano para su estudio y ejecución real en terreno. ¿Qué situación o propuesta tienes hoy para Caparrapí?`
+        : `¡Con gusto! Como Ramitos en Guaduas te acompaño escuchando tus propuestas, formulando opciones técnicas preliminares y trasladando cada caso al equipo humano de la administración. ¿Qué iniciativa o inquietud te gustaría registrar hoy?`,
+      expresion: 'feliz'
+    };
+  }
+
   // Identificar si aún no se tiene ubicación
   const faltaUbicacion = !detectedLoc || detectedLoc === 'Por definir' || (detectedLoc.toLowerCase().includes('centro') && !textLower.includes('centro'));
 
@@ -608,33 +637,45 @@ function buildLocalFallbackResponse(
   let posibilidadIa = '';
   if (sector === 'Energía e Infraestructura' && (textLower.includes('via') || textLower.includes('vía') || textLower.includes('camino') || textLower.includes('carretera') || textLower.includes('placa huella') || textLower.includes('derrumbe') || textLower.includes('puente') || textLower.includes('hueco') || textLower.includes('trocha'))) {
     posibilidadIa = isCap
-      ? 'una posibilidad técnica analizada preliminarmente por esta IA sería postular tramos críticos a convenios de caminos comunitarios de Invías con placa huella de concreto y filtros'
-      : 'una alternativa técnica que formula esta IA como guía inicial sería priorizar tramos críticos de placa huella y cunetas en la red terciaria rural';
+      ? 'postular tramos críticos a convenios de caminos comunitarios de Invías con placa huella de concreto y filtros'
+      : 'priorizar tramos críticos de placa huella y cunetas en la red terciaria rural';
   } else if (sector === 'Agua Potable y Saneamiento') {
     posibilidadIa = isCap
-      ? 'una opción técnica que plantea esta IA como guía es estructurar la captación con desarenador y tanques de almacenamiento comunitario junto a la JAC'
-      : 'un horizonte técnico preliminar planteado por esta IA sería evaluar la optimización de redes de acueducto veredal y tanques de distribución';
+      ? 'estructurar la captación con desarenador y tanques de almacenamiento comunitario junto a la JAC'
+      : 'evaluar la optimización de redes de acueducto veredal y tanques de distribución';
   } else if (sector === 'Educación y Conectividad') {
-    posibilidadIa = 'una alternativa técnica viable desde esta IA sería gestionar conectividad satelital comunitaria y dotación básica para la escuela veredal';
+    posibilidadIa = 'gestionar conectividad satelital comunitaria y dotación básica para la escuela veredal';
   } else if (sector === 'Campo y Desarrollo Agrícola') {
     posibilidadIa = isCap
-      ? 'una posibilidad técnica desde la IA sería articular proyectos asociativos para renovación de cafetales y modernización de trapiches paneleros ante la ADR'
-      : 'un camino técnico que plantea la IA como guía es canalizar líneas de crédito asociativo y asistencia técnica para los productores de la zona';
+      ? 'articular proyectos asociativos para renovación de cafetales y modernización de trapiches paneleros ante la ADR'
+      : 'canalizar líneas de crédito asociativo y asistencia técnica para los productores de la zona';
   } else if (textLower.includes('salud') || textLower.includes('medico') || textLower.includes('médico') || textLower.includes('hospital') || textLower.includes('puesto de salud') || textLower.includes('ambulancia')) {
-    posibilidadIa = 'una posibilidad técnica preliminar sería coordinar brigadas veredales preventivas y telemedicina conectada con el centro de salud principal';
+    posibilidadIa = 'coordinar brigadas veredales preventivas y telemedicina conectada con el centro de salud principal';
   } else if (textLower.includes('luz') || textLower.includes('energia') || textLower.includes('energía') || textLower.includes('solar') || textLower.includes('alumbrado') || textLower.includes('poste')) {
-    posibilidadIa = 'una posibilidad técnica analizada por la IA sería plantear soluciones solares autónomas o gestión de redes eléctricas rurales';
+    posibilidadIa = 'plantear soluciones solares autónomas o gestión de redes eléctricas rurales';
   } else {
-    posibilidadIa = `una alternativa inicial analizada por esta IA para el área de ${sector.toLowerCase()} sería estructurar un proyecto comunitario formal`;
+    posibilidadIa = `estructurar un proyecto comunitario formal para el área de ${sector.toLowerCase()}`;
   }
 
-  const locRef = detectedLoc ? ` para ${detectedLoc}` : ` en ${nombreMun}`;
+  const locRef = detectedLoc ? ` en ${detectedLoc}` : ` en ${nombreMun}`;
 
+  const hashNum = originalInput.length % 3;
   let textoRespuesta = '';
+
   if (faltaUbicacion) {
-    textoRespuesta = `Tu aporte sobre esta situación es fundamental para nutrir las iniciativas de ${nombreMun}. Como guía técnica preliminar, ${posibilidadIa}. Dejo tu reporte registrado para que el equipo humano determine las verdaderas acciones viables; ¿en qué vereda o sector se presenta exactamente y cómo te llamas?`;
+    const options = [
+      `Comprendo la situación que expones para ${nombreMun}. Como orientación técnica preliminar, una alternativa viable sería ${posibilidadIa}. Dejo este análisis consignado para la evaluación del equipo humano; ¿en qué vereda o sector se presenta y con quién tenemos el gusto?`,
+      `Es un tema de gran relevancia comunitaria en ${nombreMun}. Como posibilidad técnica inicial formulada por esta IA, podríamos ${posibilidadIa}. Trasladamos esta inquietud al equipo humano para determinar viabilidad real; ¿nos indicas tu vereda o sector y tu nombre?`,
+      `Entendido lo que nos señalas. Desde el análisis técnico de esta IA, una guía inicial sería ${posibilidadIa}. El equipo humano revisará los alcances en terreno; ¿en qué vereda o sector específico te encuentras y cómo te llamas?`
+    ];
+    textoRespuesta = options[hashNum];
   } else {
-    textoRespuesta = `Tu aporte sobre la situación de ${detectedLoc} es muy valioso. Como posibilidad técnica preliminar planteada por esta IA, ${posibilidadIa}${locRef}. Este reporte queda formalmente registrado para que nuestro equipo humano determine las verdaderas acciones y ejecute en terreno con la ayuda de todos. ¿A qué WhatsApp podemos compartirte novedades cuando el equipo evalúe la propuesta?`;
+    const options = [
+      `Registramos con total atención esta situación en ${detectedLoc}. Como alternativa técnica inicial de esta IA, una posibilidad sería ${posibilidadIa}${locRef}. Nuestro equipo humano evaluará la viabilidad real para coordinar acciones. ¿A qué WhatsApp podemos compartirte novedades cuando revisen la propuesta?`,
+      `Comprendo perfectamente lo que ocurre en ${detectedLoc}. Como guía técnica preliminar, convendría ${posibilidadIa}${locRef}. Este aporte queda formalmente radicado para que el equipo humano determine las verdaderas acciones en terreno. ¿Nos dejas tu WhatsApp para mantenerte al tanto?`,
+      `Es una prioridad para ${detectedLoc}. Como hipótesis técnica analizada por esta IA, podríamos ${posibilidadIa}${locRef}. El equipo humano estudiará su alcance técnico y presupuestal con la comunidad. ¿Nos compartes tu número de WhatsApp para avisarte cuando haya avances?`
+    ];
+    textoRespuesta = options[hashNum];
   }
 
   return {
