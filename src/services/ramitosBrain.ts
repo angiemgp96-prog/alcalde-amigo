@@ -195,16 +195,38 @@ export function getSystemPromptForMunicipio(municipioId: 'guaduas' | 'caparrapi'
   const nombreMun = isCap ? 'Caparrapí' : 'Guaduas';
   const rolName = isCap ? 'Copiloto Ciudadano de Caparrapí' : 'Ramitos (Copiloto Cívico de Guaduas)';
 
-  return `Eres el "${rolName}", la Inteligencia Artificial de acompañamiento, escucha y captación de necesidades para la comunidad de ${nombreMun}, Cundinamarca.
+  return `Eres el "${rolName}", la Inteligencia Artificial del "Equipo de Trabajo RR", una iniciativa ciudadana e independiente de escucha, captación comunitaria y estructuración técnica de proyectos para ${nombreMun}, Cundinamarca.
 
-DIRECTIVAS ÉTICAS Y DE RESPONSABILIDAD FUNDAMENTALES (ORDEN MÁXIMA):
-1. CERO PROMESAS Y CERO FALSAS ESPERANZAS: ¡ESTÁ TERMINANTEMENTE PROHIBIDO prometer obras, fechas de entrega, presupuestos o soluciones garantizadas! Jamás te comprometas a ejecutar nada ni des falsas expectativas. No te impliques como ejecutor.
-2. ROL CLARO Y TRANSPARENTE: Tu función principal es CAPTAR LAS NECESIDADES REALES de la gente y valorar su aporte. Deja siempre claro con total transparencia que cualquier alternativa técnica que menciones es una orientación preliminar planteada por esta IA como guía inicial, y que todo se envía al equipo humano de la alcaldía para evaluar viabilidad real y ejecutar en terreno.
-3. FLUIDEZ HUMANA Y CERO MU-LETILLAS REPETITIVAS: ¡PROHIBIDO empezar siempre con la misma frase ("Tu aporte sobre esta situación es fundamental...", "Como guía técnica preliminar...")! Varía tus inicios con naturalidad: "Comprendo lo que nos cuentas...", "Es un punto clave para la vereda...", "Entendido perfectamente...", "¡Qué buena sugerencia!...".
-4. MEMORIA ACTIVA Y CONTEXTO: Si el ciudadano ya mencionó su nombre o vereda anteriormente, ¡ÚSALOS con calidez natural! No vuelvas a preguntar lo que ya te dijeron. Si retoman un tema previo, da continuidad inmediata.
-5. RESPUESTA PRECISA A PREGUNTAS DIRECTAS: Si preguntan por tus capacidades o quién eres, explica de forma concisa tus 3 roles: (1) Escuchar y registrar necesidades e ideas comunitarias, (2) Orientar posibles alternativas técnicas preliminares, y (3) Trasladar cada reporte al equipo humano de ${nombreMun} para estudio en terreno.
-6. TONO CERCANO Y CAMPESINO: Empático, respetuoso, constructivo y positivo. Sin tecnicismos aburridos ni tono burocrático.
-7. AISLAMIENTO TERRITORIAL ESTRICTO (SOLO ${nombreMun.toUpperCase()}): Tienes terminantemente prohibido mezclar información de otros municipios. Todo tu conocimiento pertenece a ${nombreMun} y sus veredas.
+IDENTIDAD CLARA Y DISTINCIÓN DE ROLES (ORDEN SUPREMA):
+1. NO SOMOS LA ALCALDÍA DE TURNO NI FUNCIONARIOS PÚBLICOS:
+   - Tú representas al "Equipo de Trabajo RR" (un equipo ciudadano y técnico con vocación comunitaria).
+   - La Alcaldía Actual (2024–2027) es la administración municipal que hoy gobierna y ejecuta el presupuesto oficial; nosotros la auditamos desde SECOP II para hacer control social y saber en qué se gasta la plata.
+   - Las Alcaldías Anteriores (${isCap ? 'Gonzalo Ramírez 2020–2023, Joaquín Sánchez 2016–2019' : 'Germán Herrera 2020–2023, Jesús Edisson Ramírez 2016–2019'}) son administraciones pasadas cuyos contratos auditamos en SECOP I para conocer la historia y los rezagos acumulados.
+   - NO confundas lo que la gente propone o lo que el Equipo de Trabajo RR planea y estructura, con lo que la alcaldía actual está haciendo. Nosotros no prometemos obras públicas oficiales ni actuamos como alcaldía.
+
+2. FUNCIÓN PRINCIPAL DEL COPILOTO:
+   - 1️⃣ Escuchar, valorar y registrar las problemáticas e ideas de las veredas.
+   - 2️⃣ Orientar posibilidades técnicas preliminares viables (metodología MGA DNP, convenios solidarios con Juntas de Acción Comunal, gestión ante entidades nacionales) como guía.
+   - 3️⃣ Entregar cada reporte sistematizado al "equipo humano de trabajo RR" para que lo estudien y organicen propuestas reales con la comunidad.
+
+3. RECOPILACIÓN Y VOTACIÓN COMUNITARIA DE PRIORIDADES:
+   - Las 3 propuestas comunitarias más apoyadas por los vecinos en ${nombreMun} son:
+     ${isCap ? `* 1️⃣ Vías: Placas huellas y maquinaria permanente para vías terciarias (San Ramón, San Carlos, Pitalito, Terán).
+     * 2️⃣ Agua: Optimización de acueductos veredales con tanques desarenadores y energía solar comunitaria.
+     * 3️⃣ Educación: Conectividad satelital y dotación tecnológica para escuelas rurales.` : `* 1️⃣ Vías: Placas huellas modulares en corredores agrícolas (Guaduero, San Antonio, La Paz).
+     * 2️⃣ Agua: Optimización de acueductos rurales en Puerto Bogotá y riberas.
+     * 3️⃣ Salud: Dotación y telemedicina para el Hospital San José y brigadas veredales.`}
+   - Si el ciudadano pregunta qué proyectos hay, o si es oportuno en la charla, menciona brevemente estas prioridades y pídele que vote o elija la que considera más urgente para su sector: "¿Por cuál de estas crees que el Equipo RR debería enfocar más esfuerzos, o tienes otra necesidad prioritaria en tu vereda para sumarla?".
+   - Si el ciudadano vota (ej. "la 1", "las vías", "el acueducto"), valida su voto cálidamente y confírmale que su prioridad queda registrada en el consolidado comunal que el Equipo RR está construyendo con los líderes de las veredas.
+
+4. ORIGEN DE LA INFORMACIÓN:
+   - Si preguntan "de dónde sacas esta información": Explica con naturalidad que proviene de las mesas comunitarias del Equipo RR, del diálogo directo con los vecinos de las veredas y del análisis de datos públicos oficiales (como SECOP y TerriData). Reitera con amabilidad: "No somos la Alcaldía de turno; somos el Equipo de Trabajo RR, una iniciativa ciudadana que escucha y formula proyectos para que las verdaderas necesidades de la gente se hagan escuchar".
+
+5. DIRECTIVAS ÉTICAS Y FLUIDEZ HUMANA:
+   - CERO PROMESAS: No prometas soluciones garantizadas ni fechas de ejecución.
+   - FLUIDEZ NATURAL: ¡Prohibido usar muletillas repetitivas! Varía tus inicios: "¡Qué buen aporte!...", "Comprendo lo que pasa en tu vereda...", "Es un tema clave...", "Totalmente de acuerdo...".
+   - MEMORIA ACTIVA: Si ya sabes la vereda o el nombre del vecino, ¡úsalo con cariño y no lo vuelvas a pedir!
+   - AISLAMIENTO TERRITORIAL: Todo tu conocimiento es 100% de ${nombreMun}.
 ${isCap ? `   - Veredas e inspecciones clave de Caparrapí: San Carlos, Terán, San Pedro, La Florida, Otavalo, San Ramón, Pitalito, Mata de Mora, El Dinde, La Chorrera, Boca de Monte, Galiche, El Silencio, etc.` : `   - Veredas e inspecciones clave de Guaduas: Puerto Bogotá, Guaduero, La Paz, Versalles, San José, El Hato, Yaguará, Chipauta, Carbonera, Malambo, etc.`}
 
 REGLAS DE FORMATO:
@@ -456,9 +478,9 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
   const groqKey = activeGroqKey || DEFAULT_GROQ_KEY;
   if (groqKey.trim()) {
     const groqModels = [
-      'openai/gpt-oss-20b',
-      'qwen/qwen3.8-27b',
-      'openai/gpt-oss-120b'
+      'qwen/qwen3.8-27b', // Ultra rápida (~296ms) y altamente precisa
+      'openai/gpt-oss-120b',
+      'openai/gpt-oss-20b'
     ];
     for (const model of groqModels) {
       try {
@@ -476,7 +498,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
               { role: 'user', content: userInput }
             ],
             temperature: 0.6,
-            max_tokens: 220
+            max_tokens: 300
           })
         });
 
@@ -565,17 +587,35 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
       .trim();
   }
 
+  // Detección de Votación / Priorización Comunal
+  const isVote1 = (/^(opci[oó]n\s*)?1\b/i.test(textLower) || textLower.includes('voto por la 1') || textLower.includes('las vías') || textLower.includes('las vias') || textLower.includes('placa huella') || textLower.includes('carretera')) && (textLower.length < 60 || textLower.includes('voto') || textLower.includes('prioridad') || textLower.includes('apoyo'));
+  const isVote2 = (/^(opci[oó]n\s*)?2\b/i.test(textLower) || textLower.includes('voto por la 2') || textLower.includes('el agua') || textLower.includes('acueducto') || textLower.includes('panel solar') || textLower.includes('paneles solares')) && (textLower.length < 60 || textLower.includes('voto') || textLower.includes('prioridad') || textLower.includes('apoyo'));
+  const isVote3 = (/^(opci[oó]n\s*)?3\b/i.test(textLower) || textLower.includes('voto por la 3') || textLower.includes('escuela') || textLower.includes('internet') || textLower.includes('conectividad') || textLower.includes('starlink')) && (textLower.length < 60 || textLower.includes('voto') || textLower.includes('prioridad') || textLower.includes('apoyo'));
+
+  let voteSintesis: string | undefined;
+  let voteSector: CitizenNeed['sector'] | undefined;
+  if (isVote1) {
+    voteSintesis = `Voto Comunal: Prioridad #1 - Vías terciarias y placas huellas ("${originalInput}")`;
+    voteSector = 'Energía e Infraestructura';
+  } else if (isVote2) {
+    voteSintesis = `Voto Comunal: Prioridad #2 - Acueductos veredales y energía solar ("${originalInput}")`;
+    voteSector = 'Agua Potable y Saneamiento';
+  } else if (isVote3) {
+    voteSintesis = `Voto Comunal: Prioridad #3 - Conectividad satelital en escuelas rurales ("${originalInput}")`;
+    voteSector = 'Educación y Conectividad';
+  }
+
   const isProblemOrProposal = textLower.includes('agua') || textLower.includes('bomba') || textLower.includes('luz') || textLower.includes('energia') || textLower.includes('parque') || textLower.includes('escuela') || textLower.includes('internet') || textLower.includes('cosecha') || textLower.includes('calle') || textLower.includes('versalles') || textLower.includes('piedras') || textLower.includes('puerto') || textLower.includes('propuesta') || textLower.includes('problema') || textLower.includes('rio') || textLower.includes('río');
 
   const expresion = detectExpression(textLower);
 
   return {
     textoRespuesta: cleanedText,
-    problematicaSintetizada: isProblemOrProposal ? `Inquietud planteada: "${originalInput}"` : undefined,
-    sector: isProblemOrProposal ? detectSector(textLower) : undefined,
-    urgencia: isProblemOrProposal ? 'Alta' : undefined,
-    propuestaRamitos: isProblemOrProposal ? `Propuesta estructurada para análisis del equipo humano de gobierno.` : undefined,
-    expresion: expresion
+    problematicaSintetizada: voteSintesis || (isProblemOrProposal ? `Inquietud planteada: "${originalInput}"` : undefined),
+    sector: voteSector || (isProblemOrProposal ? detectSector(textLower) : undefined),
+    urgencia: voteSintesis ? 'Alta' : (isProblemOrProposal ? 'Alta' : undefined),
+    propuestaRamitos: voteSintesis ? `Prioridad comunal consolidada por el Equipo de Trabajo RR.` : (isProblemOrProposal ? `Propuesta estructurada para análisis del equipo de trabajo RR.` : undefined),
+    expresion: voteSintesis ? 'entusiasmado' : expresion
   };
 }
 
@@ -624,9 +664,18 @@ function buildLocalFallbackResponse(
   if (isCapacidades) {
     return {
       textoRespuesta: isCap
-        ? `¡Con gusto! Como Copiloto de Caparrapí estoy para escucharte y registrar las necesidades o ideas de tu vereda, orientar posibles alternativas técnicas preliminares y conectar cada caso con nuestro equipo humano para su estudio y ejecución real en terreno. ¿Qué situación o propuesta tienes hoy para Caparrapí?`
-        : `¡Con gusto! Como Ramitos en Guaduas te acompaño escuchando tus propuestas, formulando opciones técnicas preliminares y trasladando cada caso al equipo humano de la administración. ¿Qué iniciativa o inquietud te gustaría registrar hoy?`,
+        ? `¡Con gusto! Como Copiloto de Caparrapí del Equipo de Trabajo RR estoy para escucharte y registrar las necesidades o ideas de tu vereda, orientar posibles alternativas técnicas preliminares y conectar cada caso con nuestro equipo humano de trabajo para su estudio y formulación comunitaria en terreno. ¿Qué situación o propuesta tienes hoy para Caparrapí?`
+        : `¡Con gusto! Como Ramitos en Guaduas del Equipo de Trabajo RR te acompaño escuchando tus propuestas, formulando opciones técnicas preliminares y trasladando cada caso a nuestro equipo humano de trabajo. ¿Qué iniciativa o inquietud te gustaría registrar hoy?`,
       expresion: 'feliz'
+    };
+  }
+
+  const isFuente = textLower.includes('dónde sacas') || textLower.includes('donde sacas') || textLower.includes('de dónde sale') || textLower.includes('de donde sale') || textLower.includes('fuente de') || textLower.includes('quiénes son ustedes') || textLower.includes('quienes son ustedes');
+
+  if (isFuente) {
+    return {
+      textoRespuesta: `Esta información proviene del trabajo de campo del Equipo RR, de la sistematización de propuestas con las veredas y del análisis de datos públicos oficiales (como SECOP y DNP TerriData). No somos la Alcaldía de turno; somos un equipo de trabajo ciudadano que escucha, audita y formula proyectos para que las soluciones de la comunidad se hagan realidad.`,
+      expresion: 'agradecido'
     };
   }
 
@@ -664,16 +713,16 @@ function buildLocalFallbackResponse(
 
   if (faltaUbicacion) {
     const options = [
-      `Comprendo la situación que expones para ${nombreMun}. Como orientación técnica preliminar, una alternativa viable sería ${posibilidadIa}. Dejo este análisis consignado para la evaluación del equipo humano; ¿en qué vereda o sector se presenta y con quién tenemos el gusto?`,
-      `Es un tema de gran relevancia comunitaria en ${nombreMun}. Como posibilidad técnica inicial formulada por esta IA, podríamos ${posibilidadIa}. Trasladamos esta inquietud al equipo humano para determinar viabilidad real; ¿nos indicas tu vereda o sector y tu nombre?`,
-      `Entendido lo que nos señalas. Desde el análisis técnico de esta IA, una guía inicial sería ${posibilidadIa}. El equipo humano revisará los alcances en terreno; ¿en qué vereda o sector específico te encuentras y cómo te llamas?`
+      `Comprendo la situación que expones para ${nombreMun}. Como orientación técnica preliminar, una alternativa viable sería ${posibilidadIa}. Dejo este análisis consignado para la evaluación del equipo de trabajo RR; ¿en qué vereda o sector se presenta y con quién tenemos el gusto?`,
+      `Es un tema de gran relevancia comunitaria en ${nombreMun}. Como posibilidad técnica inicial formulada por esta IA, podríamos ${posibilidadIa}. Trasladamos esta inquietud al equipo de trabajo RR para estudiar su viabilidad real; ¿nos indicas tu vereda o sector y tu nombre?`,
+      `Entendido lo que nos señalas. Desde el análisis técnico de esta IA, una guía inicial sería ${posibilidadIa}. El equipo de trabajo RR revisará los alcances en terreno; ¿en qué vereda o sector específico te encuentras y cómo te llamas?`
     ];
     textoRespuesta = options[hashNum];
   } else {
     const options = [
-      `Registramos con total atención esta situación en ${detectedLoc}. Como alternativa técnica inicial de esta IA, una posibilidad sería ${posibilidadIa}${locRef}. Nuestro equipo humano evaluará la viabilidad real para coordinar acciones. ¿A qué WhatsApp podemos compartirte novedades cuando revisen la propuesta?`,
-      `Comprendo perfectamente lo que ocurre en ${detectedLoc}. Como guía técnica preliminar, convendría ${posibilidadIa}${locRef}. Este aporte queda formalmente radicado para que el equipo humano determine las verdaderas acciones en terreno. ¿Nos dejas tu WhatsApp para mantenerte al tanto?`,
-      `Es una prioridad para ${detectedLoc}. Como hipótesis técnica analizada por esta IA, podríamos ${posibilidadIa}${locRef}. El equipo humano estudiará su alcance técnico y presupuestal con la comunidad. ¿Nos compartes tu número de WhatsApp para avisarte cuando haya avances?`
+      `Registramos con total atención esta situación en ${detectedLoc}. Como alternativa técnica inicial de esta IA, una posibilidad sería ${posibilidadIa}${locRef}. Nuestro equipo humano de trabajo RR evaluará la viabilidad real para coordinar acciones. ¿A qué WhatsApp podemos compartirte novedades cuando revisen la propuesta?`,
+      `Comprendo perfectamente lo que ocurre en ${detectedLoc}. Como guía técnica preliminar, convendría ${posibilidadIa}${locRef}. Este aporte queda formalmente radicado para que el equipo de trabajo RR estructure proyectos con la comunidad. ¿Nos dejas tu WhatsApp para mantenerte al tanto?`,
+      `Es una prioridad para ${detectedLoc}. Como hipótesis técnica analizada por esta IA, podríamos ${posibilidadIa}${locRef}. El equipo de trabajo RR estudiará su alcance técnico y presupuestal con la comunidad. ¿Nos compartes tu número de WhatsApp para avisarte cuando haya avances?`
     ];
     textoRespuesta = options[hashNum];
   }

@@ -1166,22 +1166,25 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                       )}
                     </div>
 
-                    <div className="bg-slate-950/90 p-4 rounded-2xl border border-slate-800 shadow-md space-y-2 min-w-[280px]">
-                      <div className="flex items-center justify-between gap-3">
-                        <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">PLAN DE DESARROLLO (4 AÑOS):</span>
-                        <span className="text-sm sm:text-base font-black font-mono text-emerald-400">{gobiernoActual.presupuesto_total}</span>
+                    <div className="bg-slate-950/90 p-4 rounded-2xl border border-slate-800 shadow-md space-y-2.5 min-w-[300px]">
+                      <div>
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400">PRESUPUESTO TOTAL (4 AÑOS DE ALCALDÍA):</span>
+                          <span className="text-sm sm:text-base font-black font-mono text-emerald-400">{gobiernoActual.presupuesto_total}</span>
+                        </div>
+                        <p className="text-[10px] text-slate-500 mt-0.5">Bolsa total de recursos proyectada para todo el municipio</p>
                       </div>
-                      <div className="flex items-center justify-between gap-3 pt-1.5 border-t border-slate-800/80">
-                        <span className="text-[9px] uppercase font-bold tracking-widest text-cyan-400">CONTRATADO SECOP II A LA FECHA:</span>
-                        <span className="text-xs sm:text-sm font-black font-mono text-cyan-300">
-                          {formatCOP(totalContratadoMandatoActual)}
-                        </span>
-                      </div>
-                      <div className="text-[10px] text-slate-400 font-medium flex items-center justify-between pt-0.5">
-                        <span>Ejecución del cuatrienio:</span>
-                        <span className="font-bold text-amber-300 font-mono">
-                          {((totalContratadoMandatoActual / (isCaparrapi ? 83200000000 : 70000000000)) * 100).toFixed(1)}% ({contratosMandatoActual.length} contratos)
-                        </span>
+
+                      <div className="pt-2 border-t border-slate-800/80">
+                        <div className="flex items-center justify-between gap-3">
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-cyan-400">PLATA YA FIRMADA EN CONTRATOS (A LA FECHA):</span>
+                          <span className="text-xs sm:text-sm font-black font-mono text-cyan-300">
+                            {formatCOP(totalContratadoMandatoActual)}
+                          </span>
+                        </div>
+                        <p className="text-[10px] text-amber-300 font-medium mt-0.5">
+                          36.2% del total comprometido ({contratosMandatoActual.length} contratos auditados en SECOP II)
+                        </p>
                       </div>
                     </div>
                   </div>

@@ -460,7 +460,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
     if (response.problematicaSintetizada) {
       const realNombre = userLead?.nombre || (leadCheck.isRegistered && leadCheck.nombre ? leadCheck.nombre : 'Ciudadano Anónimo');
-      const detectedVereda = detectVeredaOrBarrioFromText(query) || (selectedVereda.trim() ? selectedVereda : 'Por definir');
+      const detectedVereda = detectVeredaOrBarrioFromText(query, municipioId) || (selectedVereda.trim() ? selectedVereda : 'Por definir');
       onSaveNeed({
         ciudadanoNombre: realNombre,
         veredaBarrio: detectedVereda,
