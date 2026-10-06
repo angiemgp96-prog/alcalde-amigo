@@ -91,8 +91,9 @@ export function cleanHumanName(name?: string): string | undefined {
   if (!name || typeof name !== 'string') return undefined;
 
   const stopWords = new Set([
+    'de', 'del', 'la', 'el', 'los', 'las', 'san', 'santa', 'caparrapi', 'caparrapí', 'guaduas', 'cundinamarca', 'colombia',
     'hola', 'buenas', 'saludos', 'para', 'tengo', 'quiero', 'necesito', 'buenos', 'dias', 'tardes', 'noches',
-    'ramitos', 'alcalde', 'amigo', 'plan', 'vereda', 'barrio', 'guaduas', 'parque', 'agua', 'calle', 'solucion',
+    'ramitos', 'alcalde', 'amigo', 'plan', 'vereda', 'barrio', 'parque', 'agua', 'calle', 'solucion',
     'propuesta', 'escuela', 'ver', 'abrir', 'como', 'donde', 'cuando', 'quien', 'porque', 'este', 'esta', 'estos',
     'estas', 'pero', 'bien', 'gracias', 'sino', 'tampoco', 'tienen', 'podrian', 'podria', 'hacer', 'crear', 'dije',
     'dicen', 'decir', 'recuerdo', 'pense', 'pensaba', 'contactame', 'contactar', 'contacto', 'mensajes', 'mensaje',
@@ -101,6 +102,17 @@ export function cleanHumanName(name?: string): string | undefined {
     'opción', 'practica', 'práctica', 'zona', 'cercana', 'mente'
   ]);
 
+  const veredas = [
+    'san carlos', 'san ramon', 'san ramón', 'pitalito', 'el dinde', 'mata de mora', 'la chorrera',
+    'boca de monte', 'galiche', 'el silencio', 'puerto colombia', 'casco urbano',
+    'piedras negras', 'puerto bogota', 'puerto bogotá', 'la paz', 'el hato', 'san jose', 'san josé',
+    'yaguara', 'la esperanza', 'carbonera', 'canta rana', 'versalles'
+  ];
+
+  const lowerRaw = name.toLowerCase().trim();
+  if (veredas.some(v => lowerRaw.includes(v))) return undefined;
+  if (/^(?:de\s+|del\s+|en\s+|desde\s+|soy\s+de\s+)/i.test(lowerRaw)) return undefined;
+
   const words = name.trim().split(/\s+/).filter(w => {
     const cleanWord = w.toLowerCase().replace(/[^a-záéíóúñ]/gi, '');
     return cleanWord.length >= 2 && !stopWords.has(cleanWord) && !/^\d+$/.test(w);
@@ -108,8 +120,8 @@ export function cleanHumanName(name?: string): string | undefined {
 
   if (words.length === 0) return undefined;
 
-  const formatted = words.slice(0, 2).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-  return formatted.length >= 2 ? formatted : undefined;
+  const formatted = words.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
+  return formatted.length >= 3 ? formatted : undefined;
 }
 
 // Extracción inteligente de Datos de Contacto (Nombre y WhatsApp) del texto del ciudadano
@@ -126,13 +138,26 @@ export function extractLeadInfoFromText(text: string): { nombre?: string; whatsa
   // 2. Extraer nombre del ciudadano
   let rawNameCandidate: string | undefined = undefined;
 
-  // Patrón "mi nombre es X", "me llamo X", "soy X"
-  const nameMatchDirect = text.match(/(?:mi nombre es|me llamo|soy)\s+([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+){0,2})/i);
-  if (nameMatchDirect && nameMatchDirect[1]) {
-    rawNameCandidate = nameMatchDirect[1].trim();
+  // PATRÓN PRIORITARIO 1: "Nombre Apellido [,;:\-]? 3XXXXXXXXX" (ej. "ivan alvarado , 3225822027")
+  if (phoneMatch) {
+    const namePhonePair = text.match(/([a-záéíóúñ]{3,20}(?:\s+[a-záéíóúñ]{3,20}){1,3})\s*[,;:\-]?\s*(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|\b3\d{9}\b)/i);
+    if (namePhonePair && namePhonePair[1]) {
+      const candidate = cleanHumanName(namePhonePair[1]);
+      if (candidate) {
+        rawNameCandidate = candidate;
+      }
+    }
   }
 
-  // Patrón "Iván Alvarado y mi número es..."
+  // PATRÓN PRIORITARIO 2: "mi nombre es X", "me llamo X", "soy X" (pero NUNCA "soy de X")
+  if (!rawNameCandidate) {
+    const nameMatchDirect = text.match(/(?:mi nombre es|me llamo|soy(?!\s+de\b))\s+([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+){0,2})/i);
+    if (nameMatchDirect && nameMatchDirect[1]) {
+      rawNameCandidate = nameMatchDirect[1].trim();
+    }
+  }
+
+  // PATRÓN 3: "Iván Alvarado y mi número es..."
   if (!rawNameCandidate && phoneMatch) {
     const nameMatchBeforePhone = text.match(/([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+){0,2})\s+(?:y\s+)?(?:mi\s+)?(?:número|numero|celular|whatsapp)/i);
     if (nameMatchBeforePhone && nameMatchBeforePhone[1]) {
@@ -140,7 +165,7 @@ export function extractLeadInfoFromText(text: string): { nombre?: string; whatsa
     }
   }
 
-  // Patrón de vocativo o nombre propio al inicio: "Maylin, para proponer...", "Mailén...", "Habla Mailén..."
+  // PATRÓN 4: Vocativo o nombre propio al inicio: "Maylin, para proponer...", "Mailén...", "Habla Mailén..."
   if (!rawNameCandidate) {
     const leadingMatch = text.match(/^(?:hola|buenas|saludos|habla|atentamente|att|attt)?\s*([A-ZÁÉÍÓÚÑa-záéíóúñ]{3,20})(?:,|\s+|$)/i);
     if (leadingMatch && leadingMatch[1]) {
@@ -243,6 +268,7 @@ export async function processRamitosConversationAsync(
   municipioId: 'guaduas' | 'caparrapi' = 'guaduas'
 ): Promise<RamitosChatResponse> {
   const textLower = userInput.toLowerCase().trim();
+  const nombreMun = municipioId === 'caparrapi' ? 'Caparrapí' : 'Guaduas';
 
   // Abrir Plan de Gobierno si se pide expresamente
   if (textLower.includes('plan de gobierno') || textLower.includes('ver plan') || textLower.includes('abrir plan')) {
@@ -286,15 +312,38 @@ export async function processRamitosConversationAsync(
   // EXTRACCIÓN DE INFORMACIÓN DE CONTACTO DEL MENSAJE ACTUAL DE ESTA INTERACCIÓN
   const newlyExtractedInInput = extractLeadInfoFromText(userInput);
 
-  // EXTRACCIÓN GLOBAL DEL HISTORIAL (EN CASO DE NOMBRES/WHATSAPP DADOS EN TURNOS ANTERIORES)
-  let fullUserDialogueText = userInput;
-  if (history && history.length > 0) {
-    fullUserDialogueText += ' ' + history.filter(h => h.sender === 'user').map(h => h.text).join(' ');
+  // EXTRACCIÓN GLOBAL DEL HISTORIAL (DE MÁS RECIENTE A MÁS ANTIGUO)
+  let autoExtracted = newlyExtractedInInput;
+
+  if ((!autoExtracted?.nombre || !autoExtracted?.whatsapp) && history && history.length > 0) {
+    const userHistoryReversed = history.filter(h => h.sender === 'user').reverse();
+    for (const h of userHistoryReversed) {
+      const extracted = extractLeadInfoFromText(h.text);
+      if (extracted) {
+        autoExtracted = {
+          nombre: autoExtracted?.nombre || extracted.nombre,
+          whatsapp: autoExtracted?.whatsapp || extracted.whatsapp
+        };
+        if (autoExtracted.nombre && autoExtracted.whatsapp) break;
+      }
+    }
   }
-  if (pastInteractions && pastInteractions.length > 0) {
-    fullUserDialogueText += ' ' + pastInteractions.map(i => i.userText).join(' ');
+
+  if ((!autoExtracted?.nombre || !autoExtracted?.whatsapp) && pastInteractions && pastInteractions.length > 0) {
+    const pastReversed = [...pastInteractions].reverse();
+    for (const p of pastReversed) {
+      if (p.userText) {
+        const extracted = extractLeadInfoFromText(p.userText);
+        if (extracted) {
+          autoExtracted = {
+            nombre: autoExtracted?.nombre || extracted.nombre,
+            whatsapp: autoExtracted?.whatsapp || extracted.whatsapp
+          };
+          if (autoExtracted.nombre && autoExtracted.whatsapp) break;
+        }
+      }
+    }
   }
-  const autoExtracted = extractLeadInfoFromText(fullUserDialogueText);
 
   // --------------------------------------------------------------------------------
   // VALIDACIÓN DE IDENTIDAD Y CONTROL DE SOBREESCRITURA DE DATOS DE CONTACTO
@@ -303,13 +352,21 @@ export async function processRamitosConversationAsync(
     const inputName = newlyExtractedInInput?.nombre;
     const inputPhone = newlyExtractedInInput?.whatsapp;
 
-    const registeredName = leadCheck.nombre || 'el usuario registrado';
+    const sanitizedRegisteredName = cleanHumanName(leadCheck.nombre);
+    const registeredName = sanitizedRegisteredName || 'el usuario registrado';
     const registeredPhone = leadCheck.whatsapp || '';
+
+    // Si el nombre previamente registrado era inválido (como "De San") y ahora tenemos un nombre humano real
+    if (!sanitizedRegisteredName && inputName) {
+      await updateUserLeadInSupabase(inputName, registeredPhone || inputPhone || '', currentVereda);
+      leadCheck.nombre = inputName;
+    }
 
     const isNameDifferent = Boolean(
       inputName &&
-      inputName.toLowerCase().trim() !== registeredName.toLowerCase().trim() &&
-      !registeredName.toLowerCase().includes(inputName.toLowerCase().trim())
+      sanitizedRegisteredName &&
+      inputName.toLowerCase().trim() !== sanitizedRegisteredName.toLowerCase().trim() &&
+      !sanitizedRegisteredName.toLowerCase().includes(inputName.toLowerCase().trim())
     );
     const isPhoneDifferent = Boolean(inputPhone && inputPhone !== registeredPhone);
 
@@ -340,8 +397,6 @@ export async function processRamitosConversationAsync(
           expresion: 'agradecido'
         };
       } else {
-        // REACCIÓN EXACTA Y NATURAL PEDIDA POR EL CIUDADANO:
-        // "¿Mailén? Pensé que te llamabas Iván (con WhatsApp 323111111). ¿Quieres actualizar tus datos de registro a Mailén o sigues siendo Iván?"
         if (isNameDifferent && inputName) {
           return {
             textoRespuesta: `¿${inputName}? Pensé que te llamabas ${registeredName}${registeredPhone ? ' (con WhatsApp ' + registeredPhone + ')' : ''}. ¿Quieres actualizar tus datos de registro a ${inputName} o sigues siendo ${registeredName}?`,
@@ -358,40 +413,61 @@ export async function processRamitosConversationAsync(
       }
     }
   } else {
-    // Si aún NO está registrado en Supabase, guardar voluntariamente solo si proporcionó datos de contacto en este mensaje
-    if (newlyExtractedInInput && (newlyExtractedInInput.whatsapp || newlyExtractedInInput.nombre)) {
+    // Si aún NO está registrado en Supabase, guardar voluntariamente si proporcionó datos en este mensaje o en el historial
+    const nameToSave = newlyExtractedInInput?.nombre || autoExtracted?.nombre;
+    const phoneToSave = newlyExtractedInInput?.whatsapp || autoExtracted?.whatsapp;
+    if (nameToSave || phoneToSave) {
       await saveCitizenLead({
-        nombre: newlyExtractedInInput.nombre || 'Ciudadano',
-        whatsapp: newlyExtractedInInput.whatsapp || '',
-        veredaBarrio: currentVereda || 'Guaduas',
-        interesPrincipal: 'Contacto proporcionado en diálogo con Ramitos'
+        nombre: nameToSave || 'Ciudadano',
+        whatsapp: phoneToSave || '',
+        veredaBarrio: currentVereda || (municipioId === 'caparrapi' ? 'San Carlos' : 'Guaduas'),
+        interesPrincipal: 'Contacto proporcionado en diálogo con Copiloto RR'
       });
     }
   }
 
-  // RESPUESTA CÁLIDA Y OPORTUNA A PREGUNTAS SOBRE TELÉFONO / WHATSAPP / DATOS (SIN RECHAZOS FRÍOS)
-  const isPhoneQuery = textLower.includes('mi número') || textLower.includes('mi numero') || textLower.includes('mi celular') || textLower.includes('mi whatsapp') || textLower.includes('mi teléfono') || textLower.includes('mi telefono') || textLower.includes('contáctame') || textLower.includes('contactame') || textLower.includes('escríbeme') || textLower.includes('escribeme');
-  if (isPhoneQuery) {
+  // RESPUESTA CÁLIDA Y OPORTUNA A PREGUNTAS SOBRE NOMBRE / TELÉFONO / WHATSAPP / DATOS (SIN RECHAZOS FRÍOS)
+  const isPhoneOrNameQuery = 
+    textLower.includes('mi número') || textLower.includes('mi numero') || 
+    textLower.includes('mi celular') || textLower.includes('mi whatsapp') || 
+    textLower.includes('mi teléfono') || textLower.includes('mi telefono') || 
+    textLower.includes('mi nombre') || textLower.includes('cuál es mi nombre') || 
+    textLower.includes('cual es mi nombre') || textLower.includes('cómo me llamo') || 
+    textLower.includes('como me llamo') || textLower.includes('quién soy') || 
+    textLower.includes('quien soy') || textLower.includes('contáctame') || 
+    textLower.includes('contactame') || textLower.includes('escríbeme') || textLower.includes('escribeme');
+
+  if (isPhoneOrNameQuery) {
     const leadCheckDirect = await checkUserLeadRegistrationInSupabase();
     const finalPhone = leadCheckDirect.whatsapp || autoExtracted?.whatsapp;
     const rawName = leadCheckDirect.nombre || autoExtracted?.nombre;
     const finalName = cleanHumanName(rawName);
 
-    if ((leadCheckDirect.isRegistered || finalPhone) && finalPhone) {
+    if (finalName && finalPhone) {
       return {
-        textoRespuesta: `Tengo registrado tu número de WhatsApp como ${finalPhone}${finalName ? ' a nombre de ' + finalName : ''}. ¿Te gustaría actualizarlo o seguir conversando sobre tu propuesta?`,
+        textoRespuesta: `¡Claro que sí! Tengo registrado tu nombre como ${finalName} y tu número de WhatsApp como ${finalPhone}. ¿Te gustaría actualizar algún dato o prefieres que sigamos conversando sobre tu propuesta?`,
+        expresion: 'feliz'
+      };
+    } else if (finalName) {
+      return {
+        textoRespuesta: `Tengo registrado que tu nombre es ${finalName}. Aún no tengo tu número de WhatsApp registrado para avisarte avances; ¿te gustaría dejarlo?`,
+        expresion: 'feliz'
+      };
+    } else if (finalPhone) {
+      return {
+        textoRespuesta: `Tengo registrado tu número de WhatsApp como ${finalPhone}. ¿Te gustaría confirmarme tu nombre para tener tu registro completo?`,
         expresion: 'feliz'
       };
     } else {
       return {
-        textoRespuesta: `Aún no tengo registrado tu número de celular. ¿Deseas proporcionarlo para estar comunicando avances sobre tu planteamiento?`,
+        textoRespuesta: `Aún no tengo registrado tu nombre ni tu número de celular. ¿Deseas proporcionarlos para estar en comunicación sobre tus propuestas e ideas para ${nombreMun}?`,
         expresion: 'curioso'
       };
     }
   }
 
   const effectiveIsRegistered = isUserRegistered || leadCheck.isRegistered || Boolean(autoExtracted?.whatsapp);
-  const registeredName = leadCheck.nombre || autoExtracted?.nombre || 'Ciudadano';
+  const registeredName = cleanHumanName(leadCheck.nombre) || cleanHumanName(autoExtracted?.nombre) || 'Ciudadano';
   const registeredWhatsapp = leadCheck.whatsapp || autoExtracted?.whatsapp || '';
 
   // DETECTAR VEREDA O BARRIO EN EL HISTORIAL Y EN EL MENSAJE ACTUAL
@@ -401,7 +477,6 @@ export async function processRamitosConversationAsync(
   }
   const detectedLocation = detectVeredaOrBarrioFromText(combinedTextForLocation, municipioId) || (currentVereda && currentVereda.trim() && currentVereda !== 'Guaduas Centro' && currentVereda !== 'Guaduas (Centro)' && currentVereda !== 'Caparrapí Centro' ? currentVereda : undefined);
 
-  const nombreMun = municipioId === 'caparrapi' ? 'Caparrapí' : 'Guaduas';
   let locationInstruction = '';
   if (detectedLocation) {
     locationInstruction = `\nUBICACIÓN CONFIRMADA DEL CIUDADANO: "${detectedLocation}". Todo tu diálogo debe enfocarse en atender la necesidad de esta vereda/sector de ${nombreMun}.`;

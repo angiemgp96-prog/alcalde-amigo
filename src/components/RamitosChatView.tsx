@@ -946,9 +946,33 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                 setInputText(e.target.value);
                 clearIdleTimer();
               }}
+              onClick={() => {
+                if (inputText) {
+                  setInputText('');
+                }
+              }}
+              onFocus={() => {
+                if (inputText) {
+                  setInputText('');
+                }
+              }}
               placeholder="Escribe tu propuesta..."
               className="flex-1 bg-transparent px-3 py-2 text-xs text-slate-800 focus:outline-none placeholder:text-slate-400 font-medium"
             />
+
+            {inputText && (
+              <button
+                type="button"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setInputText('');
+                }}
+                className="p-1 rounded-full text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors"
+                title="Borrar texto temporal"
+              >
+                <X className="w-3.5 h-3.5" />
+              </button>
+            )}
 
             <button
               type="button"
