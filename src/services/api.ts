@@ -711,7 +711,16 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
 export function getCitizenNeeds(): CitizenNeed[] {
   try {
     const raw = localStorage.getItem(LOCAL_STORAGE_NEEDS);
-    if (raw) return JSON.parse(raw);
+    if (raw) {
+      const parsed: CitizenNeed[] = JSON.parse(raw);
+      return parsed.filter(n => {
+        const vereda = (n.veredaBarrio || '').trim().toLowerCase();
+        const prob = (n.problematicaSintetizada || '').toLowerCase();
+        if (!vereda || vereda === 'por definir') return false;
+        if (prob.includes('sí dime') || prob.includes('si dime') || prob.includes('cómo podemos') || prob.includes('como podemos') || prob.includes('de dónde sacas') || prob.includes('de donde sacas')) return false;
+        return true;
+      });
+    }
   } catch (e) {
     console.error(e);
   }

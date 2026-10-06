@@ -234,15 +234,18 @@ IDENTIDAD CLARA Y DISTINCIÓN DE ROLES (ORDEN SUPREMA):
    - 2️⃣ Orientar posibilidades técnicas preliminares viables (metodología MGA DNP, convenios solidarios con Juntas de Acción Comunal, gestión ante entidades nacionales) como guía.
    - 3️⃣ Entregar cada reporte sistematizado al "equipo humano de trabajo RR" para que lo estudien y organicen propuestas reales con la comunidad.
 
-3. RECOPILACIÓN Y VOTACIÓN COMUNITARIA DE PRIORIDADES:
-   - Las 3 propuestas comunitarias más apoyadas por los vecinos en ${nombreMun} son:
+3. RECOPILACIÓN Y SENTIDO DE OPORTUNIDAD COMUNAL (SIN SPAM):
+   - Las 3 propuestas comunitarias que hoy más respaldan los vecinos en ${nombreMun} son:
      ${isCap ? `* 1️⃣ Vías: Placas huellas y maquinaria permanente para vías terciarias (San Ramón, San Carlos, Pitalito, Terán).
      * 2️⃣ Agua: Optimización de acueductos veredales con tanques desarenadores y energía solar comunitaria.
      * 3️⃣ Educación: Conectividad satelital y dotación tecnológica para escuelas rurales.` : `* 1️⃣ Vías: Placas huellas modulares en corredores agrícolas (Guaduero, San Antonio, La Paz).
      * 2️⃣ Agua: Optimización de acueductos rurales en Puerto Bogotá y riberas.
      * 3️⃣ Salud: Dotación y telemedicina para el Hospital San José y brigadas veredales.`}
-   - Si el ciudadano pregunta qué proyectos hay, o si es oportuno en la charla, menciona brevemente estas prioridades y pídele que vote o elija la que considera más urgente para su sector: "¿Por cuál de estas crees que el Equipo RR debería enfocar más esfuerzos, o tienes otra necesidad prioritaria en tu vereda para sumarla?".
-   - Si el ciudadano vota (ej. "la 1", "las vías", "el acueducto"), valida su voto cálidamente y confírmale que su prioridad queda registrada en el consolidado comunal que el Equipo RR está construyendo con los líderes de las veredas.
+   - REGLA DE OPORTUNIDAD Y RELACIÓN CONTEXTUAL (CERO SPAM):
+     * Solo menciona o relaciona estas propuestas si hay una RELACIÓN DIRECTA con lo que el ciudadano está hablando (por ejemplo, si habla de caminos, acueductos, escuelas, o pregunta qué proyectos hay). Si habla de otro tema no relacionado, ¡NO las menciones ni hagas spam!
+     * OPORTUNIDAD DE CIERRE O DESPEDIDA: Si el ciudadano ya expuso su inquietud o la conversación va concluyendo ("gracias", "eso era todo", etc.), aprovecha para sugerir con sentido de oportunidad:
+       "Ya que estás acá, también puedes apoyar las ideas de la comunidad para que entre todos encontremos lo más prioritario para ${nombreMun} (Vías, Agua o Escuelas). ¿Te gustaría conocerlas o votar por alguna?"
+   - CAPTURA DE VOTOS: Si el ciudadano elige o apoya una opción (ej. "la 1", "las vías", "el acueducto", "las escuelas"), valida su voto con calidez y confírmale que su prioridad queda registrada en el consolidado comunal del Equipo RR.
 
 4. ORIGEN DE LA INFORMACIÓN:
    - Si preguntan "de dónde sacas esta información": Explica con naturalidad que proviene de las mesas comunitarias del Equipo RR, del diálogo directo con los vecinos de las veredas y del análisis de datos públicos oficiales (como SECOP y TerriData). Reitera con amabilidad: "No somos la Alcaldía de turno; somos el Equipo de Trabajo RR, una iniciativa ciudadana que escucha y formula proyectos para que las verdaderas necesidades de la gente se hagan escuchar".
@@ -680,16 +683,38 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
     voteSector = 'Educación y Conectividad';
   }
 
-  const isProblemOrProposal = textLower.includes('agua') || textLower.includes('bomba') || textLower.includes('luz') || textLower.includes('energia') || textLower.includes('parque') || textLower.includes('escuela') || textLower.includes('internet') || textLower.includes('cosecha') || textLower.includes('calle') || textLower.includes('versalles') || textLower.includes('piedras') || textLower.includes('puerto') || textLower.includes('propuesta') || textLower.includes('problema') || textLower.includes('rio') || textLower.includes('río');
+  // Descartar frases puramente conversacionales, preguntas o saludos
+  const isConversationalQuestion = 
+    /^(qu[eé]\s+(hay|proyectos|propuestas)|c[oó]mo\s+podemos|de\s+d[oó]nde|sabes\s+cu[aá]l|qui[eé]nes?\s+son|hola|buenas|gracias|chao|hasta\s+luego|s[ií]\s+dime)\b/i.test(textLower) ||
+    textLower.includes('qué proyectos hay') || textLower.includes('de dónde sacas') || textLower.includes('sabes cuál es mi') ||
+    textLower.length < 15;
+
+  const isRealProblemOrProposal = !isConversationalQuestion && (
+    textLower.includes('me gustaría proponer') || textLower.includes('me gustaria proponer') ||
+    textLower.includes('necesitamos') || textLower.includes('hace falta') ||
+    textLower.includes('no hay') || textLower.includes('está dañado') || textLower.includes('esta dañado') ||
+    textLower.includes('se necesita') || textLower.includes('solicitamos') ||
+    textLower.includes('queremos proponer') || textLower.includes('propuesta para') ||
+    (
+      (textLower.includes('agua') || textLower.includes('vía') || textLower.includes('via') || textLower.includes('carretera') || textLower.includes('placa huella') || textLower.includes('internet') || textLower.includes('escuela') || textLower.includes('hospital') || textLower.includes('puente')) &&
+      (textLower.includes('arreglo') || textLower.includes('mejorar') || textLower.includes('construir') || textLower.includes('pavimentar') || textLower.includes('dotar') || textLower.includes('mayor') || textLower.includes('ampliar'))
+    )
+  );
+
+  let realSintesis: string | undefined = voteSintesis;
+  if (!realSintesis && isRealProblemOrProposal) {
+    const locPrefix = currentVereda && currentVereda !== 'Por definir' ? ` en ${currentVereda}` : '';
+    realSintesis = `Propuesta Ciudadana${locPrefix}: "${originalInput}"`;
+  }
 
   const expresion = detectExpression(textLower);
 
   return {
     textoRespuesta: cleanedText,
-    problematicaSintetizada: voteSintesis || (isProblemOrProposal ? `Inquietud planteada: "${originalInput}"` : undefined),
-    sector: voteSector || (isProblemOrProposal ? detectSector(textLower) : undefined),
-    urgencia: voteSintesis ? 'Alta' : (isProblemOrProposal ? 'Alta' : undefined),
-    propuestaRamitos: voteSintesis ? `Prioridad comunal consolidada por el Equipo de Trabajo RR.` : (isProblemOrProposal ? `Propuesta estructurada para análisis del equipo de trabajo RR.` : undefined),
+    problematicaSintetizada: realSintesis,
+    sector: voteSector || (isRealProblemOrProposal ? detectSector(textLower) : undefined),
+    urgencia: realSintesis ? 'Alta' : undefined,
+    propuestaRamitos: realSintesis ? (voteSintesis ? `Prioridad comunal consolidada por el Equipo de Trabajo RR.` : `Propuesta estructurada para análisis del equipo de trabajo RR.`) : undefined,
     expresion: voteSintesis ? 'entusiasmado' : expresion
   };
 }

@@ -186,11 +186,11 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     let expresion: RamitosChatResponse['expresion'] = 'curioso';
 
     if (!isUserRegistered) {
-      nudgeText = 'Para que el equipo humano evalúe tu propuesta y pueda responderte, ¿te gustaría dejarnos tu Nombre y número de WhatsApp?';
+      nudgeText = `Para que el Equipo de Trabajo RR evalúe tu propuesta y pueda darte respuesta en ${munData.nombre}, ¿te gustaría dejarnos tu Nombre y WhatsApp?`;
       expresion = 'curioso';
     } else {
       const realName = leadCheck.nombre || extracted?.nombre || userLead?.nombre || '';
-      nudgeText = `¡Excelente${realName ? ', ' + realName : ''}! Tu propuesta ya quedó estructurada y registrada. El equipo humano la revisará para plantear una pronta solución.`;
+      nudgeText = `¡Excelente${realName ? ', ' + realName : ''}! Ya que estamos conversando, también puedes apoyar las propuestas que más respaldan los vecinos de ${munData.nombre} (Vías, Agua o Escuelas) para que entre todos identifiquemos las prioridades de mayor consenso comunitario. ¿Te gustaría conocerlas?`;
       expresion = 'agradecido';
     }
 
@@ -408,12 +408,11 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     setIsThinking(true);
     setIsRamitosSpeaking(true);
 
-    // Consultar si el usuario ya está registrado en este dispositivo/IP (Directo en Supabase)
-    const leadCheck = await checkUserLeadRegistrationInSupabase();
+    // Consultar registro en caché local (0ms)
     const userLead = getUserLeadInfo();
-    const isUserRegistered = Boolean(leadCheck.isRegistered || (userLead && userLead.nombre && userLead.whatsapp));
+    const isUserRegistered = Boolean(userLead && userLead.nombre && userLead.whatsapp);
 
-    // Consultar IA con memoria de Supabase por Dispositivo, IP y Municipio
+    // Consultar IA con memoria (ultra-rápido)
     const response = await processRamitosConversationAsync(query, selectedVereda, updatedHistory, isUserRegistered, municipioId);
 
     setIsThinking(false);
@@ -448,7 +447,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     setHistory(prev => [...prev, { sender: 'ramitos', text: response.textoRespuesta, time: timeStr }]);
     speakRamitosVoice(response.textoRespuesta);
 
-    // REGISTRO AUTOMÁTICO EN SUPABASE POR DISPOSITIVO E IP
+    // REGISTRO ASÍNCRONO EN SEGUNDO PLANO (NO BLOQUEA LA INTERFAZ)
     saveRamitosInteractionLog({
       mensajeTextualCiudadano: query,
       respuestaLimpiaRamitos: response.textoRespuesta,
@@ -459,19 +458,24 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     });
 
     if (response.problematicaSintetizada) {
-      const realNombre = userLead?.nombre || (leadCheck.isRegistered && leadCheck.nombre ? leadCheck.nombre : 'Ciudadano Anónimo');
-      const detectedVereda = detectVeredaOrBarrioFromText(query, municipioId) || (selectedVereda.trim() ? selectedVereda : 'Por definir');
-      onSaveNeed({
-        ciudadanoNombre: realNombre,
-        veredaBarrio: detectedVereda,
-        audioTranscripcion: query,
-        problematicaSintetizada: response.problematicaSintetizada,
-        sector: response.sector || 'Infancia y Familia',
-        urgencia: response.urgencia || 'Alta',
-        propuestaRamitos: response.propuestaRamitos || 'Propuesta capturada para análisis humano.',
-        insumosClave: [],
-        presupuestoEstimadoCop: 0
-      });
+      const realNombre = userLead?.nombre || 'Ciudadano de ' + munData.nombre;
+      const allDialogueText = updatedHistory.map(h => h.text).join(' ');
+      const detectedVereda = detectVeredaOrBarrioFromText(allDialogueText, municipioId) || (selectedVereda.trim() && selectedVereda !== 'Por definir' ? selectedVereda : undefined);
+
+      // NO almacenar si la vereda aún está pendiente ("Por definir") para evitar tarjetas vacías
+      if (detectedVereda && detectedVereda !== 'Por definir') {
+        onSaveNeed({
+          ciudadanoNombre: realNombre,
+          veredaBarrio: detectedVereda,
+          audioTranscripcion: query,
+          problematicaSintetizada: response.problematicaSintetizada,
+          sector: response.sector || 'Energía e Infraestructura',
+          urgencia: response.urgencia || 'Alta',
+          propuestaRamitos: response.propuestaRamitos || 'Propuesta estructurada para análisis del equipo de trabajo RR.',
+          insumosClave: [],
+          presupuestoEstimadoCop: 0
+        });
+      }
     }
   };
 
