@@ -770,16 +770,19 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
   if (supabaseClient) {
     try {
       const { data: probData, error: probErr } = await supabaseClient.from('problematicas_ciudadanas').insert({
+        municipio_id: mun,
         ciudadano_nombre: newNeed.ciudadanoNombre,
         vereda_barrio: newNeed.veredaBarrio,
         transcripcion_audio: newNeed.audioTranscripcion,
         descripcion_problema: newNeed.problematicaSintetizada,
         sector: newNeed.sector,
-        urgencia: newNeed.urgencia
+        urgencia: newNeed.urgencia,
+        votos_comunitarios: newNeed.votosApoyo || 1
       }).select().single();
 
       if (!probErr && probData) {
         await supabaseClient.from('propuestas_estructuradas_ia').insert({
+          municipio_id: mun,
           problematica_id: probData.id,
           intencion_sintetizada: newNeed.problematicaSintetizada,
           necesidad_clave: newNeed.insumosClave ? newNeed.insumosClave.join(', ') : 'Revisión técnica',
@@ -846,6 +849,28 @@ export function getCitizenNeeds(municipioId: 'guaduas' | 'caparrapi' | string = 
       return true;
     });
 
+    // Si aún no hay ninguna propuesta en Caparrapí, inicializar con la propuesta real formulada por Iván en San Carlos
+    if (cleaned.length === 0 && isCap) {
+      const initialRealProposal: CitizenNeed = {
+        id: 'need-ivan-sancarlos',
+        ciudadanoNombre: 'Iván',
+        veredaBarrio: 'San Carlos',
+        audioTranscripcion: 'Mejorar la conectividad de internet en San Carlos',
+        problematicaSintetizada: 'Mejorar la conectividad de internet y cobertura digital en la vereda San Carlos',
+        sector: 'Educación y Conectividad',
+        urgencia: 'Alta',
+        propuestaRamitos: 'Instalación de antena satelital Starlink y zona Wi-Fi comunitaria con respaldo solar para San Carlos.',
+        insumosClave: ['Antena satelital Starlink', 'Router Wi-Fi largo alcance', 'Kit solar de respaldo'],
+        presupuestoEstimadoCop: 45000000,
+        votosApoyo: 1,
+        fechaReporte: new Date().toISOString(),
+        municipioId: 'caparrapi',
+        origen: 'chat'
+      };
+      cleaned.push(initialRealProposal);
+      localStorage.setItem(key, JSON.stringify(cleaned));
+    }
+
     if (cleaned.length !== list.length) {
       localStorage.setItem(key, JSON.stringify(cleaned));
     }
@@ -855,6 +880,77 @@ export function getCitizenNeeds(municipioId: 'guaduas' | 'caparrapi' | string = 
     console.error(e);
     return [];
   }
+}
+
+// Sincronización bidireccional en tiempo real con Supabase
+export async function fetchCitizenNeedsFromSupabase(municipioId: 'guaduas' | 'caparrapi' | string = 'caparrapi'): Promise<CitizenNeed[]> {
+  const mun = (municipioId || 'caparrapi').toLowerCase();
+  const key = getStorageKeyForNeeds(mun);
+
+  if (supabaseClient) {
+    try {
+      const { data, error } = await supabaseClient
+        .from('problematicas_ciudadanas')
+        .select(`
+          id,
+          municipio_id,
+          ciudadano_nombre,
+          vereda_barrio,
+          transcripcion_audio,
+          descripcion_problema,
+          sector,
+          urgencia,
+          votos_comunitarios,
+          fecha_reporte,
+          propuestas_estructuradas_ia (
+            propuesta_redactada_ramitos,
+            necesidad_clave
+          )
+        `)
+        .eq('municipio_id', mun)
+        .order('fecha_reporte', { ascending: false });
+
+      if (!error && data && data.length > 0) {
+        const mapped: CitizenNeed[] = data.map((item: any) => {
+          const propIa = Array.isArray(item.propuestas_estructuradas_ia) && item.propuestas_estructuradas_ia.length > 0
+            ? item.propuestas_estructuradas_ia[0]
+            : (item.propuestas_estructuradas_ia || {});
+
+          return {
+            id: item.id,
+            ciudadanoNombre: item.ciudadano_nombre,
+            veredaBarrio: item.vereda_barrio,
+            audioTranscripcion: item.transcripcion_audio || item.descripcion_problema,
+            problematicaSintetizada: item.descripcion_problema,
+            sector: item.sector,
+            urgencia: item.urgencia,
+            propuestaRamitos: propIa.propuesta_redactada_ramitos || 'Propuesta estructurada para análisis del equipo de trabajo RR.',
+            insumosClave: propIa.necesidad_clave ? propIa.necesidad_clave.split(', ') : [],
+            presupuestoEstimadoCop: 0,
+            votosApoyo: item.votos_comunitarios || 1,
+            fechaReporte: item.fecha_reporte,
+            municipioId: item.municipio_id as any,
+            origen: 'chat'
+          };
+        });
+
+        const localList = getCitizenNeeds(mun);
+        const merged = [...mapped];
+        localList.forEach(l => {
+          if (!merged.some(m => m.id === l.id || (m.veredaBarrio === l.veredaBarrio && m.problematicaSintetizada === l.problematicaSintetizada))) {
+            merged.push(l);
+          }
+        });
+
+        localStorage.setItem(key, JSON.stringify(merged));
+        return merged;
+      }
+    } catch (e) {
+      console.warn('Error fetching citizen needs from Supabase:', e);
+    }
+  }
+
+  return getCitizenNeeds(mun);
 }
 
 export function getVotedNeedIds(): string[] {

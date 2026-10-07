@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CitizenNeed, CitizenLead } from '../types';
 import { processRamitosConversationAsync } from '../services/ramitosBrain';
-import { voteCitizenNeed, getVotedNeedIds } from '../services/api';
+import { voteCitizenNeed, getVotedNeedIds, getCitizenNeeds } from '../services/api';
 import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { 
   ThumbsUp, TrendingUp, Sparkles, MapPin, 
@@ -35,8 +35,13 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
   const [votingFeedbackId, setVotingFeedbackId] = useState<string | null>(null);
 
   useEffect(() => {
-    setLocalNeeds(needs);
-  }, [needs]);
+    const fresh = getCitizenNeeds(municipioId);
+    if (fresh && fresh.length > 0) {
+      setLocalNeeds(fresh);
+    } else {
+      setLocalNeeds(needs);
+    }
+  }, [needs, municipioId]);
 
   useEffect(() => {
     setVotedIds(getVotedNeedIds());

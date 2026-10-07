@@ -239,10 +239,10 @@ IDENTIDAD CLARA Y DISTINCIÓN DE ROLES (ORDEN SUPREMA):
    - Las Alcaldías Anteriores (${isCap ? 'Gonzalo Ramírez 2020–2023, Joaquín Sánchez 2016–2019' : 'Germán Herrera 2020–2023, Jesús Edisson Ramírez 2016–2019'}) son administraciones pasadas cuyos contratos auditamos en SECOP I para conocer la historia y los rezagos acumulados.
    - NO confundas lo que la gente propone o lo que el Equipo de Trabajo RR planea y estructura, con lo que la alcaldía actual está haciendo. Nosotros no prometemos obras públicas oficiales ni actuamos como alcaldía.
 
-2. FUNCIÓN PRINCIPAL DEL COPILOTO:
+2. FUNCIÓN PRINCIPAL DEL COPILOTO Y PUBLICACIÓN EN VOZ CIUDADANA:
    - 1️⃣ Escuchar, valorar y registrar las problemáticas e ideas de las veredas.
-   - 2️⃣ Orientar posibilidades técnicas preliminares viables (metodología MGA DNP, convenios solidarios con Juntas de Acción Comunal, gestión ante entidades nacionales) como guía.
-   - 3️⃣ Entregar cada reporte sistematizado al "equipo humano de trabajo RR" para que lo estudien y organicen propuestas reales con la comunidad.
+   - 2️⃣ Tu sistema SÍ registra, redacta y publica de inmediato la propuesta en el módulo de 'Voz Ciudadana' en tiempo real. Cuando el ciudadano plantee una petición o pregunte si quedó agregada, confírmale con total seguridad y amabilidad que ya quedó registrada y publicada en 'Voz Ciudadana' para que los vecinos la conozcan y la apoyen con su voto. ¡PROHIBIDO decir que no tienes acceso técnico a la base de datos o que deben esperar días a una validación humana!
+   - 3️⃣ Orientar posibilidades técnicas preliminares viables como guía para el equipo de trabajo RR.
 
 3. RECOPILACIÓN, INVITACIÓN A VOTAR Y PARTICIPACIÓN COMUNAL (SIN SPAM):
    - Las 3 propuestas comunitarias que hoy más respaldan los vecinos en ${nombreMun} son:
@@ -709,18 +709,34 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
     textLower.includes('no hay') || textLower.includes('está dañado') || textLower.includes('esta dañado') ||
     textLower.includes('se necesita') || textLower.includes('se requieren') ||
     textLower.includes('solicitamos') || textLower.includes('pedimos') ||
-    textLower.includes('queremos proponer') || textLower.includes('problemática') || textLower.includes('problematica') ||
+    textLower.includes('queremos proponer') || textLower.includes('queremos') || textLower.includes('quiero') ||
+    textLower.includes('petición') || textLower.includes('peticion') ||
+    textLower.includes('agregar') || textLower.includes('voz ciudadana') ||
+    textLower.includes('problemática') || textLower.includes('problematica') ||
     textLower.includes('problema') || textLower.includes('sugerencia') || textLower.includes('sugiero') ||
     textLower.includes('inquietud') || textLower.includes('idea') ||
     textLower.includes('arreglar') || textLower.includes('pavimentar') || textLower.includes('mantenimiento') ||
     textLower.includes('placa huella') || textLower.includes('acueducto') || textLower.includes('alcantarillado') ||
     textLower.includes('escuela') || textLower.includes('colegio') || textLower.includes('puesto de salud') ||
-    textLower.includes('alumbrado') || textLower.includes('electrificación') || textLower.includes('transporte');
+    textLower.includes('alumbrado') || textLower.includes('electrificación') || textLower.includes('transporte') ||
+    textLower.includes('internet') || textLower.includes('conectividad') || textLower.includes('señal') ||
+    textLower.includes('antena') || textLower.includes('starlink');
+
+  // Detección complementaria: si la IA misma estructuró o citó explícitamente la petición en su respuesta
+  const responseMatch = 
+    responseText.match(/(?:tu petición(?:\s+es)?|tu propuesta(?:\s+es)?|tu solicitud(?:\s+es)?):\s*([^.\n]+)/i) ||
+    responseText.match(/propuesta de\s+([^.\n]+?)(?:\s+para|\s+en|\s+quedó|\.)/i);
+
+  let extractedFromResponse: string | undefined;
+  if (responseMatch && responseMatch[1] && responseMatch[1].trim().length > 6) {
+    extractedFromResponse = responseMatch[1].trim();
+  }
 
   const isRealProblemOrProposal = !isTroll && !isConversationalQuestion && (
+    Boolean(extractedFromResponse) ||
     hasProposalMarkers ||
     (
-      (textLower.includes('agua') || textLower.includes('vía') || textLower.includes('via') || textLower.includes('carretera') || textLower.includes('camino') || textLower.includes('puente') || textLower.includes('internet') || textLower.includes('salud') || textLower.includes('escuela')) &&
+      (textLower.includes('agua') || textLower.includes('vía') || textLower.includes('via') || textLower.includes('carretera') || textLower.includes('camino') || textLower.includes('puente') || textLower.includes('internet') || textLower.includes('conectividad') || textLower.includes('salud') || textLower.includes('escuela')) &&
       (textLower.includes('mala') || textLower.includes('dañad') || textLower.includes('falta') || textLower.includes('arreglo') || textLower.includes('mejor') || textLower.includes('constru') || textLower.includes('atención') || textLower.includes('servicio'))
     )
   );
@@ -728,16 +744,18 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
   let realSintesis: string | undefined = voteSintesis;
   if (!realSintesis && isRealProblemOrProposal) {
     const locPrefix = currentVereda && currentVereda !== 'Por definir' ? ` (${currentVereda})` : '';
-    const cleanInput = originalInput.replace(/^(hola|buenas|mira|oye|quiero decirte que|te comento que|ramitos|copiloto)\s*,?\s*/i, '').trim();
+    const cleanInput = extractedFromResponse || originalInput.replace(/^(hola|buenas|mira|oye|quiero decirte que|te comento que|ramitos|copiloto|puedes agregar lo que yo te he pedido a voz ciudadana porque no aparece en voz ciudadana|pero tienes clara cuál es la petición que yo quiero)\s*,?\s*/i, '').trim();
     realSintesis = `Propuesta Ciudadana${locPrefix}: ${cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1)}`;
   }
+
+  const detectedTopicSector = extractedFromResponse ? detectSector(extractedFromResponse.toLowerCase()) : undefined;
 
   const expresion = detectExpression(textLower);
 
   return {
     textoRespuesta: cleanedText,
     problematicaSintetizada: realSintesis,
-    sector: voteSector || (isRealProblemOrProposal ? detectSector(textLower) : undefined),
+    sector: voteSector || detectedTopicSector || (isRealProblemOrProposal ? detectSector(textLower) : undefined),
     urgencia: realSintesis ? 'Alta' : undefined,
     propuestaRamitos: realSintesis ? (voteSintesis ? `Prioridad comunal consolidada por el Equipo de Trabajo RR.` : (cleanedText.split('.')[0] + '.' || `Estructuración técnica por el Equipo de Trabajo RR.`)) : undefined,
     expresion: voteSintesis ? 'entusiasmado' : expresion

@@ -8,6 +8,7 @@ import { CopilotoAlcaldiaView } from './components/CopilotoAlcaldiaView';
 import { CentroMandoView } from './components/CentroMandoView';
 import {
   getCitizenNeeds,
+  fetchCitizenNeedsFromSupabase,
   saveCitizenNeed,
   getCitizenLeads,
   saveCitizenLead,
@@ -72,7 +73,12 @@ export function App() {
 
   // Carga inicial de datos
   useEffect(() => {
-    setNeeds(getCitizenNeeds());
+    setNeeds(getCitizenNeeds(municipioId));
+    fetchCitizenNeedsFromSupabase(municipioId).then((loaded) => {
+      if (loaded && loaded.length > 0) {
+        setNeeds(loaded);
+      }
+    });
     setLeads(getCitizenLeads());
     setMessages(getGreenApiMessages());
     setProposals(getBaseProposals(municipioId));
@@ -101,7 +107,7 @@ export function App() {
       setLeads(getCitizenLeads());
     }
     await saveCitizenNeed(needData);
-    setNeeds(getCitizenNeeds());
+    setNeeds(getCitizenNeeds(municipioId));
   };
 
   const handleUpdateProposal = async (updated: BaseProposal) => {
