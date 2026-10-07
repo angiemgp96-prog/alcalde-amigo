@@ -199,19 +199,6 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
         </div>
       </div>
 
-      {/* BANNER DE FILTRO ÉTICO, NO SPAM Y AUTONOMÍA COMUNAL */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900 to-indigo-950/40 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs text-slate-300">
-        <div className="flex items-center space-x-3">
-          <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center flex-shrink-0">
-            <ShieldCheck className="w-5 h-5" />
-          </div>
-          <div>
-            <span className="font-bold text-white">Filtro de Seriedad y Participación Activa: </span>
-            <span>Las propuestas de cada conversación son redactadas técnicamente por la IA si tienen formulación e intención sincera. Las bromas, solicitudes absurdas o spam son descartadas y bloquean el dispositivo por 5 horas.</span>
-          </div>
-        </div>
-      </div>
-
       {/* FORMULARIO COMPLEMENTARIO */}
       <div className="frosted-glass rounded-3xl p-6 border border-slate-800 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">

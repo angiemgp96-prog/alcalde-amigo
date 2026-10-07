@@ -8,9 +8,7 @@ import {
   saveCitizenLead, 
   updateUserLeadInSupabase, 
   purgeAndReplaceTermInSupabaseHistory,
-  isTrollOrSpamContent,
-  getDeviceBlockStatus,
-  registerSpamStrike
+  isTrollOrSpamContent
 } from './api';
 import { getDeviceId } from './deviceMemory';
 
@@ -258,8 +256,6 @@ IDENTIDAD CLARA Y DISTINCIÓN DE ROLES (ORDEN SUPREMA):
        "He dejado estructurada tu propuesta para tu vereda. En la sección de 'Voz Ciudadana' puedes revisarla, apoyarla y votar por las prioridades comunitarias de ${nombreMun} para que identifiquemos juntos lo que la mayoría necesita."
    - CONTROL DE IDEAS DISTINTAS DE LA MISMA PERSONA:
      * Si la misma persona plantea en mensajes o momentos distintos varias inquietudes diferentes (ej. primero una vía, luego un acueducto), atiende y formula cada una por separado sin mezclarlas ni fusionarlas erróneamente.
-   - FILTRO ESTRICTO DE BURLAS / PROPUESTAS ABSURDAS:
-     * Si proponen cosas fuera de la realidad (como comprar helicópteros, chistes o burlas), responde con seriedad y respeto diciendo que el Equipo RR enfoca sus esfuerzos en soluciones reales y viables para ${nombreMun}.
    - CAPTURA DE VOTOS: Si el ciudadano elige o apoya una opción (ej. "la 1", "las vías", "el acueducto", "las escuelas"), valida su voto con calidez y confírmale que su prioridad queda registrada en el consolidado comunal del Equipo RR.
 
 4. ORIGEN DE LA INFORMACIÓN:
@@ -297,31 +293,7 @@ export async function processRamitosConversationAsync(
     };
   }
 
-  // 0-A. VERIFICACIÓN DE BLOQUEO DE DISPOSITIVO / IP (5 HORAS POR SPAM REITERADO)
-  const blockStatus = getDeviceBlockStatus();
-  if (blockStatus.isBlocked) {
-    return {
-      textoRespuesta: `⚠️ Dispositivo suspendido por 5 horas debido a envíos reiterados de contenido no constructivo o spam. Podrás participar nuevamente en ${blockStatus.remainingHours || 5} horas. El espacio de ${nombreMun} busca priorizar propuestas viables de la comunidad.`,
-      expresion: 'triste'
-    };
-  }
-
-  // 0-B. DETECCIÓN DE CONTENIDO TROLL / BURLAS / PROPUESTAS ABSURDAS (EJ. COMPRAR 10 HELICÓPTEROS)
-  if (isTrollOrSpamContent(userInput)) {
-    const strikeInfo = registerSpamStrike();
-    if (strikeInfo.isBlocked) {
-      return {
-        textoRespuesta: `⚠️ Tu dispositivo ha sido suspendido temporalmente por 5 horas debido a mensajes no constructivos o spam. Cuidamos este espacio para las verdaderas necesidades de ${nombreMun}.`,
-        expresion: 'enojado'
-      };
-    }
-    return {
-      textoRespuesta: `En este espacio del Equipo RR nos enfocamos en propuestas comunitarias reales, viables y respetuosas para ${nombreMun}. Solicitudes fuera de lugar o en tono de burla (como comprar helicópteros o bromas) desvían la atención de necesidades prioritarias como vías, agua y escuelas. Cuéntanos qué necesidad real tiene tu comunidad.`,
-      expresion: 'confundido'
-    };
-  }
-
-  // 0-C. INTERCEPCIÓN DE AUDIOCORRECCIÓN Y PURGA DE TÉRMINOS ERRÓNEOS EN SUPABASE ("no dije wolmart dije guaduas")
+  // INTERCEPCIÓN DE AUDIOCORRECCIÓN Y PURGA DE TÉRMINOS ERRÓNEOS EN SUPABASE ("no dije wolmart dije guaduas")
   const audioCorrection = extractAudioCorrectionFromText(userInput);
   if (audioCorrection) {
     const { updatedInteractions, updatedMemories } = await purgeAndReplaceTermInSupabaseHistory(
