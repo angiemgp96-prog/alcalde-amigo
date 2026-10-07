@@ -3,15 +3,35 @@ import {
   ShieldAlert, FileSpreadsheet, Vote, MapPin, ExternalLink, AlertTriangle, 
   CheckCircle2, ChevronRight, TrendingUp, Search, Filter, Database, Users, 
   Building, RefreshCw, Send, PlusCircle, Award, Landmark, Check, ArrowRight,
-  MessageSquare, Radio, Sparkles, Mic, FileDown, Layers, HelpCircle, X, Download
+  MessageSquare, Radio, Sparkles, Mic, FileDown, Layers, HelpCircle, X, Download,
+  FileText, Upload, Printer, CheckSquare, Clock, BookOpen, FolderOpen, Save,
+  Share2, ClipboardList, UserCheck, Paperclip, Edit3, Trash2
 } from 'lucide-react';
 import { 
   getSupabaseClient, 
   saveTeamContribution, 
   getTeamContributions, 
   fetchLiveSecopFromDatosGov, 
-  TeamAporte 
+  TeamAporte,
+  fetchProyectosMgaFromSupabase,
+  saveProyectoMgaInSupabase,
+  fetchRequisitosProyecto,
+  updateRequisitoEstado,
+  uploadRequisitoDocumento,
+  fetchCensoBeneficiarios,
+  addCensoBeneficiario,
+  crearProyectoDesdeVozCiudadana,
+  getCitizenNeeds
 } from '../services/api';
+import { 
+  ProyectoMgaEstructurado, 
+  RequisitoViabilidad, 
+  CensoBeneficiario, 
+  PresupuestoApuItem, 
+  CitizenNeed,
+  CategoriaRequisito,
+  EstadoRequisito
+} from '../types';
 import { runAutoAudit, sanitizeIntelligenceData } from '../services/autoAuditorService';
 import Chart from 'chart.js/auto';
 
@@ -73,8 +93,38 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
   // Pre-Gira Veredal
   const [selectedVeredaIndex, setSelectedVeredaIndex] = useState<number>(0);
 
-  // Modal de Proyecto MGA Fase 3
-  const [selectedProjectModal, setSelectedProjectModal] = useState<any | null>(null);
+  // Estación de Formulación MGA & Suplir Requisitos (Dinámico en Supabase)
+  const [proyectosList, setProyectosList] = useState<ProyectoMgaEstructurado[]>([]);
+  const [selectedProject, setSelectedProject] = useState<ProyectoMgaEstructurado | null>(null);
+  const [projectWorkTab, setProjectWorkTab] = useState<'mga' | 'requisitos' | 'censo' | 'apu' | 'dossier'>('mga');
+  const [requisitosList, setRequisitosList] = useState<RequisitoViabilidad[]>([]);
+  const [filtroCategoriaReq, setFiltroCategoriaReq] = useState<string>('todos');
+  const [censoList, setCensoList] = useState<CensoBeneficiario[]>([]);
+  const [isSavingProject, setIsSavingProject] = useState<boolean>(false);
+  const [projectSaveSuccess, setProjectSaveSuccess] = useState<boolean>(false);
+  const [uploadingReqId, setUploadingReqId] = useState<string | null>(null);
+  const [aiDraftModal, setAiDraftModal] = useState<{ open: boolean; titulo: string; contenido: string } | null>(null);
+  const [showNuevoProyectoModal, setShowNuevoProyectoModal] = useState<boolean>(false);
+  const [needsParaFormular, setNeedsParaFormular] = useState<CitizenNeed[]>([]);
+  const [nuevoProyectoForm, setNuevoProyectoForm] = useState({
+    nombre: '',
+    sector: isCaparrapi ? 'Transporte (Vías Terciarias)' : 'Transporte (Vías Terciarias)',
+    bpin: '',
+    presupuestoCop: 2500000000,
+    vereda: isCaparrapi ? 'San Carlos' : 'Guaduas Centro',
+    fuente: 'Presidencia de la República / Gobierno Nacional / OCAD Paz',
+    objetivo: ''
+  });
+  const [nuevoBeneficiarioForm, setNuevoBeneficiarioForm] = useState({
+    nombre: '',
+    cedula: '',
+    vereda: isCaparrapi ? 'San Carlos' : 'Guaduero',
+    sisben: 'B1',
+    miembros: 4,
+    finca: '',
+    tel: '',
+    obs: ''
+  });
 
   // Simulador de Discurso Veredal
   const [selectedSpeechVereda, setSelectedSpeechVereda] = useState<string>('');
@@ -147,10 +197,16 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
             console.log('Modo offline/caché de respaldo activo para SECOP II:', err);
           });
 
-        // 3. Cargar aportes de Supabase + Local
-        const aportes = await getTeamContributions(municipioId);
+        // 3. Cargar aportes, proyectos MGA y necesidades de Voz Ciudadana desde Supabase
+        const [aportes, mgaProjs] = await Promise.all([
+          getTeamContributions(municipioId).catch(() => []),
+          fetchProyectosMgaFromSupabase(municipioId).catch(() => [])
+        ]);
+        const needs = getCitizenNeeds(municipioId);
         if (isMounted) {
           setTeamContributions(aportes);
+          setProyectosList(mgaProjs);
+          setNeedsParaFormular(needs);
         }
       } catch (err) {
         console.error('Error cargando datasets de inteligencia:', err);
@@ -423,6 +479,293 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
     downloadAnchor.remove();
   };
 
+  // -------------------------------------------------------------------
+  // HANDLERS DEL SISTEMA DE FORMULACIÓN MGA & SUPLIR REQUISITOS
+  // -------------------------------------------------------------------
+
+  const handleOpenProjectWorkstation = async (p: any) => {
+    const fullProj: ProyectoMgaEstructurado = {
+      id: p.id || `mga-${municipioId}-${Date.now()}`,
+      municipio_id: municipioId,
+      codigo_bpin_propuesto: p.codigo_bpin_propuesto || p.codigo_bpin || 'BPIN-2026',
+      nombre_proyecto: p.nombre_proyecto || p.nombre || '',
+      sector_dnp: p.sector_dnp || p.sector || 'Transporte (Vías Terciarias)',
+      codigo_producto_dnp: p.codigo_producto_dnp || '',
+      fase_mga: p.fase_mga || p.fase || 'Fase 3 - Factibilidad Definitiva',
+      estado_tramite: p.estado_tramite || 'requisitos_pendientes',
+      presupuesto_total_cop: typeof p.presupuesto_total_cop === 'number' ? p.presupuesto_total_cop : 
+        (typeof p.presupuesto_total === 'string' ? parseFloat(p.presupuesto_total.replace(/[^0-9]/g, '')) || 2500000000 : 2500000000),
+      fuente_financiacion_principal: p.fuente_financiacion_principal || p.fuente_primaria || 'Gobierno Nacional / Presidencia',
+      veredas_impactadas: Array.isArray(p.veredas_impactadas) && p.veredas_impactadas.length > 0 ? p.veredas_impactadas : [isCaparrapi ? 'San Carlos' : 'Guaduero'],
+      poblacion_beneficiaria_total: typeof p.poblacion_beneficiaria_total === 'number' ? p.poblacion_beneficiaria_total : 
+        (typeof p.beneficiarios === 'string' ? parseInt(p.beneficiarios.replace(/[^0-9]/g, '')) || 5000 : 5000),
+      evaluacion_economica: p.evaluacion_economica || {
+        tasa_descuento: '12,0% (Estándar DNP)',
+        vpn_social: '$2.840 Millones COP',
+        tir_social: '19,4%',
+        relacion_costo_beneficio: '1,45'
+      },
+      arbol_problemas: p.arbol_problemas || {
+        problema_central: 'Incomunicación y deterioro vial en corredores rurales estratégicos',
+        causa_directa: 'Déficit de placa huellas y obras de drenaje en tramos críticos',
+        causa_indirecta: 'Ausencia de inversión estructural en vías terciarias',
+        efecto_directo: 'Sobrecostos de fletes y aislamiento de campesinos',
+        efecto_indirecto: 'Pérdida de competitividad y calidad de vida rural'
+      },
+      arbol_objetivos: p.arbol_objetivos || {
+        objetivo_general: p.objetivo || 'Mejorar integralmente las condiciones de vida y productividad en la zona',
+        fines_directos: [
+          'Garantizar transitabilidad y acceso a servicios básicos 365 días al año',
+          'Reducir costos logísticos de transporte agropecuario',
+          'Beneficiar de manera directa a la comunidad escolar y productiva'
+        ]
+      },
+      justificacion_presidencia: p.justificacion_presidencia || p.objetivo || 'Proyecto prioritario articulado con las metas del Plan Nacional de Desarrollo.',
+      creado_por: p.creado_por || 'Equipo de Trabajo RR',
+      capitulos_presupuesto_apu: p.capitulos_presupuesto_apu,
+      checklist_tareas: p.checklist_tareas
+    };
+
+    setSelectedProject(fullProj);
+    setProjectWorkTab('mga');
+
+    try {
+      const [reqs, censo] = await Promise.all([
+        fetchRequisitosProyecto(fullProj.id, fullProj.sector_dnp),
+        fetchCensoBeneficiarios(fullProj.id)
+      ]);
+      setRequisitosList(reqs);
+      setCensoList(censo);
+    } catch (err) {
+      console.warn('Error cargando requisitos o censo:', err);
+    }
+  };
+
+  const handleSaveProjectChanges = async () => {
+    if (!selectedProject) return;
+    setIsSavingProject(true);
+    try {
+      const saved = await saveProyectoMgaInSupabase(selectedProject);
+      setSelectedProject(saved);
+      setProyectosList(prev => {
+        const idx = prev.findIndex(p => p.id === saved.id);
+        if (idx >= 0) {
+          const copy = [...prev];
+          copy[idx] = saved;
+          return copy;
+        }
+        return [saved, ...prev];
+      });
+      setProjectSaveSuccess(true);
+      setTimeout(() => setProjectSaveSuccess(false), 3000);
+    } catch (err) {
+      console.error('Error guardando cambios del proyecto:', err);
+    } finally {
+      setIsSavingProject(false);
+    }
+  };
+
+  const handleToggleRequisitoEstado = async (req: RequisitoViabilidad) => {
+    if (!selectedProject) return;
+    const nextState: EstadoRequisito = 
+      req.estado === 'pendiente' ? 'cargado' : 
+      req.estado === 'cargado' ? 'verificado' : 'pendiente';
+    
+    await updateRequisitoEstado(selectedProject.id, req.id, { estado: nextState });
+    setRequisitosList(prev => prev.map(r => r.id === req.id ? { ...r, estado: nextState } : r));
+  };
+
+  const handleUploadDocumento = async (reqId: string, event: React.ChangeEvent<HTMLInputElement>) => {
+    if (!selectedProject || !event.target.files || event.target.files.length === 0) return;
+    const file = event.target.files[0];
+    setUploadingReqId(reqId);
+    try {
+      const res = await uploadRequisitoDocumento(selectedProject.id, reqId, file);
+      setRequisitosList(prev => prev.map(r => r.id === reqId ? {
+        ...r,
+        estado: 'cargado',
+        archivo_nombre: res.nombre,
+        archivo_url: res.url,
+        archivo_size: res.size
+      } : r));
+    } catch (err) {
+      console.warn('Error al cargar documento:', err);
+    } finally {
+      setUploadingReqId(null);
+    }
+  };
+
+  const handleAddBeneficiario = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedProject || !nuevoBeneficiarioForm.nombre.trim()) return;
+    const added = await addCensoBeneficiario({
+      proyecto_id: selectedProject.id,
+      nombre_completo: nuevoBeneficiarioForm.nombre.trim(),
+      numero_documento: nuevoBeneficiarioForm.cedula.trim() || 'Por verificar',
+      vereda: nuevoBeneficiarioForm.vereda.trim() || (selectedProject.veredas_impactadas?.[0] || 'Vereda'),
+      grupo_sisben: nuevoBeneficiarioForm.sisben,
+      numero_miembros_familia: Number(nuevoBeneficiarioForm.miembros) || 1,
+      hectareas_o_unidad_productiva: nuevoBeneficiarioForm.finca.trim() || 'Finca Rural',
+      telefono_contacto: nuevoBeneficiarioForm.tel.trim(),
+      observacion_territorial: nuevoBeneficiarioForm.obs.trim() || 'Censado en territorio'
+    });
+    setCensoList(prev => [added, ...prev]);
+    setNuevoBeneficiarioForm({
+      nombre: '',
+      cedula: '',
+      vereda: selectedProject.veredas_impactadas?.[0] || 'San Carlos',
+      sisben: 'B1',
+      miembros: 4,
+      finca: '',
+      tel: '',
+      obs: ''
+    });
+  };
+
+  const handleVincularVozCiudadanaAlCenso = () => {
+    if (!selectedProject) return;
+    const matchNeeds = needsParaFormular.filter(n => 
+      selectedProject.veredas_impactadas?.some(v => v.toLowerCase().includes(n.veredaBarrio.toLowerCase())) ||
+      n.sector.toLowerCase().includes((selectedProject.sector_dnp || '').toLowerCase())
+    );
+    if (matchNeeds.length === 0) {
+      alert('No se encontraron reportes en Voz Ciudadana para las veredas de este proyecto.');
+      return;
+    }
+    matchNeeds.forEach(async (need) => {
+      const added = await addCensoBeneficiario({
+        proyecto_id: selectedProject.id,
+        nombre_completo: need.ciudadanoNombre || 'Ciudadano Afectado',
+        vereda: need.veredaBarrio,
+        grupo_sisben: 'B (Identificado en Territorio)',
+        numero_miembros_familia: 4,
+        hectareas_o_unidad_productiva: 'Unidad Familiar Campesina ' + need.veredaBarrio,
+        telefono_contacto: need.whatsapp || '',
+        observacion_territorial: `Respaldo registrado en Voz Ciudadana (${need.votosApoyo || 1} votos): "${need.problematicaSintetizada}"`
+      });
+      setCensoList(prev => [added, ...prev]);
+    });
+    alert(`Se vincularon ${matchNeeds.length} respaldos comunitarios de Voz Ciudadana al censo.`);
+  };
+
+  const handleExportarCensoCsv = () => {
+    if (!selectedProject || censoList.length === 0) return;
+    const headers = ['Nombre Completo', 'Documento', 'Vereda', 'Sisbén', 'Personas en Familia', 'Unidad Productiva', 'Teléfono', 'Observación'];
+    const rows = censoList.map(c => [
+      `"${c.nombre_completo}"`,
+      `"${c.numero_documento || ''}"`,
+      `"${c.vereda}"`,
+      `"${c.grupo_sisben || ''}"`,
+      c.numero_miembros_familia,
+      `"${c.hectareas_o_unidad_productiva || ''}"`,
+      `"${c.telefono_contacto || ''}"`,
+      `"${c.observacion_territorial || ''}"`
+    ]);
+    const csvContent = 'data:text/csv;charset=utf-8,\uFEFF' + [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Censo_Beneficiarios_${selectedProject.codigo_bpin_propuesto || 'MGA'}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleGenerarMinutaIa = (req: RequisitoViabilidad) => {
+    if (!selectedProject) return;
+    const munNombre = isCaparrapi ? 'Caparrapí' : 'Guaduas';
+    const draftText = `REPÚBLICA DE COLOMBIA
+DEPARTAMENTO DE CUNDINAMARCA
+MUNICIPIO DE ${munNombre.toUpperCase()}
+DESPACHO DE PLANEACIÓN Y GESTIÓN TERRITORIAL
+
+CERTIFICACIÓN INSTITUCIONAL DE CUMPLIMIENTO TÉCNICO
+
+ASUNTO: ${req.nombre_requisito.toUpperCase()}
+PROYECTO BPIN: ${selectedProject.codigo_bpin_propuesto || 'BPIN-2026'}
+DENOMINACIÓN: "${selectedProject.nombre_proyecto}"
+SECTOR DNP: ${selectedProject.sector_dnp}
+
+En el marco de la estructuración del proyecto bajo Metodología General Ajustada (MGA) del Departamento Nacional de Planeación (DNP), se hace constar que:
+
+1. El proyecto ha sido priorizado comunitariamente para beneficiar a ${selectedProject.poblacion_beneficiaria_total.toLocaleString('es-CO')} habitantes en las veredas: ${selectedProject.veredas_impactadas?.join(', ')}.
+2. Se verificó la viabilidad conforme a los requerimientos del sector ${selectedProject.sector_dnp}.
+3. Observación de soporte: "${req.observaciones || 'Cumple con los estándares oficiales de ingeniería y ordenamiento territorial.'}"
+
+Se expide en ${munNombre}, Cundinamarca, a los ${new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}.
+
+____________________________________________
+EQUIPO DE ESTRUCTURACIÓN & PLANEACIÓN TERRITORIAL
+MUNICIPIO DE ${munNombre.toUpperCase()}`;
+
+    setAiDraftModal({
+      open: true,
+      titulo: `Minuta Oficial: ${req.nombre_requisito}`,
+      contenido: draftText
+    });
+  };
+
+  const handleCrearProyectoDesdeNeed = async (need: CitizenNeed) => {
+    try {
+      const nuevo = await crearProyectoDesdeVozCiudadana(need, municipioId);
+      setProyectosList(prev => [nuevo, ...prev]);
+      handleOpenProjectWorkstation(nuevo);
+      alert(`¡Proyecto creado con éxito a partir de la propuesta de ${need.ciudadanoNombre || 'la comunidad'}!`);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCrearProyectoManual = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nuevoProyectoForm.nombre.trim()) return;
+    const prefix = isCaparrapi ? 'CAP' : 'GUA';
+    const bpin = nuevoProyectoForm.bpin.trim() || `2026-${prefix}-${Date.now().toString().slice(-4)}`;
+    const nuevo: ProyectoMgaEstructurado = {
+      id: `mga-${municipioId}-${Date.now()}`,
+      municipio_id: municipioId,
+      codigo_bpin_propuesto: bpin,
+      nombre_proyecto: nuevoProyectoForm.nombre.trim(),
+      sector_dnp: nuevoProyectoForm.sector,
+      codigo_producto_dnp: 'Catálogo de Productos DNP',
+      fase_mga: 'Fase 3 - Factibilidad Definitiva',
+      estado_tramite: 'en_estructuracion',
+      presupuesto_total_cop: Number(nuevoProyectoForm.presupuestoCop) || 2000000000,
+      fuente_financiacion_principal: nuevoProyectoForm.fuente,
+      veredas_impactadas: [nuevoProyectoForm.vereda],
+      poblacion_beneficiaria_total: 4500,
+      evaluacion_economica: {
+        tasa_descuento: '12,0% (Estándar DNP)',
+        vpn_social: 'En estructuración',
+        tir_social: '16,5%',
+        relacion_costo_beneficio: '1,35'
+      },
+      arbol_problemas: {
+        problema_central: nuevoProyectoForm.objetivo || 'Déficit estructural en el sector',
+        causa_directa: 'Infraestructura insuficiente y rezago acumulado en la zona rural',
+        causa_indirecta: 'Baja inversión pública en periodos anteriores',
+        efecto_directo: 'Afectación a la comunidad campesina y limitación de oportunidades',
+        efecto_indirecto: 'Atraso socioeconómico veredal'
+      },
+      arbol_objetivos: {
+        objetivo_general: nuevoProyectoForm.objetivo || 'Garantizar el desarrollo del sector en la zona',
+        fines_directos: [
+          'Ejecutar las obras bajo estándares DNP',
+          'Beneficiar a las familias de ' + nuevoProyectoForm.vereda,
+          'Apalancar cofinanciación ante el Gobierno Nacional'
+        ]
+      },
+      justificacion_presidencia: `Iniciativa estratégica para radicar ante Presidencia de la República y entidades cofinanciadoras en beneficio de ${nuevoProyectoForm.vereda}.`,
+      creado_por: 'Equipo de Trabajo RR',
+      created_at: new Date().toISOString()
+    };
+
+    const saved = await saveProyectoMgaInSupabase(nuevo);
+    setProyectosList(prev => [saved, ...prev]);
+    setShowNuevoProyectoModal(false);
+    handleOpenProjectWorkstation(saved);
+  };
+
   // Generador de Discurso Veredal
   const handleGenerateSpeech = () => {
     if (!selectedSpeechVereda) return;
@@ -558,20 +901,33 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
     aplicacion: r.aplicacion || r.aplicacion_caparrapi || r.aplicacion_guaduas || r.objeto
   }));
 
-  // Normalización dinámica de Banco MGA Fase 3
-  const bancoProyectosMga: any[] = (intelData?.proyectos_mga_fase3 || intelData?.banco_proyectos || []).map((p: any) => ({
-    codigo_bpin: p.codigo_bpin || p.codigo_bpin_propuesto || 'BPIN-2026',
-    nombre: p.nombre,
-    sector: p.sector || (p.codigo_producto_dnp ? p.codigo_producto_dnp.split('-')[0].trim() : 'Desarrollo Rural'),
-    fase: p.fase || p.mga_fase || 'Fase 3 - Factibilidad Definitiva',
-    presupuesto_total: p.presupuesto_total || (typeof p.presupuesto_estimado_cop === 'number' ? formatCOP(p.presupuesto_estimado_cop) : p.presupuesto_estimado_cop),
+  // Normalización dinámica de Banco MGA Fase 3 (Prioriza Supabase en Vivo)
+  const sourceProjects = proyectosList.length > 0 ? proyectosList : (intelData?.proyectos_mga_fase3 || intelData?.banco_proyectos || []);
+  const bancoProyectosMga: any[] = sourceProjects.map((p: any) => ({
+    ...p,
+    id: p.id,
+    codigo_bpin: p.codigo_bpin_propuesto || p.codigo_bpin || 'BPIN-2026',
+    nombre: p.nombre_proyecto || p.nombre,
+    sector: p.sector_dnp || p.sector || (p.codigo_producto_dnp ? p.codigo_producto_dnp.split('-')[0].trim() : 'Desarrollo Rural'),
+    fase: p.fase_mga || p.fase || 'Fase 3 - Factibilidad Definitiva',
+    estado_tramite: p.estado_tramite || 'requisitos_pendientes',
+    presupuesto_total: typeof p.presupuesto_total_cop === 'number' && p.presupuesto_total_cop > 0 
+      ? formatCOP(p.presupuesto_total_cop) 
+      : (p.presupuesto_total || (typeof p.presupuesto_estimado_cop === 'number' ? formatCOP(p.presupuesto_estimado_cop) : p.presupuesto_estimado_cop)),
     objetivo: p.objetivo || p.resumen || (p.arbol_objetivos ? p.arbol_objetivos.objetivo_general : ''),
-    beneficiarios: p.beneficiarios || p.poblacion_beneficiaria || 'Comunidad Rural',
-    fuente_primaria: p.fuente_primaria || p.entidad_radicacion || 'Gobierno Nacional',
+    beneficiarios: typeof p.poblacion_beneficiaria_total === 'number' && p.poblacion_beneficiaria_total > 0
+      ? `${p.poblacion_beneficiaria_total.toLocaleString('es-CO')} Habitantes Rurales`
+      : (p.beneficiarios || p.poblacion_beneficiaria || 'Comunidad Rural'),
+    fuente_primaria: p.fuente_financiacion_principal || p.fuente_primaria || p.entidad_radicacion || 'Gobierno Nacional',
     evaluacion_socioeconomica: typeof p.evaluacion_socioeconomica === 'string' ? p.evaluacion_socioeconomica : (
-      p.evaluacion_economica_mga ? `VPN: ${p.evaluacion_economica_mga.vpn_social} | TIR: ${p.evaluacion_economica_mga.tir_social} | B/C: ${p.evaluacion_economica_mga.relacion_costo_beneficio}` : 'TIR Social > 12% Estándar DNP'
+      p.evaluacion_economica_mga ? `VPN: ${p.evaluacion_economica_mga.vpn_social} | TIR: ${p.evaluacion_economica_mga.tir_social} | B/C: ${p.evaluacion_economica_mga.relacion_costo_beneficio}` : 
+      p.evaluacion_economica ? `VPN: ${p.evaluacion_economica.vpn_social} | TIR: ${p.evaluacion_economica.tir_social}` : 'TIR Social > 12% Estándar DNP'
     ),
     arbol_problemas: p.arbol_problemas,
+    arbol_objetivos: p.arbol_objetivos,
+    justificacion_presidencia: p.justificacion_presidencia,
+    veredas_impactadas: p.veredas_impactadas || [],
+    poblacion_beneficiaria_total: p.poblacion_beneficiaria_total || 5000,
     apu_clave: typeof p.apu_clave === 'string' ? p.apu_clave : (
       Array.isArray(p.capitulos_presupuesto_apu) ? p.capitulos_presupuesto_apu.map((c: any) => `${c.capitulo}: ${c.apu_clave || (typeof c.valor === 'number' ? formatCOP(c.valor) : c.valor)}`).join(' | ') : 'Precios Unitarios Regionalizados Cundinamarca 2026'
     ),
@@ -1703,16 +2059,65 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
           {activeTab === 'mga' && (
             <div className="space-y-8 animate-fadeIn">
               
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">
-                  MÁS ALLÁ DE PROMESAS DE CAMPAÑA
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
-                  Banco Municipal de Proyectos Estructurados (Fichas MGA Fase 3)
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Proyectos viables con ingeniería de detalle, APU regionalizados, evaluación socioeconómica DNP y checklist para radicar en ministerios.
-                </p>
+              <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">
+                      SISTEMA OFICIAL DNP • PRESIDENCIA & MINISTERIOS
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30 font-mono">
+                      {bancoProyectosMga.length} PROYECTOS EN SUPABASE
+                    </span>
+                  </div>
+                  <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
+                    Banco de Proyectos & Estructuración MGA (Nivel Presidencia)
+                  </h3>
+                  <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-2xl">
+                    Formulación técnica rigurosa bajo Metodología General Ajustada del DNP, ingeniería de detalle, APU regionalizados y gestor de viabilidad <strong className="text-cyan-400 font-bold">"Suplir Requisitos"</strong> para radicación ministerial.
+                  </p>
+                </div>
+
+                <div className="flex flex-wrap items-center gap-2.5 shrink-0">
+                  <button
+                    onClick={() => setShowNuevoProyectoModal(true)}
+                    className="px-4 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-950/40 cursor-pointer transition-all"
+                  >
+                    <PlusCircle className="w-4 h-4" />
+                    <span>+ Formular Proyecto con IA</span>
+                  </button>
+
+                  {needsParaFormular.length > 0 && (
+                    <div className="relative group">
+                      <button
+                        className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-cyan-500/30 font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all"
+                      >
+                        <Sparkles className="w-4 h-4 text-cyan-400" />
+                        <span>Estructurar desde Voz Ciudadana ({needsParaFormular.length})</span>
+                      </button>
+
+                      <div className="absolute right-0 top-full mt-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl p-3 shadow-2xl space-y-2 z-30 hidden group-hover:block animate-fadeIn">
+                        <span className="text-[10px] uppercase font-black text-slate-400 tracking-wider block px-1">
+                          Iniciativas Comunitarias Detectadas
+                        </span>
+                        <div className="max-h-60 overflow-y-auto space-y-2">
+                          {needsParaFormular.slice(0, 5).map((n, nIdx) => (
+                            <div 
+                              key={nIdx}
+                              onClick={() => handleCrearProyectoDesdeNeed(n)}
+                              className="p-2.5 bg-slate-950/80 hover:bg-slate-800/80 rounded-xl border border-slate-800 hover:border-cyan-500/40 cursor-pointer transition-all space-y-1"
+                            >
+                              <div className="flex justify-between items-center text-[10px]">
+                                <span className="font-bold text-cyan-300">{n.veredaBarrio}</span>
+                                <span className="text-emerald-400 font-bold">{n.votosApoyo || 1} Votos</span>
+                              </div>
+                              <p className="text-xs text-slate-200 line-clamp-2">{n.problematicaSintetizada}</p>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                </div>
               </div>
 
               {/* Radar de Convocatorias y Ventanillas Estatales Activas */}
@@ -1753,33 +2158,51 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
               {/* Cuadrícula de Proyectos MGA Fase 3 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {bancoProyectosMga.map((p: any, idx: number) => (
-                  <div key={idx} className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl space-y-4 flex flex-col justify-between">
+                  <div key={idx} className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-3xl p-6 shadow-xl space-y-4 flex flex-col justify-between transition-all">
                     <div className="space-y-3">
                       <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                        <span className="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
-                          BPIN: {p.codigo_bpin}
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          <span className="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
+                            BPIN: {p.codigo_bpin}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                            p.estado_tramite === 'listo_presidencia' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
+                            p.estado_tramite === 'radicado' ? 'bg-blue-950 text-blue-300 border border-blue-800' :
+                            'bg-amber-950 text-amber-300 border border-amber-800'
+                          }`}>
+                            {p.estado_tramite === 'listo_presidencia' ? 'Listo Presidencia' :
+                             p.estado_tramite === 'radicado' ? 'Radicado Oficial' : 'Requisitos en Gestión'}
+                          </span>
+                        </div>
                         <div className="text-right">
-                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">PRESUPUESTO PROYECTADO</span>
+                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">PRESUPUESTO ESTIMADO</span>
                           <span className="text-lg sm:text-xl font-black font-mono text-emerald-400 tracking-tight">{p.presupuesto_total}</span>
                         </div>
                       </div>
 
                       <h4 className="text-base font-black text-white leading-snug">{p.nombre}</h4>
-                      <p className="text-xs text-cyan-400 font-bold">Sector: {p.sector} • {p.fase}</p>
+                      <div className="flex flex-wrap items-center gap-2 text-xs">
+                        <span className="text-cyan-400 font-bold">{p.sector}</span>
+                        <span className="text-slate-600">•</span>
+                        <span className="text-slate-400 font-mono">{p.fase}</span>
+                      </div>
                       <p className="text-xs text-slate-300 leading-relaxed font-medium">{p.objetivo}</p>
 
                       <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
                         <p><strong className="text-slate-400">Beneficiarios:</strong> <span className="text-slate-200">{p.beneficiarios}</span></p>
                         <p><strong className="text-slate-400">Fuente:</strong> <span className="text-cyan-300">{p.fuente_primaria}</span></p>
+                        {p.veredas_impactadas && p.veredas_impactadas.length > 0 && (
+                          <p><strong className="text-slate-400">Veredas:</strong> <span className="text-slate-300">{p.veredas_impactadas.join(', ')}</span></p>
+                        )}
                       </div>
                     </div>
 
                     <button
-                      onClick={() => setSelectedProjectModal(p)}
-                      className="w-full py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-md transition-all cursor-pointer"
+                      onClick={() => handleOpenProjectWorkstation(p)}
+                      className="w-full py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer group"
                     >
-                      <span>Ver Expediente MGA Fase 3 📄</span>
+                      <FileText className="w-4 h-4 text-emerald-200 group-hover:scale-110 transition-transform" />
+                      <span>Abrir Expediente MGA & Suplir Requisitos 📄</span>
                     </button>
                   </div>
                 ))}
@@ -2212,93 +2635,803 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
       )}
 
       {/* ========================================================================= */}
-      {/* MODAL EXPEDIENTE MGA FASE 3 COMPLETO                                      */}
+      {/* MODAL ESTACIÓN DE FORMULACIÓN MGA & SUPLIR REQUISITOS (NIVEL PRESIDENCIA)   */}
       {/* ========================================================================= */}
-      {selectedProjectModal && (
-        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto animate-fadeIn">
-          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-3xl w-full p-6 sm:p-8 space-y-6 shadow-2xl relative my-8">
-            <button
-              onClick={() => setSelectedProjectModal(null)}
-              className="absolute top-5 right-5 w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer"
-            >
-              <X className="w-5 h-5" />
-            </button>
+      {selectedProject && (
+        <div className="fixed inset-0 z-50 bg-black/85 backdrop-blur-md flex items-center justify-center p-2 sm:p-4 overflow-y-auto animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-700/80 rounded-3xl max-w-5xl w-full p-5 sm:p-7 space-y-5 shadow-2xl relative my-6 max-h-[92vh] flex flex-col">
+            
+            {/* Header del Expediente */}
+            <div className="flex items-start justify-between border-b border-slate-800 pb-4 shrink-0">
+              <div className="space-y-1.5 flex-1 pr-6">
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
+                    BPIN: {selectedProject.codigo_bpin_propuesto || 'BPIN-2026'}
+                  </span>
+                  <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
+                    {selectedProject.sector_dnp}
+                  </span>
+                  
+                  {/* Selector interactivo de Estado de Trámite */}
+                  <select
+                    value={selectedProject.estado_tramite}
+                    onChange={(e) => setSelectedProject({ ...selectedProject, estado_tramite: e.target.value as any })}
+                    className="bg-slate-950 border border-slate-700 text-amber-300 text-[10px] font-bold rounded-lg px-2 py-0.5 focus:outline-none focus:border-cyan-500 cursor-pointer"
+                  >
+                    <option value="borrador">Borrador Inicial</option>
+                    <option value="en_estructuracion">En Estructuración</option>
+                    <option value="requisitos_pendientes">Requisitos en Gestión</option>
+                    <option value="listo_presidencia">Listo para Presidencia</option>
+                    <option value="radicado">Radicado en Ministerio</option>
+                  </select>
+                </div>
 
-            <div className="border-b border-slate-800 pb-4">
-              <div className="flex flex-wrap gap-2 items-center mb-2">
-                <span className="px-2.5 py-0.5 rounded text-[10px] font-black bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                  {selectedProjectModal.codigo_bpin}
-                </span>
-                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-cyan-500/20 text-cyan-300 border border-cyan-400/30">
-                  {selectedProjectModal.sector}
-                </span>
-                <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
-                  {selectedProjectModal.fase}
-                </span>
+                <input
+                  type="text"
+                  value={selectedProject.nombre_proyecto}
+                  onChange={(e) => setSelectedProject({ ...selectedProject, nombre_proyecto: e.target.value })}
+                  className="w-full bg-slate-950/60 border border-slate-800 rounded-xl px-3 py-1.5 text-base sm:text-xl font-black text-white focus:outline-none focus:border-cyan-500 transition-all"
+                  placeholder="Nombre oficial del proyecto..."
+                />
+
+                <div className="flex flex-wrap items-center gap-4 text-xs text-slate-400 pt-0.5">
+                  <span><strong>Fuente:</strong> <span className="text-cyan-300">{selectedProject.fuente_financiacion_principal}</span></span>
+                  <span>•</span>
+                  <span><strong>Veredas:</strong> <span className="text-slate-200">{selectedProject.veredas_impactadas?.join(', ') || 'Rural'}</span></span>
+                  <span>•</span>
+                  <span><strong>Presupuesto:</strong> <span className="text-emerald-400 font-bold font-mono">{formatCOP(selectedProject.presupuesto_total_cop)}</span></span>
+                </div>
               </div>
-              <h2 className="text-xl sm:text-2xl font-black text-white mt-1">
-                {selectedProjectModal.nombre}
-              </h2>
-              <p className="text-xs text-cyan-400 font-bold mt-1">
-                Fuente Primaria: {selectedProjectModal.fuente_primaria}
-              </p>
+
+              <button
+                onClick={() => setSelectedProject(null)}
+                className="w-8 h-8 rounded-full bg-slate-800 hover:bg-slate-700 text-slate-400 hover:text-white flex items-center justify-center transition-colors cursor-pointer shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </button>
             </div>
 
-            {/* Indicadores Financieros */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
-              <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Presupuesto</span>
-                <p className="text-sm font-black text-emerald-400 mt-0.5">{selectedProjectModal.presupuesto_total}</p>
-              </div>
-              <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Beneficiarios</span>
-                <p className="text-sm font-black text-cyan-400 mt-0.5">{selectedProjectModal.beneficiarios}</p>
-              </div>
-              <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center col-span-2">
-                <span className="text-[10px] uppercase font-bold text-slate-400">Evaluación Socioeconómica DNP</span>
-                <p className="text-xs font-bold text-amber-300 mt-0.5">{selectedProjectModal.evaluacion_socioeconomica}</p>
-              </div>
+            {/* Sub-Navegación del Expediente */}
+            <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-800 pb-2 shrink-0">
+              {[
+                { id: 'mga', label: 'Ficha MGA Canónica (Módulos 1-4)', icon: FileText },
+                { id: 'requisitos', label: `Suplir Requisitos (${requisitosList.filter(r => r.estado !== 'pendiente').length}/12)`, icon: CheckSquare },
+                { id: 'censo', label: `Censo & Respaldos (${censoList.length})`, icon: Users },
+                { id: 'apu', label: 'Presupuesto APU', icon: Layers },
+                { id: 'dossier', label: 'Dossier Presidencia (Imprimir / PDF)', icon: Printer }
+              ].map(tab => {
+                const IconComponent = tab.icon;
+                const isActive = projectWorkTab === tab.id;
+                return (
+                  <button
+                    key={tab.id}
+                    onClick={() => setProjectWorkTab(tab.id as any)}
+                    className={`px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all ${
+                      isActive
+                        ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md'
+                        : 'bg-slate-800/80 hover:bg-slate-700/80 text-slate-300 hover:text-white'
+                    }`}
+                  >
+                    <IconComponent className="w-3.5 h-3.5" />
+                    <span>{tab.label}</span>
+                  </button>
+                );
+              })}
             </div>
 
-            {/* Módulo 1 MGA: Árbol de Problemas y Objetivos */}
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <h4 className="text-xs font-black uppercase text-rose-400 flex items-center gap-1.5">
-                <AlertTriangle className="w-4 h-4 text-rose-400" /> Módulo 1 MGA: Árbol de Problemas & Efectos
-              </h4>
-              <div className="text-xs text-slate-200 leading-relaxed font-mono whitespace-pre-line">
-                {typeof selectedProjectModal.arbol_problemas === 'string'
-                  ? selectedProjectModal.arbol_problemas
-                  : selectedProjectModal.arbol_problemas
-                    ? `• Problema Central: ${selectedProjectModal.arbol_problemas.problema_central}\n• Causa Directa: ${selectedProjectModal.arbol_problemas.causa_directa}\n• Causa Indirecta: ${selectedProjectModal.arbol_problemas.causa_indirecta}\n• Efecto Directo: ${selectedProjectModal.arbol_problemas.efecto_directo}\n• Efecto Indirecto: ${selectedProjectModal.arbol_problemas.efecto_indirecto}`
-                    : 'Diagnóstico territorial verificado con fuentes oficiales DNP y TerriData.'}
-              </div>
-            </div>
-
-            {/* Módulo 2 & 4 MGA: APU Regionalizado */}
-            <div className="bg-slate-950/60 p-5 rounded-2xl border border-slate-800 space-y-2">
-              <h4 className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
-                <Layers className="w-4 h-4 text-emerald-400" /> Módulos 2 & 4 MGA: Ingeniería & Análisis de Precios (APU)
-              </h4>
-              <div className="text-xs text-slate-200 leading-relaxed">
-                {Array.isArray(selectedProjectModal.capitulos_presupuesto_apu) ? (
-                  <div className="space-y-1.5 mt-2">
-                    {selectedProjectModal.capitulos_presupuesto_apu.map((c: any, cIdx: number) => (
-                      <div key={cIdx} className="bg-slate-900/80 p-2.5 rounded-lg border border-slate-800 flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 text-xs">
-                        <span className="font-semibold text-slate-300">{c.capitulo}</span>
-                        <span className="font-mono text-cyan-300 font-bold">{c.apu_clave || (typeof c.valor === 'number' ? formatCOP(c.valor) : c.valor)}</span>
-                      </div>
-                    ))}
+            {/* Contenido Dinámico por Pestaña */}
+            <div className="flex-1 overflow-y-auto space-y-4 pr-1">
+              
+              {/* PESTAÑA 1: FICHA MGA CANÓNICA (MÓDULOS 1 A 4) */}
+              {projectWorkTab === 'mga' && (
+                <div className="space-y-4 animate-fadeIn">
+                  
+                  {/* Resumen Indicadores Financieros y Población */}
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Presupuesto COP</span>
+                      <input
+                        type="number"
+                        value={selectedProject.presupuesto_total_cop}
+                        onChange={(e) => setSelectedProject({ ...selectedProject, presupuesto_total_cop: Number(e.target.value) })}
+                        className="w-full text-center bg-transparent text-sm font-black text-emerald-400 focus:outline-none border-b border-dashed border-emerald-500/40 mt-0.5"
+                      />
+                    </div>
+                    <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Población Beneficiaria</span>
+                      <input
+                        type="number"
+                        value={selectedProject.poblacion_beneficiaria_total}
+                        onChange={(e) => setSelectedProject({ ...selectedProject, poblacion_beneficiaria_total: Number(e.target.value) })}
+                        className="w-full text-center bg-transparent text-sm font-black text-cyan-400 focus:outline-none border-b border-dashed border-cyan-500/40 mt-0.5"
+                      />
+                    </div>
+                    <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-center col-span-2">
+                      <span className="text-[10px] uppercase font-bold text-slate-400">Evaluación Socioeconómica DNP</span>
+                      <p className="text-xs font-bold text-amber-300 mt-1">
+                        Tasa Social Descuento: 12,0% • VPN Social: {selectedProject.evaluacion_economica?.vpn_social || 'Viable'} • TIR: {selectedProject.evaluacion_economica?.tir_social || '19,4%'} • B/C: {selectedProject.evaluacion_economica?.relacion_costo_beneficio || '1,45'}
+                      </p>
+                    </div>
                   </div>
-                ) : (
-                  <p>{selectedProjectModal.apu_clave || 'Análisis de Precios Unitarios oficial con estándar INVIAS y DNP.'}</p>
+
+                  {/* Módulo 1 MGA: Árbol de Problemas */}
+                  <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <h4 className="text-xs font-black uppercase text-rose-400 flex items-center gap-1.5">
+                        <AlertTriangle className="w-4 h-4 text-rose-400" /> Módulo 1 MGA: Identificación & Árbol de Problemas
+                      </h4>
+                      <span className="text-[10px] text-slate-400">Metodología General Ajustada DNP</span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Problema Central:</label>
+                        <textarea
+                          rows={2}
+                          value={selectedProject.arbol_problemas?.problema_central || ''}
+                          onChange={(e) => setSelectedProject({
+                            ...selectedProject,
+                            arbol_problemas: { ...selectedProject.arbol_problemas, problema_central: e.target.value }
+                          })}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-rose-400"
+                        />
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Causa Directa:</label>
+                          <input
+                            type="text"
+                            value={selectedProject.arbol_problemas?.causa_directa || ''}
+                            onChange={(e) => setSelectedProject({
+                              ...selectedProject,
+                              arbol_problemas: { ...selectedProject.arbol_problemas, causa_directa: e.target.value }
+                            })}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-rose-400"
+                          />
+                        </div>
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Efecto Directo:</label>
+                          <input
+                            type="text"
+                            value={selectedProject.arbol_problemas?.efecto_directo || ''}
+                            onChange={(e) => setSelectedProject({
+                              ...selectedProject,
+                              arbol_problemas: { ...selectedProject.arbol_problemas, efecto_directo: e.target.value }
+                            })}
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-rose-400"
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Módulo 2 MGA: Árbol de Objetivos */}
+                  <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex items-center justify-between border-b border-slate-800 pb-1.5">
+                      <h4 className="text-xs font-black uppercase text-emerald-400 flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Módulo 2 MGA: Preparación & Árbol de Objetivos
+                      </h4>
+                      <span className="text-[10px] text-slate-400">Solución Propuesta</span>
+                    </div>
+
+                    <div className="space-y-2 text-xs">
+                      <div>
+                        <label className="text-[10px] font-bold text-slate-400 block mb-0.5">Objetivo General (Propósito del Proyecto):</label>
+                        <textarea
+                          rows={2}
+                          value={selectedProject.arbol_objetivos?.objetivo_general || ''}
+                          onChange={(e) => setSelectedProject({
+                            ...selectedProject,
+                            arbol_objetivos: { ...selectedProject.arbol_objetivos, objetivo_general: e.target.value }
+                          })}
+                          className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2 text-slate-200 focus:outline-none focus:border-emerald-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Módulo 4 MGA: Justificación de Impacto Presidencia */}
+                  <div className="bg-slate-950/60 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <h4 className="text-xs font-black uppercase text-cyan-400 flex items-center gap-1.5">
+                      <Landmark className="w-4 h-4 text-cyan-400" /> Justificación Ejecutiva para Presidencia y Ministerios
+                    </h4>
+                    <textarea
+                      rows={3}
+                      value={selectedProject.justificacion_presidencia || ''}
+                      onChange={(e) => setSelectedProject({ ...selectedProject, justificacion_presidencia: e.target.value })}
+                      className="w-full bg-slate-900 border border-slate-700 rounded-xl p-2.5 text-xs text-slate-200 focus:outline-none focus:border-cyan-400 leading-relaxed"
+                      placeholder="Redacción estratégica que fundamenta la necesidad ante el Presidente de la República..."
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* PESTAÑA 2: "SUPLIR REQUISITOS" (CHECKLIST DE VIABILIDAD SECTORIAL) */}
+              {projectWorkTab === 'requisitos' && (
+                <div className="space-y-4 animate-fadeIn">
+                  
+                  {/* Semáforo de Viabilidad */}
+                  <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2">
+                        <span className="text-xs font-black uppercase tracking-wider text-slate-300">Semáforo de Viabilidad Ministerial</span>
+                        <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                          {Math.round((requisitosList.filter(r => r.estado !== 'pendiente').length / (requisitosList.length || 1)) * 100)}% CUMPLIDO
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-slate-400">
+                        Suple cada requisito adjuntando los soportes o generando las minutas institucionales requeridas para radicar.
+                      </p>
+                    </div>
+
+                    {/* Filtros de Categoría */}
+                    <div className="flex flex-wrap items-center gap-1">
+                      {['todos', 'legal', 'tecnico', 'ambiental', 'censo'].map(cat => (
+                        <button
+                          key={cat}
+                          onClick={() => setFiltroCategoriaReq(cat)}
+                          className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase transition-all cursor-pointer ${
+                            filtroCategoriaReq === cat
+                              ? 'bg-cyan-500 text-slate-950 font-black'
+                              : 'bg-slate-800 text-slate-400 hover:text-white'
+                          }`}
+                        >
+                          {cat}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Lista de Requisitos */}
+                  <div className="space-y-2.5">
+                    {requisitosList
+                      .filter(r => filtroCategoriaReq === 'todos' || r.categoria === filtroCategoriaReq)
+                      .map((req, rIdx) => (
+                        <div 
+                          key={req.id || rIdx}
+                          className="bg-slate-950/80 border border-slate-800 rounded-2xl p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-slate-700 transition-all"
+                        >
+                          <div className="space-y-1 flex-1 pr-3">
+                            <div className="flex items-center gap-2">
+                              <span className={`px-2 py-0.5 rounded text-[9px] font-black uppercase tracking-wider ${
+                                req.categoria === 'legal' ? 'bg-indigo-950 text-indigo-300 border border-indigo-800' :
+                                req.categoria === 'tecnico' ? 'bg-cyan-950 text-cyan-300 border border-cyan-800' :
+                                req.categoria === 'ambiental' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
+                                'bg-amber-950 text-amber-300 border border-amber-800'
+                              }`}>
+                                {req.categoria}
+                              </span>
+                              <h5 className="text-xs sm:text-sm font-black text-white">{req.nombre_requisito}</h5>
+                            </div>
+                            <p className="text-[11px] text-slate-400 leading-snug">{req.descripcion}</p>
+                            
+                            {req.archivo_nombre && (
+                              <div className="flex items-center gap-2 pt-1 text-[11px] text-cyan-300">
+                                <Paperclip className="w-3.5 h-3.5" />
+                                <span className="font-mono font-medium">{req.archivo_nombre}</span>
+                                {req.archivo_size && <span className="text-slate-500 text-[10px]">({Math.round(req.archivo_size / 1024)} KB)</span>}
+                              </div>
+                            )}
+
+                            {req.observaciones && (
+                              <p className="text-[10px] text-slate-500 italic">Nota: {req.observaciones}</p>
+                            )}
+                          </div>
+
+                          {/* Acciones para Suplir */}
+                          <div className="flex flex-wrap sm:flex-col items-end gap-1.5 shrink-0">
+                            {/* Toggle Estado */}
+                            <button
+                              onClick={() => handleToggleRequisitoEstado(req)}
+                              className={`px-3 py-1 rounded-xl text-[10px] font-black uppercase tracking-wider flex items-center gap-1.5 transition-all cursor-pointer ${
+                                req.estado === 'verificado' ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-400/40' :
+                                req.estado === 'cargado' ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-400/40' :
+                                'bg-rose-500/20 text-rose-300 border border-rose-400/40'
+                              }`}
+                            >
+                              <span className={`w-2 h-2 rounded-full ${
+                                req.estado === 'verificado' ? 'bg-emerald-400' :
+                                req.estado === 'cargado' ? 'bg-cyan-400' : 'bg-rose-400'
+                              }`} />
+                              <span>{req.estado === 'verificado' ? 'Verificado ✓' : req.estado === 'cargado' ? 'Suministrado' : 'Pendiente ⏳'}</span>
+                            </button>
+
+                            <div className="flex items-center gap-1">
+                              {/* Botón Adjuntar Archivo */}
+                              <label className="px-2.5 py-1 rounded-lg bg-slate-800 hover:bg-slate-700 text-slate-200 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors">
+                                <Upload className="w-3 h-3 text-cyan-400" />
+                                <span>{uploadingReqId === req.id ? 'Subiendo...' : 'Adjuntar'}</span>
+                                <input
+                                  type="file"
+                                  className="hidden"
+                                  onChange={(e) => handleUploadDocumento(req.id, e)}
+                                />
+                              </label>
+
+                              {/* Botón Generar Minuta con IA */}
+                              <button
+                                onClick={() => handleGenerarMinutaIa(req)}
+                                className="px-2.5 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                              >
+                                <Sparkles className="w-3 h-3 text-indigo-400" />
+                                <span>Minuta IA</span>
+                              </button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                  </div>
+                </div>
+              )}
+
+              {/* PESTAÑA 3: CENSO DE BENEFICIARIOS & AFECTADOS */}
+              {projectWorkTab === 'censo' && (
+                <div className="space-y-4 animate-fadeIn">
+                  
+                  {/* Barra de Acciones del Censo */}
+                  <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <h4 className="text-sm font-black text-white flex items-center gap-2">
+                        <Users className="w-4 h-4 text-cyan-400" /> Censo Georreferenciado de Familias y Beneficiarios
+                      </h4>
+                      <p className="text-[11px] text-slate-400">
+                        {censoList.length} familias registradas • Sustento obligatorio para la evaluación socioeconómica DNP.
+                      </p>
+                    </div>
+
+                    <div className="flex flex-wrap items-center gap-2">
+                      <button
+                        onClick={handleVincularVozCiudadanaAlCenso}
+                        className="px-3 py-1.5 rounded-xl bg-indigo-950 border border-indigo-700/60 text-indigo-300 hover:text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+                      >
+                        <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
+                        <span>Vincular Voz Ciudadana</span>
+                      </button>
+
+                      <button
+                        onClick={handleExportarCensoCsv}
+                        className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 border border-slate-700 text-slate-200 text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
+                      >
+                        <Download className="w-3.5 h-3.5 text-cyan-400" />
+                        <span>Exportar CSV</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Formulario Rápido para Añadir Beneficiario */}
+                  <form onSubmit={handleAddBeneficiario} className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800/80 space-y-3">
+                    <span className="text-[10px] uppercase font-black tracking-wider text-slate-400 block">
+                      + Registrar Nueva Familia / Finca al Censo
+                    </span>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                      <input
+                        type="text"
+                        placeholder="Nombre del jefe de hogar"
+                        value={nuevoBeneficiarioForm.nombre}
+                        onChange={(e) => setNuevoBeneficiarioForm({ ...nuevoBeneficiarioForm, nombre: e.target.value })}
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                        required
+                      />
+                      <input
+                        type="text"
+                        placeholder="Cédula / Documento"
+                        value={nuevoBeneficiarioForm.cedula}
+                        onChange={(e) => setNuevoBeneficiarioForm({ ...nuevoBeneficiarioForm, cedula: e.target.value })}
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Vereda / Sector"
+                        value={nuevoBeneficiarioForm.vereda}
+                        onChange={(e) => setNuevoBeneficiarioForm({ ...nuevoBeneficiarioForm, vereda: e.target.value })}
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                      <input
+                        type="text"
+                        placeholder="Finca / Hectáreas productivas"
+                        value={nuevoBeneficiarioForm.finca}
+                        onChange={(e) => setNuevoBeneficiarioForm({ ...nuevoBeneficiarioForm, finca: e.target.value })}
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                    </div>
+
+                    <div className="grid grid-cols-1 sm:grid-cols-4 gap-2.5">
+                      <input
+                        type="text"
+                        placeholder="WhatsApp / Teléfono"
+                        value={nuevoBeneficiarioForm.tel}
+                        onChange={(e) => setNuevoBeneficiarioForm({ ...nuevoBeneficiarioForm, tel: e.target.value })}
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                      />
+                      <select
+                        value={nuevoBeneficiarioForm.sisben}
+                        onChange={(e) => setNuevoBeneficiarioForm({ ...nuevoBeneficiarioForm, sisben: e.target.value })}
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                      >
+                        <option value="A1">Sisbén A1 (Pobreza Extrema)</option>
+                        <option value="A4">Sisbén A4 (Pobreza Extrema)</option>
+                        <option value="B1">Sisbén B1 (Pobreza Moderada)</option>
+                        <option value="B4">Sisbén B4 (Pobreza Moderada)</option>
+                        <option value="C1">Sisbén C1 (Vulnerable)</option>
+                        <option value="D">Sisbén D (No Pobre)</option>
+                      </select>
+                      <input
+                        type="text"
+                        placeholder="Observación / Necesidad puntual"
+                        value={nuevoBeneficiarioForm.obs}
+                        onChange={(e) => setNuevoBeneficiarioForm({ ...nuevoBeneficiarioForm, obs: e.target.value })}
+                        className="bg-slate-900 border border-slate-700 rounded-xl px-3 py-1.5 text-xs text-white focus:outline-none focus:border-cyan-500 col-span-2"
+                      />
+                    </div>
+
+                    <button
+                      type="submit"
+                      className="px-4 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-xl flex items-center gap-1.5 cursor-pointer transition-colors"
+                    >
+                      <UserCheck className="w-3.5 h-3.5" />
+                      <span>Guardar en Censo Oficial</span>
+                    </button>
+                  </form>
+
+                  {/* Tabla de Censados */}
+                  <div className="bg-slate-950/80 rounded-2xl border border-slate-800 overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-slate-900 text-slate-400 uppercase text-[10px] tracking-wider border-b border-slate-800">
+                        <tr>
+                          <th className="p-3">Nombre</th>
+                          <th className="p-3">Cédula</th>
+                          <th className="p-3">Vereda</th>
+                          <th className="p-3">Sisbén</th>
+                          <th className="p-3">Unidad Productiva</th>
+                          <th className="p-3">Contacto</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-800/80 text-slate-200">
+                        {censoList.map((c, cIdx) => (
+                          <tr key={c.id || cIdx} className="hover:bg-slate-900/50">
+                            <td className="p-3 font-bold text-white">{c.nombre_completo}</td>
+                            <td className="p-3 font-mono text-slate-400">{c.numero_documento || 'S/N'}</td>
+                            <td className="p-3 text-cyan-300">{c.vereda}</td>
+                            <td className="p-3">
+                              <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                                {c.grupo_sisben || 'B1'}
+                              </span>
+                            </td>
+                            <td className="p-3 text-slate-300">{c.hectareas_o_unidad_productiva || 'Finca Rural'}</td>
+                            <td className="p-3 font-mono text-emerald-400">{c.telefono_contacto || '-'}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              )}
+
+              {/* PESTAÑA 4: PRESUPUESTO & APU REGIONALIZADO */}
+              {projectWorkTab === 'apu' && (
+                <div className="space-y-4 animate-fadeIn">
+                  <div className="bg-slate-950/70 p-4 rounded-2xl border border-slate-800 flex items-center justify-between">
+                    <div>
+                      <h4 className="text-sm font-black text-white">Análisis de Precios Unitarios (APU Regionalizado)</h4>
+                      <p className="text-[11px] text-slate-400">Tarifas oficiales INVIAS y Gobernación de Cundinamarca actualizadas a 2026.</p>
+                    </div>
+                    <div className="text-right">
+                      <span className="text-[10px] uppercase font-bold text-slate-400 block">TOTAL PRESUPUESTADO</span>
+                      <span className="text-lg font-black font-mono text-emerald-400">{formatCOP(selectedProject.presupuesto_total_cop)}</span>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    {Array.isArray(selectedProject.capitulos_presupuesto_apu) ? (
+                      selectedProject.capitulos_presupuesto_apu.map((cap, cIdx) => (
+                        <div key={cIdx} className="bg-slate-950/80 p-3 rounded-xl border border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+                          <div>
+                            <span className="font-bold text-white block">{cap.capitulo}</span>
+                            <span className="text-[11px] text-cyan-300">{cap.apu_clave || 'APU Tipo DNP'}</span>
+                          </div>
+                          <span className="font-mono text-emerald-400 font-bold text-sm">
+                            {typeof cap.valor === 'number' ? formatCOP(cap.valor) : cap.valor}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="bg-slate-950/80 p-4 rounded-xl border border-slate-800 text-xs text-slate-300">
+                        {selectedProject.apu_clave || 'Estructura APU con estándar INVIAS y DNP para obras de infraestructura regional.'}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )}
+
+              {/* PESTAÑA 5: DOSSIER EJECUTIVO PARA PRESIDENCIA (IMPRIMIBLE / PDF) */}
+              {projectWorkTab === 'dossier' && (
+                <div className="space-y-4 animate-fadeIn">
+                  
+                  <div className="flex items-center justify-between bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
+                    <span className="text-xs text-slate-300 font-bold">
+                      📄 Vista previa de alta gala institucional para entrega al Señor Presidente de la República o Ministros.
+                    </span>
+                    <button
+                      onClick={() => window.print()}
+                      className="px-4 py-2 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl flex items-center gap-1.5 shadow-md cursor-pointer transition-all"
+                    >
+                      <Printer className="w-3.5 h-3.5" />
+                      <span>Imprimir / Guardar en PDF Oficial</span>
+                    </button>
+                  </div>
+
+                  {/* Hoja de Expediente Imprimible */}
+                  <div className="bg-white text-slate-900 rounded-2xl p-6 sm:p-8 space-y-6 shadow-2xl border border-slate-300">
+                    
+                    {/* Membrete Oficial */}
+                    <div className="border-b-2 border-slate-900 pb-4 text-center space-y-1">
+                      <span className="text-[10px] font-black uppercase tracking-widest text-slate-600 block">
+                        REPÚBLICA DE COLOMBIA • DEPARTAMENTO DE CUNDINAMARCA
+                      </span>
+                      <h2 className="text-xl font-black tracking-tight text-slate-950 uppercase">
+                        ALCALDÍA MUNICIPAL DE {isCaparrapi ? 'CAPARRAPÍ' : 'GUADUAS'}
+                      </h2>
+                      <span className="text-xs font-bold text-slate-700 block">
+                        DESPACHO DE PLANEACIÓN Y ESTRUCTURACIÓN DE PROYECTOS
+                      </span>
+                      <div className="inline-block px-3 py-0.5 mt-2 bg-slate-900 text-white text-[11px] font-mono font-bold rounded">
+                        RADICADO BPIN DNP: {selectedProject.codigo_bpin_propuesto || '2026-CAP-MGA'}
+                      </div>
+                    </div>
+
+                    {/* Ficha Ejecutiva del Proyecto */}
+                    <div className="space-y-3">
+                      <div>
+                        <span className="text-[10px] font-black uppercase tracking-wider text-slate-500">PROYECTO:</span>
+                        <h3 className="text-lg font-black text-slate-950 leading-snug">{selectedProject.nombre_proyecto}</h3>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 py-2 border-y border-slate-200 text-xs">
+                        <div>
+                          <strong className="text-slate-500 text-[10px] uppercase block">Sector:</strong>
+                          <span className="font-bold">{selectedProject.sector_dnp}</span>
+                        </div>
+                        <div>
+                          <strong className="text-slate-500 text-[10px] uppercase block">Presupuesto:</strong>
+                          <span className="font-black text-emerald-700 font-mono">{formatCOP(selectedProject.presupuesto_total_cop)}</span>
+                        </div>
+                        <div>
+                          <strong className="text-slate-500 text-[10px] uppercase block">Beneficiarios:</strong>
+                          <span className="font-bold">{selectedProject.poblacion_beneficiaria_total.toLocaleString('es-CO')} Habitantes</span>
+                        </div>
+                        <div>
+                          <strong className="text-slate-500 text-[10px] uppercase block">Fuente Solicitada:</strong>
+                          <span className="font-bold text-cyan-800">{selectedProject.fuente_financiacion_principal}</span>
+                        </div>
+                      </div>
+
+                      <div>
+                        <strong className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                          JUSTIFICACIÓN TÉCNICA Y TERRITORIAL:
+                        </strong>
+                        <p className="text-xs text-slate-800 leading-relaxed text-justify">
+                          {selectedProject.justificacion_presidencia}
+                        </p>
+                      </div>
+
+                      <div>
+                        <strong className="text-[10px] font-black uppercase tracking-wider text-slate-500 block mb-1">
+                          OBJETIVO GENERAL & ALCANCE:
+                        </strong>
+                        <p className="text-xs text-slate-800 leading-relaxed text-justify">
+                          {selectedProject.arbol_objetivos?.objetivo_general}
+                        </p>
+                      </div>
+
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200 text-xs space-y-1">
+                        <strong className="text-[10px] font-black uppercase text-slate-600 block">
+                          ESTADO DEL EXPEDIENTE DE VIABILIDAD ("SUPLIR REQUISITOS"):
+                        </strong>
+                        <p className="text-slate-700">
+                          • {requisitosList.filter(r => r.estado === 'verificado' || r.estado === 'cargado').length} de 12 requisitos del sector completados y archivados en el expediente técnico.
+                        </p>
+                        <p className="text-slate-700">
+                          • Censo territorial anexado con {censoList.length} familias campesinas verificadas en {selectedProject.veredas_impactadas?.join(', ')}.
+                        </p>
+                      </div>
+
+                      {/* Cuadro de Firmas Oficiales */}
+                      <div className="grid grid-cols-2 gap-8 pt-8 text-center text-xs text-slate-800">
+                        <div className="border-t border-slate-900 pt-2">
+                          <p className="font-black text-slate-950">ALCALDE MUNICIPAL</p>
+                          <p className="text-[11px] text-slate-600">Municipio de {isCaparrapi ? 'Caparrapí' : 'Guaduas'}</p>
+                        </div>
+                        <div className="border-t border-slate-900 pt-2">
+                          <p className="font-black text-slate-950">EQUIPO DE ESTRUCTURACIÓN MGA</p>
+                          <p className="text-[11px] text-slate-600">Secretaría de Planeación e Infraestructura</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Footer con Acciones de Guardado */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-slate-800 pt-3 shrink-0">
+              <div className="flex items-center gap-2">
+                {projectSaveSuccess && (
+                  <span className="text-xs font-bold text-emerald-400 flex items-center gap-1 animate-fadeIn">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" /> ¡Cambios sincronizados en Supabase!
+                  </span>
                 )}
               </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={handleSaveProjectChanges}
+                  disabled={isSavingProject}
+                  className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl flex items-center gap-2 shadow-lg shadow-emerald-950/40 cursor-pointer transition-all disabled:opacity-50"
+                >
+                  <Save className="w-4 h-4" />
+                  <span>{isSavingProject ? 'Guardando en Supabase...' : 'Guardar Cambios en Supabase 💾'}</span>
+                </button>
+
+                <button
+                  onClick={() => setSelectedProject(null)}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer transition-colors"
+                >
+                  Cerrar
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL DE NUEVO PROYECTO MGA CON IA                                        */}
+      {/* ========================================================================= */}
+      {showNuevoProyectoModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-slate-700 rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-black text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-emerald-400" /> Formular Nuevo Proyecto MGA
+              </h3>
+              <button
+                onClick={() => setShowNuevoProyectoModal(false)}
+                className="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
 
-            <div className="flex justify-end gap-3 pt-2">
+            <form onSubmit={handleCrearProyectoManual} className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Nombre del Proyecto</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="Ej: Construcción de Placa Huella en Corredor San Carlos - Pitalito"
+                  value={nuevoProyectoForm.nombre}
+                  onChange={(e) => setNuevoProyectoForm({ ...nuevoProyectoForm, nombre: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2.5 text-white focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-slate-300 font-bold block mb-1">Sector DNP</label>
+                  <select
+                    value={nuevoProyectoForm.sector}
+                    onChange={(e) => setNuevoProyectoForm({ ...nuevoProyectoForm, sector: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white focus:outline-none focus:border-cyan-500"
+                  >
+                    <option>Transporte (Vías Terciarias)</option>
+                    <option>Agua Potable y Saneamiento Básico</option>
+                    <option>Tecnologías de la Información (TIC)</option>
+                    <option>Agricultura y Desarrollo Rural</option>
+                    <option>Salud y Protección Social</option>
+                    <option>Educación</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="text-slate-300 font-bold block mb-1">Presupuesto Estimado (COP)</label>
+                  <input
+                    type="number"
+                    value={nuevoProyectoForm.presupuestoCop}
+                    onChange={(e) => setNuevoProyectoForm({ ...nuevoProyectoForm, presupuestoCop: Number(e.target.value) })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white font-mono focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-2.5">
+                <div>
+                  <label className="text-slate-300 font-bold block mb-1">Vereda Principal</label>
+                  <input
+                    type="text"
+                    value={nuevoProyectoForm.vereda}
+                    onChange={(e) => setNuevoProyectoForm({ ...nuevoProyectoForm, vereda: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+                <div>
+                  <label className="text-slate-300 font-bold block mb-1">Fuente Objetivo</label>
+                  <input
+                    type="text"
+                    value={nuevoProyectoForm.fuente}
+                    onChange={(e) => setNuevoProyectoForm({ ...nuevoProyectoForm, fuente: e.target.value })}
+                    className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white focus:outline-none focus:border-cyan-500"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="text-slate-300 font-bold block mb-1">Objetivo General y Alcance</label>
+                <textarea
+                  rows={2}
+                  placeholder="Describe qué necesidad resuelve y qué infraestructura entregará..."
+                  value={nuevoProyectoForm.objetivo}
+                  onChange={(e) => setNuevoProyectoForm({ ...nuevoProyectoForm, objetivo: e.target.value })}
+                  className="w-full bg-slate-950 border border-slate-700 rounded-xl p-2 text-white focus:outline-none focus:border-cyan-500"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setShowNuevoProyectoModal(false)}
+                  className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-black text-xs shadow-md"
+                >
+                  Crear y Abrir Expediente 🚀
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================================= */}
+      {/* MODAL DE MINUTA OFICIAL GENERADA CON IA                                   */}
+      {/* ========================================================================= */}
+      {aiDraftModal && aiDraftModal.open && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-md flex items-center justify-center p-4 animate-fadeIn">
+          <div className="bg-slate-900 border border-cyan-500/50 rounded-3xl max-w-xl w-full p-6 space-y-4 shadow-2xl relative">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-sm font-black text-white flex items-center gap-2">
+                <Sparkles className="w-4 h-4 text-cyan-400" /> {aiDraftModal.titulo}
+              </h3>
               <button
-                onClick={() => setSelectedProjectModal(null)}
-                className="px-5 py-2 rounded-xl text-xs font-bold bg-slate-800 hover:bg-slate-700 text-slate-200 cursor-pointer"
+                onClick={() => setAiDraftModal(null)}
+                className="p-1 rounded-full bg-slate-800 text-slate-400 hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="bg-slate-950 p-4 rounded-xl border border-slate-800 text-slate-200 font-mono text-[11px] whitespace-pre-wrap leading-relaxed max-h-80 overflow-y-auto">
+              {aiDraftModal.contenido}
+            </div>
+
+            <div className="flex justify-end gap-2 pt-1">
+              <button
+                onClick={() => {
+                  navigator.clipboard.writeText(aiDraftModal.contenido);
+                  alert('¡Minuta copiada al portapapeles!');
+                }}
+                className="px-4 py-2 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-slate-950 font-black text-xs shadow-md cursor-pointer"
+              >
+                Copiar Texto 📋
+              </button>
+              <button
+                onClick={() => setAiDraftModal(null)}
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer"
               >
                 Cerrar
               </button>
