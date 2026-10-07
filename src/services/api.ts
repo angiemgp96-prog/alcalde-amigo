@@ -129,6 +129,11 @@ export async function saveCitizenLead(lead: Omit<CitizenLead, 'id' | 'fechaRegis
 
 // Actualiza explícitamente la información de contacto (Nombre, WhatsApp) para este dispositivo/IP en Supabase
 export async function updateUserLeadInSupabase(nombre: string, whatsapp: string, veredaBarrio?: string): Promise<boolean> {
+  const cleanName = cleanHumanName(nombre);
+  const cleanPhone = whatsapp ? whatsapp.replace(/[\s.-]/g, '') : '';
+  if (!cleanName && !cleanPhone) return false;
+
+  const finalNameToSave = cleanName || 'Ciudadano';
   const deviceId = getDeviceId();
   const ipAddress = await getClientIpAddress();
 
@@ -138,8 +143,8 @@ export async function updateUserLeadInSupabase(nombre: string, whatsapp: string,
       const { data, error } = await supabaseClient
         .from('ciudadanos_leads')
         .update({
-          nombre: nombre,
-          whatsapp: whatsapp,
+          nombre: finalNameToSave,
+          whatsapp: cleanPhone,
           vereda_barrio: veredaBarrio || 'Guaduas'
         })
         .eq('device_id', deviceId)
@@ -150,8 +155,8 @@ export async function updateUserLeadInSupabase(nombre: string, whatsapp: string,
         await supabaseClient
           .from('ciudadanos_leads')
           .update({
-            nombre: nombre,
-            whatsapp: whatsapp,
+            nombre: finalNameToSave,
+            whatsapp: cleanPhone,
             vereda_barrio: veredaBarrio || 'Guaduas'
           })
           .eq('ip_address', ipAddress);
@@ -170,8 +175,8 @@ export async function updateUserLeadInSupabase(nombre: string, whatsapp: string,
         found = true;
         return {
           ...l,
-          nombre,
-          whatsapp,
+          nombre: finalNameToSave,
+          whatsapp: cleanPhone,
           veredaBarrio: veredaBarrio || l.veredaBarrio
         };
       }
@@ -181,8 +186,8 @@ export async function updateUserLeadInSupabase(nombre: string, whatsapp: string,
     if (!found || updated.length === 0) {
       updated.unshift({
         id: `lead-${Date.now()}`,
-        nombre,
-        whatsapp,
+        nombre: finalNameToSave,
+        whatsapp: cleanPhone,
         veredaBarrio: veredaBarrio || 'Guaduas',
         fechaRegistro: new Date().toISOString(),
         estadoNotificacion: 'activo'
@@ -633,7 +638,7 @@ export async function checkUserLeadRegistrationInSupabase(deviceId?: string, ipA
       }
 
       if (data && data.whatsapp && data.whatsapp.length > 5) {
-        const cleanedName = cleanHumanName(data.nombre) || 'Ciudadano';
+        const cleanedName = cleanHumanName(data.nombre);
         return { isRegistered: true, nombre: cleanedName, whatsapp: data.whatsapp };
       }
     } catch (err) {
@@ -651,8 +656,8 @@ export function getUserLeadInfo(): { nombre: string; whatsapp: string; veredaBar
     const deviceId = getDeviceId();
     const match = leads.find(l => (l as any).deviceId === deviceId || (l.nombre && l.nombre !== 'Ciudadano Anónimo' && !l.nombre.startsWith('Ciudadano de')));
     if (match && match.whatsapp && match.whatsapp.length > 5) {
-      const cleanedName = cleanHumanName(match.nombre) || 'Ciudadano';
-      return { nombre: cleanedName, whatsapp: match.whatsapp, veredaBarrio: match.veredaBarrio };
+      const cleanedName = cleanHumanName(match.nombre);
+      return { nombre: cleanedName || '', whatsapp: match.whatsapp, veredaBarrio: match.veredaBarrio };
     }
   } catch (e) {
     console.warn('Error recuperando datos del usuario:', e);

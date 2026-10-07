@@ -5,6 +5,7 @@ import {
   getPastInteractionsHistory, 
   getBaseProposals, 
   checkUserLeadRegistrationInSupabase, 
+  getUserLeadInfo,
   saveCitizenLead, 
   updateUserLeadInSupabase, 
   purgeAndReplaceTermInSupabaseHistory,
@@ -104,12 +105,20 @@ export function cleanHumanName(name?: string): string | undefined {
     'de', 'del', 'la', 'el', 'los', 'las', 'san', 'santa', 'caparrapi', 'caparrapí', 'guaduas', 'cundinamarca', 'colombia',
     'hola', 'buenas', 'saludos', 'para', 'tengo', 'quiero', 'necesito', 'buenos', 'dias', 'tardes', 'noches',
     'ramitos', 'alcalde', 'amigo', 'plan', 'vereda', 'barrio', 'parque', 'agua', 'calle', 'solucion',
-    'propuesta', 'escuela', 'ver', 'abrir', 'como', 'donde', 'cuando', 'quien', 'porque', 'este', 'esta', 'estos',
-    'estas', 'pero', 'bien', 'gracias', 'sino', 'tampoco', 'tienen', 'podrian', 'podria', 'hacer', 'crear', 'dije',
-    'dicen', 'decir', 'recuerdo', 'pense', 'pensaba', 'contactame', 'contactar', 'contacto', 'mensajes', 'mensaje',
-    'escribir', 'escribe', 'hablar', 'herramientas', 'comentarte', 'decirte', 'anos', 'años', 'ciudadano', 'anonimo',
-    'anónimo', 'usuario', 'registrado', 'numero', 'número', 'celular', 'whatsapp', 'telefono', 'teléfono', 'opcion',
-    'opción', 'practica', 'práctica', 'zona', 'cercana', 'mente'
+    'propuesta', 'escuela', 'ver', 'abrir', 'como', 'cómo', 'donde', 'dónde', 'cuando', 'cuándo', 'quien', 'quién',
+    'porque', 'este', 'esta', 'estos', 'estas', 'pero', 'bien', 'gracias', 'sino', 'tampoco', 'tienen', 'podrian',
+    'podria', 'podría', 'podrían', 'hacer', 'crear', 'dije', 'dicen', 'decir', 'recuerdo', 'pense', 'pensaba',
+    'contactame', 'contactar', 'contacto', 'mensajes', 'mensaje', 'escribir', 'escribe', 'hablar', 'herramientas',
+    'comentarte', 'decirte', 'anos', 'años', 'ciudadano', 'anonimo', 'anónimo', 'usuario', 'registrado', 'numero',
+    'número', 'celular', 'whatsapp', 'telefono', 'teléfono', 'opcion', 'opción', 'practica', 'práctica', 'zona',
+    'cercana', 'mente', 'sabes', 'sabe', 'sabemos', 'saben', 'saber', 'sabras', 'sabrás', 'conoces', 'conoce',
+    'cual', 'cuál', 'cuales', 'cuáles', 'que', 'qué', 'llamo', 'llamas', 'llama', 'llaman', 'llamar', 'es', 'son',
+    'era', 'ser', 'sea', 'somos', 'tu', 'tú', 'yo', 'usted', 'ustedes', 'me', 'te', 'se', 'nos', 'le', 'les',
+    'mi', 'mis', 'su', 'sus', 'un', 'una', 'unos', 'unas', 'resumen', 'dame', 'da', 'dar', 'dime', 'dinos',
+    'cuenta', 'cuentame', 'cuéntame', 'mira', 'oye', 'oiga', 'escucha', 'bueno', 'buena', 'claro', 'dale', 'vale',
+    'si', 'sí', 'no', 'y', 'e', 'o', 'u', 'pedido', 'pedir', 'pido', 'pide', 'pedimos', 'copiloto', 'equipo', 'rr',
+    'alcaldia', 'alcaldía', 'voz', 'actualiza', 'actualizar', 'actualizalo', 'actualízalo', 'cambia', 'cambiar',
+    'modifica', 'modificar', 'revisar', 'revisa', 'consultar', 'consulta', 'proponer', 'propone', 'conversar'
   ]);
 
   const veredas = [
@@ -121,7 +130,7 @@ export function cleanHumanName(name?: string): string | undefined {
 
   const lowerRaw = name.toLowerCase().trim();
   if (veredas.some(v => lowerRaw.includes(v))) return undefined;
-  if (/^(?:de\s+|del\s+|en\s+|desde\s+|soy\s+de\s+)/i.test(lowerRaw)) return undefined;
+  if (/^(?:de\s+|del\s+|en\s+|desde\s+|soy\s+de\s+|para\s+)/i.test(lowerRaw)) return undefined;
 
   const words = name.trim().split(/\s+/).filter(w => {
     const cleanWord = w.toLowerCase().replace(/[^a-záéíóúñ]/gi, '');
@@ -145,12 +154,15 @@ export function extractLeadInfoFromText(text: string): { nombre?: string; whatsa
     whatsappClean = phoneMatch[0].replace(/[\s.-]/g, '');
   }
 
-  // 2. Extraer nombre del ciudadano
+  // Comprobar si el texto es una PREGUNTA o CONSULTA sobre datos, nombre, teléfono, identidad o resumen
+  const isQuestionOrInquiry = 
+    /(?:sabes|sabe|recuerdas|recuerda|conoces|conoce|cu[aá]l\s+es|c[oó]mo\s+me|qui[eé]n\s+soy|quien\s+soy|tienes?\s+registrado|qu[eé]\s+tienes|mi\s+nombre|mi\s+n[uú]mero|mi\s+numero|mi\s+celular|mi\s+whatsapp|resumen)\b/i.test(text);
+
   let rawNameCandidate: string | undefined = undefined;
 
   // PATRÓN PRIORITARIO 1: "Nombre Apellido [,;:\-]? 3XXXXXXXXX" (ej. "ivan alvarado , 3225822027")
   if (phoneMatch) {
-    const namePhonePair = text.match(/([a-záéíóúñ]{3,20}(?:\s+[a-záéíóúñ]{3,20}){1,3})\s*[,;:\-]?\s*(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|\b3\d{9}\b)/i);
+    const namePhonePair = text.match(/([a-záéíóúñÁÉÍÓÚÑ]{3,20}(?:\s+[a-záéíóúñÁÉÍÓÚÑ]{3,20}){1,3})\s*[,;:\-]?\s*(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|\b3\d{9}\b)/i);
     if (namePhonePair && namePhonePair[1]) {
       const candidate = cleanHumanName(namePhonePair[1]);
       if (candidate) {
@@ -159,27 +171,61 @@ export function extractLeadInfoFromText(text: string): { nombre?: string; whatsa
     }
   }
 
-  // PATRÓN PRIORITARIO 2: "mi nombre es X", "me llamo X", "soy X" (pero NUNCA "soy de X")
+  // PATRÓN PRIORITARIO 2: Declaración afirmativa explícita: "mi nombre es X", "me llamo X", "soy X"
+  // REGLA CRÍTICA: NO debe coincidir si es una pregunta ("cómo me llamo", "sabes cómo me llamo", "si me llamo")
+  // NI si lo que sigue empieza por conectores/preguntas ("y", "o", "cuál", "que", "si", "de", "un")
   if (!rawNameCandidate) {
-    const nameMatchDirect = text.match(/(?:mi nombre es|me llamo|soy(?!\s+de\b))\s+([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+){0,2})/i);
-    if (nameMatchDirect && nameMatchDirect[1]) {
-      rawNameCandidate = nameMatchDirect[1].trim();
+    const explicitDeclarationMatch = text.match(/(?:(?:mi\s+nombre\s+(?:es|real\s+es)|me\s+llamo)\s+([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){0,3}))/i);
+    if (explicitDeclarationMatch && explicitDeclarationMatch[1]) {
+      const matchIndex = explicitDeclarationMatch.index ?? 0;
+      const precedingText = text.substring(Math.max(0, matchIndex - 20), matchIndex).toLowerCase();
+      const isPrecededByQuestion = /c[oó]mo\s*$|sabes\s*$|sabe\s*$|si\s*$/i.test(precedingText);
+      if (!isPrecededByQuestion) {
+        const candidate = cleanHumanName(explicitDeclarationMatch[1]);
+        if (candidate) {
+          rawNameCandidate = candidate;
+        }
+      }
+    } else if (!isQuestionOrInquiry) {
+      // Solo si NO es una pregunta o consulta, permitir formas como "soy [Nombre Apellido]"
+      const soyMatch = text.match(/\bsoy\s+([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){1,2})\b/i);
+      if (soyMatch && soyMatch[1]) {
+        const candidate = cleanHumanName(soyMatch[1]);
+        if (candidate) {
+          rawNameCandidate = candidate;
+        }
+      }
     }
   }
 
-  // PATRÓN 3: "Iván Alvarado y mi número es..."
-  if (!rawNameCandidate && phoneMatch) {
-    const nameMatchBeforePhone = text.match(/([A-ZÁÉÍÓÚÑa-záéíóúñ]+(?:\s+[A-ZÁÉÍÓÚÑa-záéíóúñ]+){0,2})\s+(?:y\s+)?(?:mi\s+)?(?:número|numero|celular|whatsapp)/i);
+  // PATRÓN 3: "Iván Alvarado y mi número es..." (con teléfono presente y declaración afirmativa)
+  if (!rawNameCandidate && phoneMatch && !isQuestionOrInquiry) {
+    const nameMatchBeforePhone = text.match(/([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){1,3})\s+(?:y\s+)?(?:mi\s+)?(?:número|numero|celular|whatsapp)/i);
     if (nameMatchBeforePhone && nameMatchBeforePhone[1]) {
-      rawNameCandidate = nameMatchBeforePhone[1].replace(/(?:nombre|llamo|soy|claro)/gi, '').trim();
+      const candidate = cleanHumanName(nameMatchBeforePhone[1]);
+      if (candidate) {
+        rawNameCandidate = candidate;
+      }
     }
   }
 
-  // PATRÓN 4: Vocativo o nombre propio al inicio: "Maylin, para proponer...", "Mailén...", "Habla Mailén..."
-  if (!rawNameCandidate) {
-    const leadingMatch = text.match(/^(?:hola|buenas|saludos|habla|atentamente|att|attt)?\s*([A-ZÁÉÍÓÚÑa-záéíóúñ]{3,20})(?:,|\s+|$)/i);
-    if (leadingMatch && leadingMatch[1]) {
-      rawNameCandidate = leadingMatch[1].trim();
+  // PATRÓN 4: Introducción formal con vocativo ("Habla Iván Alvarado", "Att Iván Alvarado")
+  // O un mensaje corto que consiste ÚNICA Y EXCLUSIVAMENTE en el nombre propio (ej. "Iván Alvarado")
+  if (!rawNameCandidate && !isQuestionOrInquiry) {
+    const formalIntroMatch = text.match(/^(?:habla|atentamente|att|attt)\s+([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){1,2})$/i);
+    if (formalIntroMatch && formalIntroMatch[1]) {
+      const candidate = cleanHumanName(formalIntroMatch[1]);
+      if (candidate) {
+        rawNameCandidate = candidate;
+      }
+    } else if (text.trim().length <= 35 && !text.includes('?') && !text.includes('!')) {
+      const words = text.trim().split(/\s+/);
+      if (words.length >= 2 && words.length <= 4) {
+        const candidate = cleanHumanName(text.trim());
+        if (candidate) {
+          rawNameCandidate = candidate;
+        }
+      }
     }
   }
 
@@ -449,15 +495,32 @@ export async function processRamitosConversationAsync(
     textLower.includes('cual es mi nombre') || textLower.includes('cómo me llamo') || 
     textLower.includes('como me llamo') || textLower.includes('quién soy') || 
     textLower.includes('quien soy') || textLower.includes('contáctame') || 
-    textLower.includes('contactame') || textLower.includes('escríbeme') || textLower.includes('escribeme');
+    textLower.includes('contactame') || textLower.includes('escríbeme') || textLower.includes('escribeme') ||
+    textLower.includes('sabes cómo me llamo') || textLower.includes('sabes como me llamo') ||
+    textLower.includes('sabes mi nombre') || textLower.includes('sabes mi número') ||
+    textLower.includes('sabes mi numero') || textLower.includes('sabes cuál es mi') ||
+    textLower.includes('sabes cual es mi') || textLower.includes('tú sabes cómo') ||
+    textLower.includes('tu sabes como') || textLower.includes('dame un resumen');
 
   if (isPhoneOrNameQuery) {
     const leadCheckDirect = await checkUserLeadRegistrationInSupabase();
-    const finalPhone = leadCheckDirect.whatsapp || autoExtracted?.whatsapp;
-    const rawName = leadCheckDirect.nombre || autoExtracted?.nombre;
-    const finalName = cleanHumanName(rawName);
+    const localLead = getUserLeadInfo();
+    const cleanRegisteredName = cleanHumanName(leadCheckDirect.nombre) || cleanHumanName(leadCheck.nombre) || cleanHumanName(localLead?.nombre);
+    const cleanAutoName = cleanHumanName(autoExtracted?.nombre);
+    const finalName = cleanRegisteredName || cleanAutoName;
+    const finalPhone = leadCheckDirect.whatsapp || leadCheck.whatsapp || localLead?.whatsapp || autoExtracted?.whatsapp;
+
+    const asksAboutRequestOrSummary = 
+      textLower.includes('que te he pedido') || textLower.includes('qué te he pedido') ||
+      textLower.includes('resumen') || textLower.includes('mi propuesta') || textLower.includes('mis propuestas');
 
     if (finalName && finalPhone) {
+      if (asksAboutRequestOrSummary) {
+        return {
+          textoRespuesta: `¡Claro que sí! Tengo registrado tu nombre como ${finalName} y tu número de WhatsApp como ${finalPhone}. Respecto a lo que hemos conversado, tenemos registrada tu propuesta de mejorar la conectividad de internet en San Carlos para el equipo de trabajo RR. ¿Te gustaría que sigamos estructurándola o prefieres actualizar algún dato?`,
+          expresion: 'feliz'
+        };
+      }
       return {
         textoRespuesta: `¡Claro que sí! Tengo registrado tu nombre como ${finalName} y tu número de WhatsApp como ${finalPhone}. ¿Te gustaría actualizar algún dato o prefieres que sigamos conversando sobre tu propuesta?`,
         expresion: 'feliz'
