@@ -54,7 +54,7 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
     if (votedIds.includes(needId)) return;
 
     setVotingFeedbackId(needId);
-    const result = await voteCitizenNeed(needId);
+    const result = await voteCitizenNeed(needId, municipioId);
 
     if (result.success) {
       setVotedIds(prev => [...prev, needId]);
@@ -116,11 +116,30 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
     }
   };
 
-  // Filtrado y ordenación de propuestas
+  // Filtrado estricto por municipio: AISLAMIENTO TOTAL (CERO MEZCLA ENTRE CAPARRAPÍ Y GUADUAS)
+  const currentMun = (municipioId || 'guaduas').toLowerCase();
+  const isCap = currentMun === 'caparrapi';
+  const guaduasOnlyVeredas = ['puerto bogotá', 'puerto bogota', 'guaduero', 'piedras negras', 'guaduas centro', 'la paz', 'el hato', 'san josé', 'san jose', 'yaguara', 'la esperanza', 'carbonera', 'canta rana', 'versalles'];
+  const caparrapiOnlyVeredas = ['san carlos', 'san ramón', 'san ramon', 'pitalito', 'terán', 'teran', 'san pedro', 'la magdalena', 'el dindal', 'morro negro', 'córdoba', 'cordoba', 'puerto colombia', 'cuatro caminos', 'alto del roble', 'acuaparrapí', 'acuaparrapi', 'el silencio', 'el dinde', 'mata de mora', 'la chorrera', 'boca de monte', 'galiche', 'barranquillas', 'loma alta', 'hoyo caliente', 'caparrapí centro', 'caparrapi centro'];
+
   const displayedNeeds = [...localNeeds]
     .filter(n => {
+      if (!n || !n.id) return false;
+      // Prohibir mostrar semillas inventadas
+      if (n.id.startsWith('seed-')) return false;
+
+      const v = (n.veredaBarrio || '').trim().toLowerCase();
+      // Aislamiento territorial estricto
+      if (isCap) {
+        if (n.municipioId && n.municipioId === 'guaduas') return false;
+        if (guaduasOnlyVeredas.includes(v)) return false;
+      } else {
+        if (n.municipioId && n.municipioId === 'caparrapi') return false;
+        if (caparrapiOnlyVeredas.includes(v)) return false;
+      }
+
       if (filterVereda === 'all') return true;
-      return (n.veredaBarrio || '').toLowerCase() === filterVereda.toLowerCase();
+      return v === filterVereda.toLowerCase();
     })
     .sort((a, b) => {
       if (sortBy === 'votes') {
@@ -133,10 +152,10 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
       return timeB - timeA;
     });
 
-  // Estadísticas del HUD
-  const totalProposals = localNeeds.length;
-  const totalVotes = localNeeds.reduce((acc, curr) => acc + (curr.votosApoyo || 1), 0);
-  const topNeed = [...localNeeds].sort((a, b) => (b.votosApoyo || 0) - (a.votosApoyo || 0))[0];
+  // Estadísticas del HUD calculadas estrictamente sobre las propuestas reales de este municipio
+  const totalProposals = displayedNeeds.length;
+  const totalVotes = displayedNeeds.reduce((acc, curr) => acc + (curr.votosApoyo || 1), 0);
+  const topNeed = displayedNeeds[0];
 
   return (
     <div className="space-y-8">
@@ -321,7 +340,7 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
               onChange={(e) => setFilterVereda(e.target.value)}
               className="bg-slate-950 border border-slate-800 text-xs text-slate-300 rounded-xl px-3 py-2 focus:outline-none focus:border-emerald-500"
             >
-              <option value="all">Todas las veredas ({localNeeds.length})</option>
+              <option value="all">Todas las veredas ({displayedNeeds.length})</option>
               {veredasList.map((v, i) => (
                 <option key={i} value={v.nombre}>{v.nombre}</option>
               ))}
@@ -331,10 +350,12 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
 
         {displayedNeeds.length === 0 ? (
           <div className="frosted-glass p-12 text-center rounded-3xl border border-slate-800 space-y-3">
-            <div className="text-4xl">🌾</div>
-            <p className="text-slate-300 font-semibold text-sm">No hay propuestas registradas aún en esta categoría.</p>
-            <p className="text-xs text-slate-500 max-w-md mx-auto">
-              Conversa con el Copiloto IA en el Chat o utiliza el formulario superior para registrar la primera necesidad comunitaria.
+            <div className="text-4xl">{isCap ? '🐎' : '🌿'}</div>
+            <p className="text-slate-300 font-semibold text-sm">
+              No hay propuestas ciudadanas detectadas todavía para {isCap ? 'Caparrapí' : 'Guaduas'}.
+            </p>
+            <p className="text-xs text-slate-400 max-w-md mx-auto">
+              Conversa con el Copiloto IA en el Chat formulando una necesidad o sugerencia real para tu sector, o regístrala directamente en el formulario superior. La IA la estructurará y redactará automáticamente aquí para que la comunidad vote y priorice.
             </p>
           </div>
         ) : (

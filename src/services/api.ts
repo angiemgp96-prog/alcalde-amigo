@@ -48,6 +48,7 @@ export function purgePhantomLocalStorageCache(): void {
     localStorage.removeItem(LOCAL_STORAGE_NEEDS);
     localStorage.removeItem('alcalde_amigo_ramitos_memory');
     localStorage.removeItem(LOCAL_STORAGE_MESSAGES);
+    purgePhantomSeeds();
   } catch (e) {
     console.warn('Error purgando caché fantasma:', e);
   }
@@ -722,113 +723,26 @@ export function registerSpamStrike(): { blocked: boolean; isBlocked: boolean; re
 }
 
 // -------------------------------------------------------------
-// SEMILLAS COMUNITARIAS VERIFICADAS POR MUNICIPIO
+// GESTIÓN DE NECESIDADES Y PROPUESTAS CIUDADANAS (ESTRICTAMENTE AISLADAS POR MUNICIPIO)
 // -------------------------------------------------------------
-const INITIAL_COMMUNITY_SEEDS_CAPARRAPI: CitizenNeed[] = [
-  {
-    id: 'seed-cap-1',
-    ciudadanoNombre: 'Comité Pro-Vías San Carlos',
-    veredaBarrio: 'San Carlos',
-    audioTranscripcion: 'Requerimos pavimentación en placa huella modular en el tramo Cuatro Caminos hacia Las Ferias porque en época de lluvias se pierde la banca y los camiones no pueden sacar el cacao ni el ganado.',
-    problematicaSintetizada: 'Pérdida de banca y lodazales críticos en el corredor comercial Cuatro Caminos - Las Ferias que impiden la salida de cosechas.',
-    sector: 'Energía e Infraestructura',
-    urgencia: 'Alta',
-    propuestaRamitos: 'Estructuración MGA de placa huella modular prefabricada en los 2.4 km más críticos mediante convenios solidarios comunales.',
-    insumosClave: ['Placas huellas prefabricadas', 'Cunetas y alcantarillado', 'Maquinaria pesada'],
-    presupuestoEstimadoCop: 480000000,
-    votosApoyo: 24,
-    fechaReporte: new Date(Date.now() - 3600000 * 12).toISOString(),
-    municipioId: 'caparrapi',
-    origen: 'chat'
-  },
-  {
-    id: 'seed-cap-2',
-    ciudadanoNombre: 'Asociación de Productores Paneleros',
-    veredaBarrio: 'Terán',
-    audioTranscripcion: 'Necesitamos modernizar los trapiches con cámaras de combustión eficientes y un centro de acopio para que no nos paguen la panela a precio de intermediario.',
-    problematicaSintetizada: 'Baja eficiencia térmica en molienda y dependencia de intermediarios que castigan el precio de la panela campesina.',
-    sector: 'Campo y Desarrollo Agrícola',
-    urgencia: 'Alta',
-    propuestaRamitos: 'Modernización calórica de trapiches comunitarios y centro de acopio regional con empaque certificado para venta directa.',
-    insumosClave: ['Hornos tipo CIMPA', 'Tanques de evaporación', 'Báscula y empaque'],
-    presupuestoEstimadoCop: 310000000,
-    votosApoyo: 19,
-    fechaReporte: new Date(Date.now() - 3600000 * 24).toISOString(),
-    municipioId: 'caparrapi',
-    origen: 'chat'
-  },
-  {
-    id: 'seed-cap-3',
-    ciudadanoNombre: 'Junta de Acción Comunal San Pedro',
-    veredaBarrio: 'San Pedro',
-    audioTranscripcion: 'El agua del acueducto veredal llega turbia en invierno y en verano se corta por falta de bombeo eficiente.',
-    problematicaSintetizada: 'Intermitencia y falta de potabilización técnica en el acueducto rural que abastece a más de 180 familias.',
-    sector: 'Agua Potable y Saneamiento',
-    urgencia: 'Crítica',
-    propuestaRamitos: 'Instalación de sistema de filtración rápida y bombeo electro-solar fotovoltaico con tanque de reserva de 25.000 litros.',
-    insumosClave: ['Paneles solares', 'Filtros de lecho mixto', 'Tanque de polietileno'],
-    presupuestoEstimadoCop: 195000000,
-    votosApoyo: 16,
-    fechaReporte: new Date(Date.now() - 3600000 * 36).toISOString(),
-    municipioId: 'caparrapi',
-    origen: 'chat'
-  },
-  {
-    id: 'seed-cap-4',
-    ciudadanoNombre: 'Familias Productoras de La Magdalena',
-    veredaBarrio: 'La Magdalena',
-    audioTranscripcion: 'Los caminos de herradura y los pasos sobre las quebradas están intransitables para sacar las frutas y la leche.',
-    problematicaSintetizada: 'Incomunicación veredal por pasos peatonales artesanales en riesgo sobre las cuencas en invierno.',
-    sector: 'Energía e Infraestructura',
-    urgencia: 'Media',
-    propuestaRamitos: 'Construcción de dos puentes peatonales colgantes seguros y adecuación de 3 km de caminos vecinales con obras de drenaje.',
-    insumosClave: ['Cables de acero', 'Maderas tratadas / perfiles metálicos', 'Piedra pegada'],
-    presupuestoEstimadoCop: 120000000,
-    votosApoyo: 12,
-    fechaReporte: new Date(Date.now() - 3600000 * 48).toISOString(),
-    municipioId: 'caparrapi',
-    origen: 'chat'
-  }
-];
+const getStorageKeyForNeeds = (mun?: string) => `alcalde_amigo_needs_${(mun || 'caparrapi').toLowerCase()}`;
 
-const INITIAL_COMMUNITY_SEEDS_GUADUAS: CitizenNeed[] = [
-  {
-    id: 'seed-gua-1',
-    ciudadanoNombre: 'Comunidad Ribereña Puerto Bogotá',
-    veredaBarrio: 'Puerto Bogotá',
-    audioTranscripcion: 'Cada vez que crece el río Magdalena la bocatoma se tapa con lodo y el pueblo se queda sin agua 4 o 5 días.',
-    problematicaSintetizada: 'Suspensión reiterada de agua potable por azolvamiento de la captación ribereña en crecidas del Magdalena.',
-    sector: 'Agua Potable y Saneamiento',
-    urgencia: 'Crítica',
-    propuestaRamitos: 'Bocatoma flotante con pre-desarenador dinámico modular insensible a variaciones de cota del río.',
-    insumosClave: ['Balsa flotante', 'Bombas sumergibles', 'Filtros autolimpiantes'],
-    presupuestoEstimadoCop: 420000000,
-    votosApoyo: 28,
-    fechaReporte: new Date(Date.now() - 3600000 * 16).toISOString(),
-    municipioId: 'guaduas',
-    origen: 'chat'
-  },
-  {
-    id: 'seed-gua-2',
-    ciudadanoNombre: 'Asociación Veredal Guaduero',
-    veredaBarrio: 'Guaduero',
-    audioTranscripcion: 'La banca hacia Guaduas se hunde en el invierno y los productores no pueden sacar los productos agrícolas.',
-    problematicaSintetizada: 'Fallas geológicas y falta de obras de arte en el corredor interveredal Guaduero - Guaduas.',
-    sector: 'Energía e Infraestructura',
-    urgencia: 'Alta',
-    propuestaRamitos: 'Construcción de muros de contención en gaviones y 1.8 km de placa huella con alcantarillas de 36 pulgadas.',
-    insumosClave: ['Gaviones de alambre galvanizado', 'Tubería de concreto', 'Concreto rígido'],
-    presupuestoEstimadoCop: 380000000,
-    votosApoyo: 22,
-    fechaReporte: new Date(Date.now() - 3600000 * 30).toISOString(),
-    municipioId: 'guaduas',
-    origen: 'chat'
-  }
-];
+// Purga de cualquier semilla artificial o fantasma previa
+export function purgePhantomSeeds(): void {
+  try {
+    localStorage.removeItem(LOCAL_STORAGE_NEEDS); // Purga la lista combinada antigua
+    ['caparrapi', 'guaduas'].forEach(mun => {
+      const key = getStorageKeyForNeeds(mun);
+      const raw = localStorage.getItem(key);
+      if (raw) {
+        const parsed: CitizenNeed[] = JSON.parse(raw);
+        const filtered = parsed.filter(n => n && n.id && !n.id.startsWith('seed-'));
+        localStorage.setItem(key, JSON.stringify(filtered));
+      }
+    });
+  } catch (e) {}
+}
 
-// -------------------------------------------------------------
-// GESTIÓN DE NECESIDADES Y PROPUESTAS CIUDADANAS (ESCUCHA RAMITOS)
-// -------------------------------------------------------------
 export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaReporte' | 'votosApoyo'>): Promise<CitizenNeed | null> {
   // 1. Filtrar troll / spam
   if (isTrollOrSpamContent(need.audioTranscripcion) || isTrollOrSpamContent(need.problematicaSintetizada)) {
@@ -842,9 +756,12 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
     return null;
   }
 
+  const mun = (need.municipioId || 'caparrapi').toLowerCase() as 'caparrapi' | 'guaduas';
+
   const newNeed: CitizenNeed = {
     ...need,
     id: `need-${Date.now()}-${Math.random().toString(36).substr(2, 4)}`,
+    municipioId: mun,
     votosApoyo: 1,
     fechaReporte: new Date().toISOString()
   };
@@ -875,8 +792,9 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
     }
   }
 
-  // 4. Guardar en LocalStorage evitando duplicados idénticos en la misma vereda
-  const existing = getCitizenNeeds(need.municipioId);
+  // 4. Guardar en LocalStorage estrictamente en la partición de su municipio (sin mezclar)
+  const key = getStorageKeyForNeeds(mun);
+  const existing = getCitizenNeeds(mun);
   const isDuplicate = existing.some(item => 
     item.veredaBarrio.toLowerCase() === newNeed.veredaBarrio.toLowerCase() &&
     item.problematicaSintetizada.toLowerCase() === newNeed.problematicaSintetizada.toLowerCase()
@@ -884,46 +802,59 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
 
   if (!isDuplicate) {
     existing.unshift(newNeed);
-    localStorage.setItem(LOCAL_STORAGE_NEEDS, JSON.stringify(existing));
+    localStorage.setItem(key, JSON.stringify(existing));
   }
 
   return newNeed;
 }
 
-export function getCitizenNeeds(municipioId?: 'guaduas' | 'caparrapi' | string): CitizenNeed[] {
+export function getCitizenNeeds(municipioId: 'guaduas' | 'caparrapi' | string = 'caparrapi'): CitizenNeed[] {
   try {
+    const mun = (municipioId || 'caparrapi').toLowerCase();
+    const key = getStorageKeyForNeeds(mun);
     let list: CitizenNeed[] = [];
-    const raw = localStorage.getItem(LOCAL_STORAGE_NEEDS);
+    const raw = localStorage.getItem(key);
     if (raw) {
       list = JSON.parse(raw);
     }
 
-    // Si la lista está vacía o es la primera vez, cargar semillas verificadas
-    if (!list || list.length === 0) {
-      list = [...INITIAL_COMMUNITY_SEEDS_CAPARRAPI, ...INITIAL_COMMUNITY_SEEDS_GUADUAS];
-      localStorage.setItem(LOCAL_STORAGE_NEEDS, JSON.stringify(list));
-    }
+    // Filtrar estrictamente: SOLO propuestas reales detectadas o registradas (cero inventos)
+    const guaduasOnlyVeredas = ['puerto bogotá', 'puerto bogota', 'guaduero', 'piedras negras', 'guaduas centro', 'la paz', 'el hato', 'san josé', 'san jose', 'yaguara', 'la esperanza', 'carbonera', 'canta rana', 'versalles'];
+    const caparrapiOnlyVeredas = ['san carlos', 'san ramón', 'san ramon', 'pitalito', 'terán', 'teran', 'san pedro', 'la magdalena', 'el dindal', 'morro negro', 'córdoba', 'cordoba', 'puerto colombia', 'cuatro caminos', 'alto del roble', 'acuaparrapí', 'acuaparrapi', 'el silencio', 'el dinde', 'mata de mora', 'la chorrera', 'boca de monte', 'galiche', 'barranquillas', 'loma alta', 'hoyo caliente', 'caparrapí centro', 'caparrapi centro'];
 
-    // Filtrar elementos inválidos o preguntas conversacionales
-    const cleaned = list.filter(n => {
+    const isCap = mun === 'caparrapi';
+
+    const cleaned = (list || []).filter(n => {
+      if (!n || !n.id) return false;
+      // Prohibido mostrar semillas artificiales o ficticias
+      if (n.id.startsWith('seed-')) return false;
+
       const vereda = (n.veredaBarrio || '').trim().toLowerCase();
       const prob = (n.problematicaSintetizada || '').toLowerCase();
       if (!vereda || vereda === 'por definir') return false;
-      if (prob.includes('sí dime') || prob.includes('si dime') || prob.includes('cómo podemos') || prob.includes('como podemos') || prob.includes('de dónde sacas') || prob.includes('de donde sacas')) return false;
+      if (prob.includes('sí dime') || prob.includes('si dime') || prob.includes('cómo podemos') || prob.includes('como podemos') || prob.includes('de dónde sacas') || prob.includes('de donde sacas') || prob.includes('qué proyectos hay')) return false;
+
+      // AISLAMIENTO TERRITORIAL TOTAL (NO CONFUNDIR CAPARRAPÍ CON GUADUAS)
+      if (isCap) {
+        if (n.municipioId && n.municipioId === 'guaduas') return false;
+        if (guaduasOnlyVeredas.includes(vereda)) return false;
+      } else {
+        if (n.municipioId && n.municipioId === 'caparrapi') return false;
+        if (caparrapiOnlyVeredas.includes(vereda)) return false;
+      }
+
       return true;
     });
 
-    if (municipioId) {
-      const targetMun = municipioId.toLowerCase();
-      const filtered = cleaned.filter(n => (n.municipioId || 'caparrapi').toLowerCase() === targetMun);
-      return filtered.length > 0 ? filtered : cleaned;
+    if (cleaned.length !== list.length) {
+      localStorage.setItem(key, JSON.stringify(cleaned));
     }
 
     return cleaned;
   } catch (e) {
     console.error(e);
+    return [];
   }
-  return INITIAL_COMMUNITY_SEEDS_CAPARRAPI;
 }
 
 export function getVotedNeedIds(): string[] {
@@ -935,21 +866,37 @@ export function getVotedNeedIds(): string[] {
   }
 }
 
-export async function voteCitizenNeed(needId: string): Promise<{ success: boolean; newCount?: number; alreadyVoted?: boolean }> {
+export async function voteCitizenNeed(needId: string, municipioId?: 'guaduas' | 'caparrapi' | string): Promise<{ success: boolean; newCount?: number; alreadyVoted?: boolean }> {
   try {
     const voted = getVotedNeedIds();
     if (voted.includes(needId)) {
       return { success: false, alreadyVoted: true };
     }
 
-    const all = getCitizenNeeds();
-    const target = all.find(n => n.id === needId);
-    if (!target) return { success: false };
+    const mun = (municipioId || 'caparrapi').toLowerCase();
+    const key = getStorageKeyForNeeds(mun);
+    const all = getCitizenNeeds(mun);
+    let target = all.find(n => n.id === needId);
+
+    if (!target) {
+      const otherMun = mun === 'caparrapi' ? 'guaduas' : 'caparrapi';
+      const otherKey = getStorageKeyForNeeds(otherMun);
+      const otherAll = getCitizenNeeds(otherMun);
+      target = otherAll.find(n => n.id === needId);
+      if (target) {
+        target.votosApoyo = (target.votosApoyo || 0) + 1;
+        voted.push(needId);
+        localStorage.setItem(LOCAL_STORAGE_VOTED_NEEDS, JSON.stringify(voted));
+        localStorage.setItem(otherKey, JSON.stringify(otherAll));
+        return { success: true, newCount: target.votosApoyo };
+      }
+      return { success: false };
+    }
 
     target.votosApoyo = (target.votosApoyo || 0) + 1;
     voted.push(needId);
     localStorage.setItem(LOCAL_STORAGE_VOTED_NEEDS, JSON.stringify(voted));
-    localStorage.setItem(LOCAL_STORAGE_NEEDS, JSON.stringify(all));
+    localStorage.setItem(key, JSON.stringify(all));
 
     // Si Supabase está conectado, actualizar votos
     if (supabaseClient) {
