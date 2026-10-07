@@ -13,6 +13,7 @@ import {
   TeamAporte 
 } from '../services/api';
 import { runAutoAudit, sanitizeIntelligenceData } from '../services/autoAuditorService';
+import Chart from 'chart.js/auto';
 
 interface CentroMandoViewProps {
   municipioId: 'guaduas' | 'caparrapi';
@@ -200,71 +201,155 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
 
   // Inicializar o actualizar Chart.js en la pestaña de Radiografía
   useEffect(() => {
-    if (activeTab === 'radiografia' && chartCanvasRef.current && (window as any).Chart && intelData?.inspecciones_y_veredas) {
+    if (activeTab !== 'radiografia' || loading || !intelData?.inspecciones_y_veredas) {
+      return;
+    }
+
+    let isCancelled = false;
+    let timerId: any = null;
+
+    const renderChart = () => {
+      if (isCancelled || !chartCanvasRef.current) return;
       const ctx = chartCanvasRef.current.getContext('2d');
+      if (!ctx) return;
+
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy();
+        chartInstanceRef.current = null;
       }
 
       const labels = intelData.inspecciones_y_veredas.map((p: any) => p.inspeccion);
       const censos = intelData.inspecciones_y_veredas.map((p: any) => p.censo);
       const estimados = intelData.inspecciones_y_veredas.map((p: any) => p.votacion_estimada);
 
-      chartInstanceRef.current = new (window as any).Chart(ctx, {
-        type: 'bar',
-        data: {
-          labels: labels,
-          datasets: [
-            {
-              label: 'Censo Electoral (Habilitados)',
-              data: censos,
-              backgroundColor: 'rgba(6, 182, 212, 0.45)',
-              borderColor: '#06b6d4',
-              borderWidth: 1.5,
-              borderRadius: 6
-            },
-            {
-              label: 'Votación Estimada Real',
-              data: estimados,
-              backgroundColor: 'rgba(16, 185, 129, 0.75)',
-              borderColor: '#10b981',
-              borderWidth: 1.5,
-              borderRadius: 6
-            }
-          ]
-        },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          plugins: {
-            legend: { 
-              labels: { 
-                color: '#94a3b8', 
-                font: { size: 12, weight: 'bold' } 
-              } 
-            }
+      // Crear gradientes vibrantes y elegantes en Canvas
+      const gradientCyan = ctx.createLinearGradient(0, 0, 0, 320);
+      gradientCyan.addColorStop(0, 'rgba(6, 182, 212, 0.85)');
+      gradientCyan.addColorStop(1, 'rgba(6, 182, 212, 0.12)');
+
+      const gradientEmerald = ctx.createLinearGradient(0, 0, 0, 320);
+      gradientEmerald.addColorStop(0, 'rgba(16, 185, 129, 0.95)');
+      gradientEmerald.addColorStop(1, 'rgba(16, 185, 129, 0.20)');
+
+      try {
+        chartInstanceRef.current = new Chart(ctx, {
+          type: 'bar',
+          data: {
+            labels: labels,
+            datasets: [
+              {
+                label: 'Censo Electoral (Habilitados)',
+                data: censos,
+                backgroundColor: gradientCyan,
+                borderColor: '#06b6d4',
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false
+              },
+              {
+                label: 'Votación Estimada Real',
+                data: estimados,
+                backgroundColor: gradientEmerald,
+                borderColor: '#10b981',
+                borderWidth: 2,
+                borderRadius: 8,
+                borderSkipped: false
+              }
+            ]
           },
-          scales: {
-            x: { 
-              ticks: { color: '#94a3b8', font: { size: 10 } }, 
-              grid: { color: 'rgba(255,255,255,0.05)' } 
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            animation: {
+              duration: 700
             },
-            y: { 
-              ticks: { color: '#94a3b8' }, 
-              grid: { color: 'rgba(255,255,255,0.05)' } 
+            interaction: {
+              mode: 'index',
+              intersect: false
+            },
+            plugins: {
+              legend: {
+                position: 'top',
+                align: 'end',
+                labels: {
+                  color: '#e2e8f0',
+                  boxWidth: 14,
+                  boxHeight: 14,
+                  borderRadius: 4,
+                  useBorderRadius: true,
+                  padding: 16,
+                  font: {
+                    family: 'Plus Jakarta Sans',
+                    size: 11,
+                    weight: 'bold'
+                  }
+                }
+              },
+              tooltip: {
+                backgroundColor: '#0f172a',
+                titleColor: '#f8fafc',
+                bodyColor: '#cbd5e1',
+                borderColor: '#334155',
+                borderWidth: 1,
+                padding: 12,
+                cornerRadius: 12,
+                callbacks: {
+                  label: function(context: any) {
+                    const val = context.parsed.y || 0;
+                    return ` ${context.dataset.label}: ${val.toLocaleString('es-CO')} personas`;
+                  }
+                }
+              }
+            },
+            scales: {
+              x: {
+                ticks: {
+                  color: '#94a3b8',
+                  font: {
+                    family: 'Plus Jakarta Sans',
+                    size: 11,
+                    weight: 'bold'
+                  }
+                },
+                grid: {
+                  display: false
+                }
+              },
+              y: {
+                ticks: {
+                  color: '#94a3b8',
+                  font: {
+                    family: 'Plus Jakarta Sans',
+                    size: 10
+                  },
+                  callback: function(val: any) {
+                    return Number(val).toLocaleString('es-CO');
+                  }
+                },
+                grid: {
+                  color: 'rgba(255, 255, 255, 0.06)'
+                }
+              }
             }
           }
-        }
-      });
-    }
+        });
+      } catch (err) {
+        console.error('Error inicializando Chart.js:', err);
+      }
+    };
+
+    // Timeout pequeño para asegurar que el canvas esté completamente montado y dimensionado
+    timerId = setTimeout(renderChart, 60);
 
     return () => {
+      isCancelled = true;
+      if (timerId) clearTimeout(timerId);
       if (chartInstanceRef.current) {
         chartInstanceRef.current.destroy();
         chartInstanceRef.current = null;
       }
     };
-  }, [activeTab, intelData]);
+  }, [activeTab, intelData, loading]);
 
   const formatCOP = (num: number) => {
     return new Intl.NumberFormat('es-CO', {
@@ -368,6 +453,18 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
 
     setGeneratedSpeech(text);
   };
+
+  const totalCensoPuestos = useMemo(() => {
+    return (intelData?.inspecciones_y_veredas || []).reduce((acc: number, p: any) => acc + (p.censo || 0), 0);
+  }, [intelData]);
+
+  const totalVotosPuestos = useMemo(() => {
+    return (intelData?.inspecciones_y_veredas || []).reduce((acc: number, p: any) => acc + (p.votacion_estimada || 0), 0);
+  }, [intelData]);
+
+  const totalMesasPuestos = useMemo(() => {
+    return (intelData?.inspecciones_y_veredas || []).reduce((acc: number, p: any) => acc + (p.mesas || 0), 0);
+  }, [intelData]);
 
   const veredas = intelData?.inspecciones_y_veredas || [];
   const fichasGira = intelData?.fichas_gira_veredal || [];
@@ -751,50 +848,147 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                 </div>
               </div>
 
-              {/* Fila de Gráfica y Puestos Veredales */}
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+              {/* Fila de Gráfica y Puestos Veredales (Rediseño de Alta Claridad y Sin Scroll Interno) */}
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
                 
                 {/* Gráfica de Votación Chart.js */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl">
-                  <div className="flex items-center justify-between mb-4">
-                    <h3 className="text-sm font-black text-white flex items-center gap-2">
-                      <TrendingUp className="w-4 h-4 text-cyan-400" /> Censo vs. Votación Real por Inspección
-                    </h3>
-                    <span className="text-[10px] text-slate-400 font-mono">Chart.js Dinámico</span>
+                <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
+                  <div>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between pb-4 border-b border-slate-800/80 gap-3">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-400/30">
+                            REGISTRADURÍA NACIONAL
+                          </span>
+                          <span className="text-xs text-slate-400 font-mono">Puesto por Puesto</span>
+                        </div>
+                        <h3 className="text-base sm:text-lg font-black text-white flex items-center gap-2 mt-1">
+                          <TrendingUp className="w-5 h-5 text-cyan-400" /> Censo vs. Votación Real por Inspección
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Electores habilitados frente a votos efectivos proyectados con base en 100% mesas.
+                        </p>
+                      </div>
+
+                      {/* Mini Resumen Táctico */}
+                      <div className="flex items-center gap-3 bg-slate-950/80 p-2.5 rounded-2xl border border-slate-800/80 self-start sm:self-auto shrink-0 shadow-inner">
+                        <div className="text-right">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">TOTAL CENSO</span>
+                          <span className="text-sm font-black font-mono text-cyan-400">
+                            {totalCensoPuestos.toLocaleString('es-CO')}
+                          </span>
+                        </div>
+                        <div className="w-px h-6 bg-slate-800"></div>
+                        <div className="text-right">
+                          <span className="text-[9px] uppercase font-bold text-slate-400 block">VOTOS EST.</span>
+                          <span className="text-sm font-black font-mono text-emerald-400">
+                            ~{totalVotosPuestos.toLocaleString('es-CO')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Contenedor Canvas de Gráfica */}
+                    <div className="h-80 sm:h-96 w-full relative mt-4">
+                      <canvas ref={chartCanvasRef}></canvas>
+                    </div>
                   </div>
-                  <div className="h-72 w-full relative">
-                    <canvas ref={chartCanvasRef}></canvas>
+
+                  <div className="pt-3 border-t border-slate-800/80 flex flex-wrap items-center justify-between gap-2 text-[11px] text-slate-400">
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 inline-block shadow-sm shadow-cyan-400/50"></span>
+                      <span>Barra Azul/Cian: Habilitados para votar</span>
+                    </span>
+                    <span className="flex items-center gap-1.5 font-medium">
+                      <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 inline-block shadow-sm shadow-emerald-400/50"></span>
+                      <span>Barra Verde: Votación real estimada</span>
+                    </span>
                   </div>
                 </div>
 
-                {/* Tabla de Puestos y Vocación */}
-                <div className="bg-slate-900/80 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
+                {/* Tabla de Puestos y Vocación (SIN SCROLLBAR - MOSTRANDO TODO EL LISTADO) */}
+                <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 shadow-xl flex flex-col justify-between">
                   <div>
-                    <h3 className="text-sm font-black text-white mb-3 flex items-center gap-2">
-                      <MapPin className="w-4 h-4 text-emerald-400" /> Desglose de Puestos y Vocación Productiva
-                    </h3>
-                    <div className="overflow-x-auto max-h-64 overflow-y-auto pr-1">
+                    <div className="flex items-center justify-between pb-4 border-b border-slate-800/80">
+                      <div>
+                        <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-400 border border-emerald-400/30">
+                          {intelData?.inspecciones_y_veredas?.length || 0} PUESTOS RURALES REGISTRADOS
+                        </span>
+                        <h3 className="text-base sm:text-lg font-black text-white mt-1 flex items-center gap-2">
+                          <MapPin className="w-5 h-5 text-emerald-400" /> Desglose de Puestos y Vocación Productiva
+                        </h3>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          Listado completo desplegado al 100% sin scroll interno para lectura táctica directa.
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Tabla completa sin límite de altura ni scroll vertical */}
+                    <div className="overflow-x-auto mt-4">
                       <table className="w-full text-left text-xs text-slate-300">
-                        <thead className="bg-slate-950/80 text-[10px] uppercase text-slate-400 font-bold sticky top-0">
+                        <thead className="bg-slate-950 text-[10px] uppercase text-slate-400 font-extrabold tracking-wider rounded-xl">
                           <tr>
-                            <th className="p-2">Inspección / Puesto</th>
-                            <th className="p-2">Mesas</th>
-                            <th className="p-2">Censo</th>
-                            <th className="p-2">Votos Est.</th>
-                            <th className="p-2">Vocación</th>
+                            <th className="py-2.5 px-3 rounded-l-xl">Inspección / Puesto</th>
+                            <th className="py-2.5 px-2 text-center">Mesas</th>
+                            <th className="py-2.5 px-2 text-right">Censo</th>
+                            <th className="py-2.5 px-2 text-right">Votos Est.</th>
+                            <th className="py-2.5 px-3 rounded-r-xl">Vocación Principal</th>
                           </tr>
                         </thead>
-                        <tbody className="divide-y divide-slate-800">
-                          {intelData?.inspecciones_y_veredas?.map((p: any, idx: number) => (
-                            <tr key={idx} className="hover:bg-slate-800/40 transition-colors">
-                              <td className="p-2 font-bold text-white">{p.inspeccion}</td>
-                              <td className="p-2">{p.mesas}</td>
-                              <td className="p-2 font-bold text-cyan-400">{p.censo.toLocaleString('es-CO')}</td>
-                              <td className="p-2 text-emerald-400 font-bold">~{p.votacion_estimada.toLocaleString('es-CO')}</td>
-                              <td className="p-2 text-[11px] text-slate-400">{p.vocacion}</td>
-                            </tr>
-                          ))}
+                        <tbody className="divide-y divide-slate-800/60">
+                          {intelData?.inspecciones_y_veredas?.map((p: any, idx: number) => {
+                            const pct = p.censo > 0 ? Math.round((p.votacion_estimada / p.censo) * 100) : 0;
+                            return (
+                              <tr key={idx} className="hover:bg-slate-800/50 transition-colors group">
+                                <td className="py-3 px-3 font-black text-white group-hover:text-cyan-300 transition-colors">
+                                  <div className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400"></span>
+                                    <span>{p.inspeccion}</span>
+                                  </div>
+                                </td>
+                                <td className="py-3 px-2 text-center">
+                                  <span className="px-2 py-0.5 rounded-md text-[10px] font-bold bg-slate-800 text-slate-300 border border-slate-700/80">
+                                    {p.mesas} {p.mesas === 1 ? 'mesa' : 'mesas'}
+                                  </span>
+                                </td>
+                                <td className="py-3 px-2 text-right font-mono font-bold text-cyan-300">
+                                  {p.censo.toLocaleString('es-CO')}
+                                </td>
+                                <td className="py-3 px-2 text-right">
+                                  <span className="font-mono font-bold text-emerald-300">
+                                    ~{p.votacion_estimada.toLocaleString('es-CO')}
+                                  </span>
+                                  <span className="block text-[9px] text-slate-400 font-mono">
+                                    ({pct}%)
+                                  </span>
+                                </td>
+                                <td className="py-3 px-3 text-[11px] text-slate-300 leading-snug">
+                                  {p.vocacion}
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
+                        {/* Fila Totalizadora Oficial */}
+                        <tfoot className="border-t-2 border-slate-700 bg-slate-950/70 font-bold text-white">
+                          <tr>
+                            <td className="py-2.5 px-3 uppercase text-[10px] tracking-wider text-slate-300">
+                              TOTAL CORREDORES RURALES
+                            </td>
+                            <td className="py-2.5 px-2 text-center font-mono text-xs text-slate-200">
+                              {totalMesasPuestos} mesas
+                            </td>
+                            <td className="py-2.5 px-2 text-right font-mono text-cyan-400 text-xs font-black">
+                              {totalCensoPuestos.toLocaleString('es-CO')}
+                            </td>
+                            <td className="py-2.5 px-2 text-right font-mono text-emerald-400 text-xs font-black">
+                              ~{totalVotosPuestos.toLocaleString('es-CO')}
+                            </td>
+                            <td className="py-2.5 px-3 text-[10px] text-slate-400 italic">
+                              Consolidado Puesto a Puesto
+                            </td>
+                          </tr>
+                        </tfoot>
                       </table>
                     </div>
                   </div>
