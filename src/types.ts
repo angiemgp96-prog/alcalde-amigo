@@ -38,6 +38,9 @@ export interface CitizenNeed {
   presupuestoEstimadoCop: number;
   votosApoyo: number;
   fechaReporte: string;
+  whatsapp?: string;
+  municipioId?: 'guaduas' | 'caparrapi';
+  origen?: 'chat' | 'formulario';
 }
 
 export interface ComparativePriceOption {

@@ -461,21 +461,22 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
       const realNombre = userLead?.nombre || 'Ciudadano de ' + munData.nombre;
       const allDialogueText = updatedHistory.map(h => h.text).join(' ');
       const detectedVereda = detectVeredaOrBarrioFromText(allDialogueText, municipioId) || (selectedVereda.trim() && selectedVereda !== 'Por definir' ? selectedVereda : undefined);
+      const effectiveVereda = detectedVereda || (isCaparrapi ? 'Caparrapí Centro (Urbana)' : 'Guaduas Centro');
 
-      // NO almacenar si la vereda aún está pendiente ("Por definir") para evitar tarjetas vacías
-      if (detectedVereda && detectedVereda !== 'Por definir') {
-        onSaveNeed({
-          ciudadanoNombre: realNombre,
-          veredaBarrio: detectedVereda,
-          audioTranscripcion: query,
-          problematicaSintetizada: response.problematicaSintetizada,
-          sector: response.sector || 'Energía e Infraestructura',
-          urgencia: response.urgencia || 'Alta',
-          propuestaRamitos: response.propuestaRamitos || 'Propuesta estructurada para análisis del equipo de trabajo RR.',
-          insumosClave: [],
-          presupuestoEstimadoCop: 0
-        });
-      }
+      onSaveNeed({
+        ciudadanoNombre: realNombre,
+        veredaBarrio: effectiveVereda,
+        audioTranscripcion: query,
+        problematicaSintetizada: response.problematicaSintetizada,
+        sector: response.sector || 'Energía e Infraestructura',
+        urgencia: response.urgencia || 'Alta',
+        propuestaRamitos: response.propuestaRamitos || 'Propuesta estructurada para análisis del equipo de trabajo RR.',
+        insumosClave: [],
+        presupuestoEstimadoCop: 0,
+        whatsapp: userLead?.whatsapp || '',
+        municipioId: municipioId,
+        origen: 'chat'
+      });
     }
   };
 

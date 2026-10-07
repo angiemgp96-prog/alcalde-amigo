@@ -1,5 +1,17 @@
 import { CitizenNeed } from '../types';
-import { getRamitosMemory, saveRamitosMemory, getPastInteractionsHistory, getBaseProposals, checkUserLeadRegistrationInSupabase, saveCitizenLead, updateUserLeadInSupabase, purgeAndReplaceTermInSupabaseHistory } from './api';
+import { 
+  getRamitosMemory, 
+  saveRamitosMemory, 
+  getPastInteractionsHistory, 
+  getBaseProposals, 
+  checkUserLeadRegistrationInSupabase, 
+  saveCitizenLead, 
+  updateUserLeadInSupabase, 
+  purgeAndReplaceTermInSupabaseHistory,
+  isTrollOrSpamContent,
+  getDeviceBlockStatus,
+  registerSpamStrike
+} from './api';
 import { getDeviceId } from './deviceMemory';
 
 export interface RamitosChatResponse {
@@ -234,17 +246,20 @@ IDENTIDAD CLARA Y DISTINCIÓN DE ROLES (ORDEN SUPREMA):
    - 2️⃣ Orientar posibilidades técnicas preliminares viables (metodología MGA DNP, convenios solidarios con Juntas de Acción Comunal, gestión ante entidades nacionales) como guía.
    - 3️⃣ Entregar cada reporte sistematizado al "equipo humano de trabajo RR" para que lo estudien y organicen propuestas reales con la comunidad.
 
-3. RECOPILACIÓN Y SENTIDO DE OPORTUNIDAD COMUNAL (SIN SPAM):
+3. RECOPILACIÓN, INVITACIÓN A VOTAR Y PARTICIPACIÓN COMUNAL (SIN SPAM):
    - Las 3 propuestas comunitarias que hoy más respaldan los vecinos en ${nombreMun} son:
      ${isCap ? `* 1️⃣ Vías: Placas huellas y maquinaria permanente para vías terciarias (San Ramón, San Carlos, Pitalito, Terán).
      * 2️⃣ Agua: Optimización de acueductos veredales con tanques desarenadores y energía solar comunitaria.
      * 3️⃣ Educación: Conectividad satelital y dotación tecnológica para escuelas rurales.` : `* 1️⃣ Vías: Placas huellas modulares en corredores agrícolas (Guaduero, San Antonio, La Paz).
      * 2️⃣ Agua: Optimización de acueductos rurales en Puerto Bogotá y riberas.
      * 3️⃣ Salud: Dotación y telemedicina para el Hospital San José y brigadas veredales.`}
-   - REGLA DE OPORTUNIDAD Y RELACIÓN CONTEXTUAL (CERO SPAM):
-     * Solo menciona o relaciona estas propuestas si hay una RELACIÓN DIRECTA con lo que el ciudadano está hablando (por ejemplo, si habla de caminos, acueductos, escuelas, o pregunta qué proyectos hay). Si habla de otro tema no relacionado, ¡NO las menciones ni hagas spam!
-     * OPORTUNIDAD DE CIERRE O DESPEDIDA: Si el ciudadano ya expuso su inquietud o la conversación va concluyendo ("gracias", "eso era todo", etc.), aprovecha para sugerir con sentido de oportunidad:
-       "Ya que estás acá, también puedes apoyar las ideas de la comunidad para que entre todos encontremos lo más prioritario para ${nombreMun} (Vías, Agua o Escuelas). ¿Te gustaría conocerlas o votar por alguna?"
+   - INVITACIÓN A APOYAR Y VOTAR AL CONCLUIR IDEAS O AL DESPEDIRSE:
+     * Cuando el ciudadano expone o concluye una propuesta o necesidad (o dice "gracias", "eso era", etc.), confírmale que su idea queda redactada técnicamente para su vereda, e invítalo con calidez a apoyarla y votar en la sección "Voz Ciudadana":
+       "He dejado estructurada tu propuesta para tu vereda. En la sección de 'Voz Ciudadana' puedes revisarla, apoyarla y votar por las prioridades comunitarias de ${nombreMun} para que identifiquemos juntos lo que la mayoría necesita."
+   - CONTROL DE IDEAS DISTINTAS DE LA MISMA PERSONA:
+     * Si la misma persona plantea en mensajes o momentos distintos varias inquietudes diferentes (ej. primero una vía, luego un acueducto), atiende y formula cada una por separado sin mezclarlas ni fusionarlas erróneamente.
+   - FILTRO ESTRICTO DE BURLAS / PROPUESTAS ABSURDAS:
+     * Si proponen cosas fuera de la realidad (como comprar helicópteros, chistes o burlas), responde con seriedad y respeto diciendo que el Equipo RR enfoca sus esfuerzos en soluciones reales y viables para ${nombreMun}.
    - CAPTURA DE VOTOS: Si el ciudadano elige o apoya una opción (ej. "la 1", "las vías", "el acueducto", "las escuelas"), valida su voto con calidez y confírmale que su prioridad queda registrada en el consolidado comunal del Equipo RR.
 
 4. ORIGEN DE LA INFORMACIÓN:
@@ -282,7 +297,31 @@ export async function processRamitosConversationAsync(
     };
   }
 
-  // 0. INTERCEPCIÓN DE AUDIOCORRECCIÓN Y PURGA DE TÉRMINOS ERRÓNEOS EN SUPABASE ("no dije wolmart dije guaduas")
+  // 0-A. VERIFICACIÓN DE BLOQUEO DE DISPOSITIVO / IP (5 HORAS POR SPAM REITERADO)
+  const blockStatus = getDeviceBlockStatus();
+  if (blockStatus.isBlocked) {
+    return {
+      textoRespuesta: `⚠️ Dispositivo suspendido por 5 horas debido a envíos reiterados de contenido no constructivo o spam. Podrás participar nuevamente en ${blockStatus.remainingHours || 5} horas. El espacio de ${nombreMun} busca priorizar propuestas viables de la comunidad.`,
+      expresion: 'triste'
+    };
+  }
+
+  // 0-B. DETECCIÓN DE CONTENIDO TROLL / BURLAS / PROPUESTAS ABSURDAS (EJ. COMPRAR 10 HELICÓPTEROS)
+  if (isTrollOrSpamContent(userInput)) {
+    const strikeInfo = registerSpamStrike();
+    if (strikeInfo.isBlocked) {
+      return {
+        textoRespuesta: `⚠️ Tu dispositivo ha sido suspendido temporalmente por 5 horas debido a mensajes no constructivos o spam. Cuidamos este espacio para las verdaderas necesidades de ${nombreMun}.`,
+        expresion: 'enojado'
+      };
+    }
+    return {
+      textoRespuesta: `En este espacio del Equipo RR nos enfocamos en propuestas comunitarias reales, viables y respetuosas para ${nombreMun}. Solicitudes fuera de lugar o en tono de burla (como comprar helicópteros o bromas) desvían la atención de necesidades prioritarias como vías, agua y escuelas. Cuéntanos qué necesidad real tiene tu comunidad.`,
+      expresion: 'confundido'
+    };
+  }
+
+  // 0-C. INTERCEPCIÓN DE AUDIOCORRECCIÓN Y PURGA DE TÉRMINOS ERRÓNEOS EN SUPABASE ("no dije wolmart dije guaduas")
   const audioCorrection = extractAudioCorrectionFromText(userInput);
   if (audioCorrection) {
     const { updatedInteractions, updatedMemories } = await purgeAndReplaceTermInSupabaseHistory(
@@ -689,22 +728,36 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
     textLower.includes('qué proyectos hay') || textLower.includes('de dónde sacas') || textLower.includes('sabes cuál es mi') ||
     textLower.length < 15;
 
-  const isRealProblemOrProposal = !isConversationalQuestion && (
-    textLower.includes('me gustaría proponer') || textLower.includes('me gustaria proponer') ||
-    textLower.includes('necesitamos') || textLower.includes('hace falta') ||
+  const isTroll = isTrollOrSpamContent(originalInput) || isTrollOrSpamContent(textLower);
+
+  const hasProposalMarkers = 
+    textLower.includes('propongo') || textLower.includes('propuesta') ||
+    textLower.includes('necesitamos') || textLower.includes('necesidad') ||
+    textLower.includes('hace falta') || textLower.includes('hacen falta') ||
     textLower.includes('no hay') || textLower.includes('está dañado') || textLower.includes('esta dañado') ||
-    textLower.includes('se necesita') || textLower.includes('solicitamos') ||
-    textLower.includes('queremos proponer') || textLower.includes('propuesta para') ||
+    textLower.includes('se necesita') || textLower.includes('se requieren') ||
+    textLower.includes('solicitamos') || textLower.includes('pedimos') ||
+    textLower.includes('queremos proponer') || textLower.includes('problemática') || textLower.includes('problematica') ||
+    textLower.includes('problema') || textLower.includes('sugerencia') || textLower.includes('sugiero') ||
+    textLower.includes('inquietud') || textLower.includes('idea') ||
+    textLower.includes('arreglar') || textLower.includes('pavimentar') || textLower.includes('mantenimiento') ||
+    textLower.includes('placa huella') || textLower.includes('acueducto') || textLower.includes('alcantarillado') ||
+    textLower.includes('escuela') || textLower.includes('colegio') || textLower.includes('puesto de salud') ||
+    textLower.includes('alumbrado') || textLower.includes('electrificación') || textLower.includes('transporte');
+
+  const isRealProblemOrProposal = !isTroll && !isConversationalQuestion && (
+    hasProposalMarkers ||
     (
-      (textLower.includes('agua') || textLower.includes('vía') || textLower.includes('via') || textLower.includes('carretera') || textLower.includes('placa huella') || textLower.includes('internet') || textLower.includes('escuela') || textLower.includes('hospital') || textLower.includes('puente')) &&
-      (textLower.includes('arreglo') || textLower.includes('mejorar') || textLower.includes('construir') || textLower.includes('pavimentar') || textLower.includes('dotar') || textLower.includes('mayor') || textLower.includes('ampliar'))
+      (textLower.includes('agua') || textLower.includes('vía') || textLower.includes('via') || textLower.includes('carretera') || textLower.includes('camino') || textLower.includes('puente') || textLower.includes('internet') || textLower.includes('salud') || textLower.includes('escuela')) &&
+      (textLower.includes('mala') || textLower.includes('dañad') || textLower.includes('falta') || textLower.includes('arreglo') || textLower.includes('mejor') || textLower.includes('constru') || textLower.includes('atención') || textLower.includes('servicio'))
     )
   );
 
   let realSintesis: string | undefined = voteSintesis;
   if (!realSintesis && isRealProblemOrProposal) {
-    const locPrefix = currentVereda && currentVereda !== 'Por definir' ? ` en ${currentVereda}` : '';
-    realSintesis = `Propuesta Ciudadana${locPrefix}: "${originalInput}"`;
+    const locPrefix = currentVereda && currentVereda !== 'Por definir' ? ` (${currentVereda})` : '';
+    const cleanInput = originalInput.replace(/^(hola|buenas|mira|oye|quiero decirte que|te comento que|ramitos|copiloto)\s*,?\s*/i, '').trim();
+    realSintesis = `Propuesta Ciudadana${locPrefix}: ${cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1)}`;
   }
 
   const expresion = detectExpression(textLower);
@@ -714,7 +767,7 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
     problematicaSintetizada: realSintesis,
     sector: voteSector || (isRealProblemOrProposal ? detectSector(textLower) : undefined),
     urgencia: realSintesis ? 'Alta' : undefined,
-    propuestaRamitos: realSintesis ? (voteSintesis ? `Prioridad comunal consolidada por el Equipo de Trabajo RR.` : `Propuesta estructurada para análisis del equipo de trabajo RR.`) : undefined,
+    propuestaRamitos: realSintesis ? (voteSintesis ? `Prioridad comunal consolidada por el Equipo de Trabajo RR.` : (cleanedText.split('.')[0] + '.' || `Estructuración técnica por el Equipo de Trabajo RR.`)) : undefined,
     expresion: voteSintesis ? 'entusiasmado' : expresion
   };
 }
