@@ -12,6 +12,8 @@ interface HeaderBarProps {
   needsCount: number;
   isSecretAdminUnlocked?: boolean;
   onUnlockSecretAdmin?: (unlocked: boolean) => void;
+  showAdminModal?: boolean;
+  setShowAdminModal?: (show: boolean) => void;
   municipioId: 'guaduas' | 'caparrapi';
   onSelectMunicipio: (m: 'guaduas' | 'caparrapi') => void;
 }
@@ -23,11 +25,18 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
   needsCount,
   isSecretAdminUnlocked = false,
   onUnlockSecretAdmin,
+  showAdminModal: externalShowAdminModal,
+  setShowAdminModal: externalSetShowAdminModal,
   municipioId,
   onSelectMunicipio
 }) => {
   const [showMunDropdown, setShowMunDropdown] = useState(false);
-  const [showAdminModal, setShowAdminModal] = useState(false);
+  const [internalShowAdminModal, setInternalShowAdminModal] = useState(false);
+  const showAdminModal = externalShowAdminModal !== undefined ? externalShowAdminModal : internalShowAdminModal;
+  const setShowAdminModal = (val: boolean) => {
+    if (externalSetShowAdminModal) externalSetShowAdminModal(val);
+    setInternalShowAdminModal(val);
+  };
   const [adminKeyInput, setAdminKeyInput] = useState('');
   const [adminKeyError, setAdminKeyError] = useState(false);
 
@@ -204,15 +213,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
 
             </div>
 
-            {/* BADGE DE ESTADO RÁPIDO EN MÓVILES */}
+            {/* BADGE DE ESTADO EN MÓVILES */}
             <div className="flex lg:hidden items-center gap-1.5 shrink-0">
-              <button
-                onClick={() => setShowAdminModal(true)}
-                className="p-1 text-slate-400 hover:text-amber-400 transition-colors"
-                title="Acceso Clave 0777"
-              >
-                {isSecretAdminUnlocked ? <Unlock className="w-3.5 h-3.5 text-emerald-400" /> : <Lock className="w-3.5 h-3.5" />}
-              </button>
               <div className="flex items-center space-x-1 px-2 py-1 rounded-full bg-slate-900 border border-slate-800 text-[10px]">
                 <div className={`w-1.5 h-1.5 rounded-full ${isConnectedDb ? 'bg-emerald-400 animate-pulse' : 'bg-amber-400'}`}></div>
                 <span className="text-slate-300 font-semibold">{isConnectedDb ? 'Cloud' : 'Local'}</span>
@@ -280,7 +282,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         </div>
       </header>
 
-      {/* MODAL DE CLAVE DE ACCESO ADMINISTRADOR 0777 */}
+      {/* MODAL DE CLAVE DE ACCESO ADMINISTRATIVO */}
       {showAdminModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 max-w-sm w-full shadow-2xl relative space-y-4">
@@ -296,8 +298,8 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                 <KeyRound className="w-5 h-5" />
               </div>
               <div>
-                <h3 className="text-sm font-bold text-white">Acceso a Centro de Mando</h3>
-                <p className="text-[11px] text-slate-400">Ingresa la clave para desplegar el menú</p>
+                <h3 className="text-sm font-bold text-white">Acceso Administrativo</h3>
+                <p className="text-[11px] text-slate-400">Módulos de gestión territorial</p>
               </div>
             </div>
 
@@ -324,7 +326,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                     autoFocus
                     value={adminKeyInput}
                     onChange={(e) => { setAdminKeyInput(e.target.value); setAdminKeyError(false); }}
-                    placeholder="Ingresa clave (ej. 0777)..."
+                    placeholder="••••••••"
                     className="w-full bg-slate-950 border border-slate-700 focus:border-amber-500 rounded-xl px-3.5 py-2.5 text-xs text-white placeholder:text-slate-500 focus:outline-none font-mono"
                   />
                   {adminKeyError && (
@@ -349,10 +351,6 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                 </div>
               </form>
             )}
-
-            <p className="text-[10px] text-slate-500 text-center font-mono">
-              Tip: También puedes escribir <span className="text-amber-400 font-bold">0777</span> en tu teclado.
-            </p>
           </div>
         </div>
       )}

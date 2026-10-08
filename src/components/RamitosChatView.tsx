@@ -338,12 +338,15 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           const lastUserItem = [...past].reverse().find(i => i.userText && i.userText.trim().length > 0);
           const lastUserText = lastUserItem?.userText?.trim() || '';
 
+          const leadInfo = await checkUserLeadRegistrationInSupabase();
+          const userName = leadInfo?.nombre ? ` ${leadInfo.nombre}` : '';
+
           let reconnectGreeting = '';
           if (lastUserText) {
             const topicSnippet = lastUserText.length > 45 ? lastUserText.substring(0, 42) + '...' : lastUserText;
-            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! La última vez estuvimos conversando sobre "${topicSnippet}". ¿Quieres que sigamos profundizando en esa propuesta o tienes alguna otra idea o necesidad para ${munNombre}?`;
+            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí${userName}! La última vez estuvimos conversando sobre "${topicSnippet}". ¿Quieres que sigamos profundizando en esa propuesta o tienes alguna otra idea o necesidad para ${munNombre}?`;
           } else {
-            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí! ¿Deseas continuar donde quedamos o plantear una nueva inquietud para ${munNombre}?`;
+            reconnectGreeting = `${emojiMun} ¡Qué gusto tenerte de nuevo por aquí${userName}! ¿Deseas continuar donde quedamos o plantear una nueva inquietud para ${munNombre}?`;
           }
 
           const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -358,15 +361,20 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             setDisplayedResponse(reconnectGreeting);
           }
         } else {
-          // Si no hay historial previo para este municipio, usar el saludo inicial limpio
-          setCurrentResponse(initialGreeting);
+          // Si no hay historial previo para este municipio, consultar si el ciudadano ya está registrado por IP/dispositivo
+          const leadInfo = await checkUserLeadRegistrationInSupabase();
+          const greetingText = leadInfo?.nombre
+            ? `${emojiMun} ¡Hola ${leadInfo.nombre}! Qué gusto saludarte en ${munNombre}. ¿Tienes alguna necesidad, idea o propuesta comunitaria que quieras compartir hoy?`
+            : initialGreeting;
+
+          setCurrentResponse(greetingText);
           setHistory([
-            { sender: 'ramitos', text: initialGreeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
+            { sender: 'ramitos', text: greetingText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
           ]);
           if (!isMuted && isAudioPermissionGranted && !showPermissionModal) {
-            speakRamitosVoice(initialGreeting, true);
+            speakRamitosVoice(greetingText, true);
           } else {
-            setDisplayedResponse(initialGreeting);
+            setDisplayedResponse(greetingText);
           }
         }
       } catch (err) {

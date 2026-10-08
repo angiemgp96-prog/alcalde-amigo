@@ -45,6 +45,7 @@ export function App() {
   // MODO SECRETO ADMINISTRADOR ("0777")
   const [isSecretAdminUnlocked, setIsSecretAdminUnlocked] = useState<boolean>(false);
   const [showSecretToast, setShowSecretToast] = useState<boolean>(false);
+  const [showAdminModal, setShowAdminModal] = useState<boolean>(false);
 
   useEffect(() => {
     let keyBuffer = '';
@@ -149,6 +150,8 @@ export function App() {
         isConnectedDb={supabaseConfig.isConnected}
         needsCount={needs.length}
         isSecretAdminUnlocked={isSecretAdminUnlocked}
+        showAdminModal={showAdminModal}
+        setShowAdminModal={setShowAdminModal}
         onUnlockSecretAdmin={(unlocked) => {
           setIsSecretAdminUnlocked(unlocked);
           if (!unlocked && ['radiografia', 'auditoria', 'politicas', 'mga', 'speech', 'territorio', 'gira', 'veredas', 'licitaciones'].includes(activeTab)) {
@@ -226,6 +229,22 @@ export function App() {
           </div>
         )}
       </main>
+
+      {/* FOOTER DISCRETO CON ACCESO ADMINISTRATIVO */}
+      <footer className="py-2.5 px-4 sm:px-6 border-t border-slate-900 bg-[#060a14] flex items-center justify-between text-[11px] text-slate-600 select-none shrink-0">
+        <div className="flex items-center gap-2">
+          <span>iAlcaldía © 2026</span>
+          <span className="text-slate-700">•</span>
+          <span className="capitalize text-slate-500">{municipioId}</span>
+        </div>
+        <button
+          onClick={() => setShowAdminModal(true)}
+          className="text-slate-600 hover:text-slate-400 transition-colors text-[11px] font-medium cursor-pointer"
+          title="Acceso administrativo"
+        >
+          Acceso Admin
+        </button>
+      </footer>
     </div>
   );
 }
