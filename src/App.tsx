@@ -49,21 +49,13 @@ export function App() {
   useEffect(() => {
     let keyBuffer = '';
     const handleKeyDown = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement;
-      if (target && (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)) {
-        return;
-      }
-
       keyBuffer += e.key;
       if (keyBuffer.length > 20) keyBuffer = keyBuffer.slice(-20);
 
       if (keyBuffer.endsWith('0777')) {
-        setIsSecretAdminUnlocked(prev => {
-          const nextState = !prev;
-          setShowSecretToast(true);
-          setTimeout(() => setShowSecretToast(false), 4500);
-          return nextState;
-        });
+        setIsSecretAdminUnlocked(true);
+        setShowSecretToast(true);
+        setTimeout(() => setShowSecretToast(false), 4500);
         keyBuffer = '';
       }
     };
@@ -157,6 +149,12 @@ export function App() {
         isConnectedDb={supabaseConfig.isConnected}
         needsCount={needs.length}
         isSecretAdminUnlocked={isSecretAdminUnlocked}
+        onUnlockSecretAdmin={(unlocked) => {
+          setIsSecretAdminUnlocked(unlocked);
+          if (!unlocked && ['radiografia', 'auditoria', 'politicas', 'mga', 'speech', 'territorio', 'gira', 'veredas', 'licitaciones'].includes(activeTab)) {
+            setActiveTab('chat');
+          }
+        }}
         municipioId={municipioId}
         onSelectMunicipio={handleSelectMunicipio}
       />

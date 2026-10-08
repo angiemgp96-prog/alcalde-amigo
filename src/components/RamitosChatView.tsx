@@ -663,13 +663,13 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   };
 
   return (
-    <div className="h-[calc(100vh-4.25rem)] w-full bg-gradient-to-b from-[#eef2f6] via-[#e2e8f0] to-[#cbd5e1] flex items-center justify-center p-2 lg:p-4 select-none overflow-hidden">
+    <div className="h-[calc(100dvh-6.2rem)] lg:h-[calc(100vh-4.25rem)] w-full bg-gradient-to-b from-[#eef2f6] via-[#e2e8f0] to-[#cbd5e1] flex items-center justify-center p-1 sm:p-2 lg:p-4 select-none overflow-hidden">
       
       {/* CONTENEDOR FLEX: FRAME CENTRAL CON MÁS ANCHO EN PC + HISTORIAL LATERAL */}
-      <div className="flex items-center justify-center w-full max-w-7xl h-full max-h-[820px] gap-4 xl:gap-6 px-1 sm:px-2">
+      <div className="flex items-center justify-center w-full max-w-7xl h-full max-h-[820px] gap-4 xl:gap-6 px-0.5 sm:px-2">
 
         {/* FRAME CENTRAL: APROVECHA MÁS ANCHO EN PC (lg:max-w-2xl xl:max-w-3xl) Y PERFECTAMENTE ADAPTABLE EN MÓVIL */}
-        <div className="relative w-full max-w-[430px] lg:max-w-2xl xl:max-w-3xl h-full bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[28px] sm:rounded-[40px] mobile-frame-glow border-[3px] sm:border-[5px] border-white/80 overflow-hidden flex flex-col justify-between p-2 sm:p-5 shadow-2xl">
+        <div className="relative w-full max-w-[430px] lg:max-w-2xl xl:max-w-3xl h-full bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[22px] sm:rounded-[40px] mobile-frame-glow border-[2px] sm:border-[5px] border-white/80 overflow-hidden flex flex-col justify-between p-1.5 sm:p-5 shadow-2xl">
         
         {/* LINEAS DE CIRCUITO Y DESTELLOS DE FONDO */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
@@ -909,23 +909,23 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
             <div className="absolute inset-0 -m-3 sm:-m-10 rounded-full bg-radial from-slate-900/80 via-slate-800/40 to-transparent blur-xl pointer-events-none"></div>
 
-            <div className="relative w-20 h-20 sm:w-52 sm:h-52 flex items-center justify-center">
+            <div className="relative w-14 h-14 sm:w-52 sm:h-52 flex items-center justify-center">
               
               {isCaparrapi ? (
                 /* EMBLEMA CÍVICO E INTELIGENCIA TERRITORIAL DE CAPARRAPÍ (MEDALLÓN ESCALADO) */
-                <div className="relative w-20 h-20 sm:w-48 sm:h-48 flex flex-col items-center justify-center animate-fadeIn select-none">
+                <div className="relative w-14 h-14 sm:w-48 sm:h-48 flex flex-col items-center justify-center animate-fadeIn select-none">
                   {/* Anillos concéntricos de audio y tecnología */}
                   <div className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-ping pointer-events-none opacity-20"></div>
                   <div className="absolute inset-1 sm:inset-2 rounded-full border border-sky-400/40 pointer-events-none"></div>
                   <div className="absolute inset-2 sm:inset-6 rounded-full border-2 border-dashed border-indigo-400/30 animate-spin" style={{ animationDuration: '25s' }}></div>
                   
                   {/* Medallón Central */}
-                  <div className="relative w-18 h-18 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-2 sm:border-4 border-blue-500/80 p-1 sm:p-3 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.4)] transform hover:scale-105 transition-transform">
-                    <div className="w-6 h-6 sm:w-16 sm:h-16 rounded-lg sm:rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-lg border border-blue-300/40 mb-0.5 sm:mb-1">
-                      <span className="text-sm sm:text-3xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
+                  <div className="relative w-12 h-12 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-2 sm:border-4 border-blue-500/80 p-0.5 sm:p-3 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.4)] transform hover:scale-105 transition-transform">
+                    <div className="w-5 h-5 sm:w-16 sm:h-16 rounded-md sm:rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-lg border border-blue-300/40 mb-0.5">
+                      <span className="text-xs sm:text-3xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
                     </div>
-                    <p className="text-[8px] sm:text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
-                    <span className="text-[6px] sm:text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-1 sm:px-2 py-0.2 sm:py-0.5 rounded-full mt-0.5 border border-blue-400/40 shadow-xs">
+                    <p className="text-[7px] sm:text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
+                    <span className="text-[5px] sm:text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-1 sm:px-2 py-0.2 sm:py-0.5 rounded-full mt-0.5 border border-blue-400/40 shadow-xs">
                       Copiloto Ciudadano
                     </span>
                   </div>
@@ -997,14 +997,14 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         </div>
 
         {/* BOTTOM INPUT & ACTION BAR (100% VISIBLE, SHRUNK-0 Y FIJO EN MÓVILES) */}
-        <div className="relative z-30 shrink-0 space-y-1 sm:space-y-2 pt-0 pb-1 sm:pb-0 w-full">
+        <div className="relative z-30 shrink-0 space-y-1 sm:space-y-2 pt-0 pb-0.5 sm:pb-0 w-full">
           
           <form
             onSubmit={(e) => {
               e.preventDefault();
               handleSendMessage();
             }}
-            className="flex items-center space-x-2 bg-white/90 border border-white rounded-2xl p-1.5 shadow-md"
+            className="flex items-center space-x-1.5 sm:space-x-2 bg-white/95 border border-white rounded-xl sm:rounded-2xl p-1 sm:p-1.5 shadow-md"
           >
             <input
               type="text"

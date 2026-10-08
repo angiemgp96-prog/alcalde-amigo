@@ -842,7 +842,7 @@ export function getCitizenNeeds(municipioId: 'guaduas' | 'caparrapi' | string = 
 
     const isCap = mun === 'caparrapi';
 
-    const cleaned = (list || []).filter(n => {
+    let cleaned = (list || []).filter(n => {
       if (!n || !n.id) return false;
       // Prohibido mostrar semillas artificiales o ficticias
       if (n.id.startsWith('seed-')) return false;
@@ -893,21 +893,24 @@ export function getCitizenNeeds(municipioId: 'guaduas' | 'caparrapi' | string = 
         });
       }
 
-      // Si no existe la propuesta de Caparrapí Centro (Urbana), agregarla con su ID real y 1 voto
-      if (!cleaned.some(n => n.id === '8b1fd1b9-43a0-435f-9794-96b5b463dc7c' || (n.veredaBarrio && (n.veredaBarrio.toLowerCase().includes('caparrapí centro') || n.veredaBarrio.toLowerCase().includes('caparrapi centro'))))) {
+      // Limpiar cualquier propuesta de prueba antigua
+      cleaned = cleaned.filter(n => n.id !== '8b1fd1b9-43a0-435f-9794-96b5b463dc7c');
+
+      // Si no existe la propuesta real de San Pablo (Placa huella), agregarla con su ID oficial y 1 voto
+      if (!cleaned.some(n => n.id === '98ab2b1d-5853-42ab-a9f9-648ed4aecba3' || (n.veredaBarrio && n.veredaBarrio.toLowerCase().includes('san pablo')))) {
         cleaned.push({
-          id: '8b1fd1b9-43a0-435f-9794-96b5b463dc7c',
-          ciudadanoNombre: 'Ciudadano de Caparrapí Centro (Urbana)',
-          veredaBarrio: 'Caparrapí Centro (Urbana)',
-          audioTranscripcion: 'Mantenimiento de alumbrado y vías urbanas',
-          problematicaSintetizada: 'Mantenimiento y mejoramiento del alumbrado público y vías urbanas en Caparrapí Centro',
+          id: '98ab2b1d-5853-42ab-a9f9-648ed4aecba3',
+          ciudadanoNombre: 'Ciudadano de San Pablo',
+          veredaBarrio: 'San Pablo',
+          audioTranscripcion: 'Sí mira Hay un problema de vías aquí por los lados de San Pablo después del puente me gustaría que se solucionara un tramo con una placa huella',
+          problematicaSintetizada: 'Problema de estado vial y deterioro en el tramo después del puente en la vereda San Pablo',
           sector: 'Energía e Infraestructura',
           urgencia: 'Alta',
-          propuestaRamitos: 'Plan integral de modernización de alumbrado público LED y mantenimiento vial urbano para Caparrapí Centro.',
-          insumosClave: ['Luminarias LED solares', 'Mantenimiento vial'],
-          presupuestoEstimadoCop: 28000000,
+          propuestaRamitos: 'Construcción de placa huella en el tramo crítico posterior al puente de la vereda San Pablo para garantizar transitabilidad y transporte de cosechas.',
+          insumosClave: ['Materiales para placa huella', 'Mano de obra comunal', 'Maquinaria amarilla'],
+          presupuestoEstimadoCop: 85000000,
           votosApoyo: 1,
-          fechaReporte: '2026-10-08T18:41:41.66155+00:00',
+          fechaReporte: '2026-10-08T19:30:52.639255+00:00',
           municipioId: 'caparrapi',
           origen: 'chat'
         });
