@@ -864,32 +864,57 @@ export function getCitizenNeeds(municipioId: 'guaduas' | 'caparrapi' | string = 
       return true;
     });
 
-    // Si aún no hay ninguna propuesta en Caparrapí, inicializar con la propuesta real formulada por Iván en San Carlos
-    if (cleaned.length === 0 && isCap) {
-      const initialRealProposal: CitizenNeed = {
-        id: 'need-ivan-sancarlos',
-        ciudadanoNombre: 'Iván',
-        veredaBarrio: 'San Carlos',
-        audioTranscripcion: 'Mejorar la conectividad de internet en San Carlos',
-        problematicaSintetizada: 'Mejorar la conectividad de internet y cobertura digital en la vereda San Carlos',
-        sector: 'Educación y Conectividad',
-        urgencia: 'Alta',
-        propuestaRamitos: 'Instalación de antena satelital Starlink y zona Wi-Fi comunitaria con respaldo solar para San Carlos.',
-        insumosClave: ['Antena satelital Starlink', 'Router Wi-Fi largo alcance', 'Kit solar de respaldo'],
-        presupuestoEstimadoCop: 45000000,
-        votosApoyo: 1,
-        fechaReporte: new Date().toISOString(),
-        municipioId: 'caparrapi',
-        origen: 'chat'
-      };
-      cleaned.push(initialRealProposal);
-      localStorage.setItem(key, JSON.stringify(cleaned));
+    // MIGRACIÓN Y NORMALIZACIÓN: Vincular IDs oficiales de Supabase y asegurar que ambas propuestas reales estén presentes
+    if (isCap) {
+      // Migrar 'need-ivan-sancarlos' al ID real de Supabase '79766ed5-a5e0-4ac2-ac00-7974548b799d'
+      const oldIvan = cleaned.find(n => n.id === 'need-ivan-sancarlos');
+      if (oldIvan) {
+        oldIvan.id = '79766ed5-a5e0-4ac2-ac00-7974548b799d';
+        oldIvan.votosApoyo = Math.max(oldIvan.votosApoyo || 1, 2);
+      }
+
+      // Si no existe la propuesta de San Carlos, agregarla con su ID real y 2 votos
+      if (!cleaned.some(n => n.id === '79766ed5-a5e0-4ac2-ac00-7974548b799d' || n.veredaBarrio?.toLowerCase() === 'san carlos')) {
+        cleaned.unshift({
+          id: '79766ed5-a5e0-4ac2-ac00-7974548b799d',
+          ciudadanoNombre: 'Iván',
+          veredaBarrio: 'San Carlos',
+          audioTranscripcion: 'Mejorar la conectividad de internet en San Carlos',
+          problematicaSintetizada: 'Mejorar la conectividad de internet y cobertura digital en la vereda San Carlos',
+          sector: 'Educación y Conectividad',
+          urgencia: 'Alta',
+          propuestaRamitos: 'Instalación de antena satelital Starlink y zona Wi-Fi comunitaria con respaldo solar para San Carlos.',
+          insumosClave: ['Antena satelital Starlink', 'Router Wi-Fi largo alcance', 'Kit solar de respaldo'],
+          presupuestoEstimadoCop: 45000000,
+          votosApoyo: 2,
+          fechaReporte: '2026-10-08T17:59:48.775827+00:00',
+          municipioId: 'caparrapi',
+          origen: 'chat'
+        });
+      }
+
+      // Si no existe la propuesta de Caparrapí Centro (Urbana), agregarla con su ID real y 1 voto
+      if (!cleaned.some(n => n.id === '8b1fd1b9-43a0-435f-9794-96b5b463dc7c' || (n.veredaBarrio && (n.veredaBarrio.toLowerCase().includes('caparrapí centro') || n.veredaBarrio.toLowerCase().includes('caparrapi centro'))))) {
+        cleaned.push({
+          id: '8b1fd1b9-43a0-435f-9794-96b5b463dc7c',
+          ciudadanoNombre: 'Ciudadano de Caparrapí Centro (Urbana)',
+          veredaBarrio: 'Caparrapí Centro (Urbana)',
+          audioTranscripcion: 'Mantenimiento de alumbrado y vías urbanas',
+          problematicaSintetizada: 'Mantenimiento y mejoramiento del alumbrado público y vías urbanas en Caparrapí Centro',
+          sector: 'Energía e Infraestructura',
+          urgencia: 'Alta',
+          propuestaRamitos: 'Plan integral de modernización de alumbrado público LED y mantenimiento vial urbano para Caparrapí Centro.',
+          insumosClave: ['Luminarias LED solares', 'Mantenimiento vial'],
+          presupuestoEstimadoCop: 28000000,
+          votosApoyo: 1,
+          fechaReporte: '2026-10-08T18:41:41.66155+00:00',
+          municipioId: 'caparrapi',
+          origen: 'chat'
+        });
+      }
     }
 
-    if (cleaned.length !== list.length) {
-      localStorage.setItem(key, JSON.stringify(cleaned));
-    }
-
+    localStorage.setItem(key, JSON.stringify(cleaned));
     return cleaned;
   } catch (e) {
     console.error(e);
@@ -952,6 +977,18 @@ export async function fetchCitizenNeedsFromSupabase(municipioId: 'guaduas' | 'ca
 
         const localList = getCitizenNeeds(mun);
         const merged = [...mapped];
+
+        // Sincronizar votos: el valor más alto entre la nube y el dispositivo se unifica y persiste
+        merged.forEach(m => {
+          const localItem = localList.find(l => l.id === m.id || (l.veredaBarrio?.trim().toLowerCase() === m.veredaBarrio?.trim().toLowerCase() && l.problematicaSintetizada?.trim().toLowerCase() === m.problematicaSintetizada?.trim().toLowerCase()));
+          if (localItem && localItem.votosApoyo && localItem.votosApoyo > (m.votosApoyo || 0)) {
+            m.votosApoyo = localItem.votosApoyo;
+            client.from('problematicas_ciudadanas')
+              .update({ votos_comunitarios: m.votosApoyo })
+              .eq('id', m.id)
+              .then(() => {});
+          }
+        });
 
         // AUTO-SUBIDA A SUPABASE: si este dispositivo tiene propuestas locales que aún no llegaron a la nube, subirlas de inmediato
         for (const l of localList) {
@@ -1048,11 +1085,16 @@ export async function voteCitizenNeed(needId: string, municipioId?: 'guaduas' | 
     localStorage.setItem(LOCAL_STORAGE_VOTED_NEEDS, JSON.stringify(voted));
     localStorage.setItem(key, JSON.stringify(all));
 
-    // Si Supabase está conectado, actualizar votos
-    if (supabaseClient) {
+    // Sincronizar voto con Supabase en tiempo real
+    const client = supabaseClient || getSupabaseClient();
+    if (client) {
       try {
-        await supabaseClient.rpc('increment_need_vote', { need_id: needId });
-      } catch (e) {}
+        await client.from('problematicas_ciudadanas')
+          .update({ votos_comunitarios: target.votosApoyo })
+          .eq('id', needId);
+      } catch (e) {
+        console.warn('Error actualizando voto en Supabase:', e);
+      }
     }
 
     return { success: true, newCount: target.votosApoyo };
