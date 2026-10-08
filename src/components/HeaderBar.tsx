@@ -120,6 +120,25 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               <span>Centro de Mando & MGA (Adentro)</span>
             </button>
 
+            {/* BOTÓN VOZ CIUDADANA RESTAURADO */}
+            <button
+              onClick={() => setActiveTab('escucha')}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
+                activeTab === 'escucha'
+                  ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-orange-950/50 border border-amber-400/50'
+                  : 'bg-slate-900/80 text-amber-300 hover:text-white hover:bg-slate-800 border border-slate-800'
+              }`}
+              title="Voz Ciudadana: Propuestas y Prioridades Comunitarias"
+            >
+              <span>📣</span>
+              <span>Voz Ciudadana</span>
+              {needsCount > 0 && (
+                <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white">
+                  {needsCount}
+                </span>
+              )}
+            </button>
+
             {/* BOTÓN EXCLUSIVO: LICITAPRO SAAS */}
             <button
               onClick={() => setActiveTab('licitaciones')}
@@ -156,10 +175,10 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
         </div>
 
         {/* BARRA DE NAVEGACIÓN COMPACTA EN MÓVILES (< 1024px) - TABS LIMPIOS TIPO APP SIN MONTARSE */}
-        <div className="flex lg:hidden items-center justify-between gap-1.5 pb-2 pt-1 border-t border-slate-800/60">
+        <div className="flex lg:hidden items-center justify-between gap-1 pb-2 pt-1 border-t border-slate-800/60">
           <button
             onClick={() => setActiveTab('chat')}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer truncate ${
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer truncate ${
               activeTab === 'chat'
                 ? 'bg-emerald-600 text-white shadow-md border border-emerald-400/50'
                 : 'bg-slate-900/90 text-slate-300 hover:text-white border border-slate-800'
@@ -170,20 +189,32 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           </button>
 
           <button
+            onClick={() => setActiveTab('escucha')}
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer truncate ${
+              activeTab === 'escucha'
+                ? 'bg-amber-600 text-white shadow-md border border-amber-400/50'
+                : 'bg-slate-900/90 text-amber-300 hover:text-white border border-slate-800'
+            }`}
+          >
+            <span>📣</span>
+            <span className="truncate">Voz {needsCount > 0 ? `(${needsCount})` : ''}</span>
+          </button>
+
+          <button
             onClick={() => setActiveTab(isAdentro ? activeTab : 'radiografia')}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer truncate ${
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer truncate ${
               isAdentro
                 ? 'bg-cyan-600 text-white shadow-md border border-cyan-400/50'
                 : 'bg-slate-900/90 text-slate-300 hover:text-white border border-slate-800'
             }`}
           >
             <span>🏛️</span>
-            <span className="truncate">Mando MGA</span>
+            <span className="truncate">Mando</span>
           </button>
 
           <button
             onClick={() => setActiveTab('licitaciones')}
-            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-2 rounded-xl text-[11px] font-bold transition-all cursor-pointer truncate ${
+            className={`flex-1 flex items-center justify-center gap-1 py-1.5 px-1 rounded-xl text-[10px] font-bold transition-all cursor-pointer truncate ${
               activeTab === 'licitaciones'
                 ? 'bg-purple-600 text-white shadow-md border border-purple-400/50'
                 : 'bg-slate-900/90 text-purple-300 hover:text-white border border-slate-800'

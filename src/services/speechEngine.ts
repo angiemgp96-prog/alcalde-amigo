@@ -116,7 +116,15 @@ class SpeechEngine {
     }
   }
 
+  private currentSpeechId: number = 0;
+  private currentSyncTimer: any = null;
+
   public stopSpeaking(): void {
+    this.currentSpeechId++;
+    if (this.currentSyncTimer) {
+      clearInterval(this.currentSyncTimer);
+      this.currentSyncTimer = null;
+    }
     if (this.currentAudio) {
       try {
         this.currentAudio.pause();
@@ -125,11 +133,13 @@ class SpeechEngine {
       this.currentAudio = null;
     }
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+      try {
+        window.speechSynthesis.cancel();
+      } catch (e) {}
     }
   }
 
-  // VOZ HABLADA REALISTA DE RAMITOS / COPILOTO (NEURAL COLOMBIANA SIN APIS O ELEVENLABS JUAN F)
+  // VOZ HABLADA REALISTA DE RAMITOS / COPILOTO (NEURAL COLOMBIANA SIN APIS O ELEVENLABS OSCAR LOPEZ PAISA)
   public async speakRamitos(
     text: string,
     onEnd?: () => void,
@@ -138,6 +148,7 @@ class SpeechEngine {
     if (!this.voiceEnabled || typeof window === 'undefined') return;
 
     this.stopSpeaking();
+    const mySpeechId = ++this.currentSpeechId;
 
     const cleanText = text
       .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
@@ -155,7 +166,7 @@ class SpeechEngine {
       return;
     }
 
-    // 1. REVISAR SI EL USUARIO TIENE GUARDADA UNA API KEY DE ELEVENLABS (VOZ JUAN F)
+    // 1. REVISAR SI EL USUARIO TIENE GUARDADA UNA API KEY DE ELEVENLABS (VOZ OSCAR LOPEZ PAISA)
     let elevenKey = '';
     try {
       elevenKey = localStorage.getItem('elevenlabs_api_key') || '';
@@ -174,6 +185,7 @@ class SpeechEngine {
             voiceId: 'XRJWcG2EfnXUf27dRJZn' // Oscar Lopez Paisa / Medellín Colombian Voice
           })
         });
+        if (this.currentSpeechId !== mySpeechId) return;
         if (elRes.ok) {
           const blob = await elRes.blob();
           audioUrl = URL.createObjectURL(blob);
@@ -183,24 +195,30 @@ class SpeechEngine {
       // Si no hay llave de ElevenLabs o falló, usar Edge Neural Colombia Gratuito
       if (!audioUrl) {
         const edgeRes = await fetch(`/api/tts?text=${encodeURIComponent(cleanText)}&voice=es-CO-GonzaloNeural`);
+        if (this.currentSpeechId !== mySpeechId) return;
         if (edgeRes.ok) {
           const blob = await edgeRes.blob();
           audioUrl = URL.createObjectURL(blob);
         }
       }
 
+      if (this.currentSpeechId !== mySpeechId) return;
+
       if (audioUrl) {
         const audio = new Audio(audioUrl);
         this.currentAudio = audio;
 
-        // SINCRONIZACIÓN PRECISA AL COMPÁS REAL DE LA VOZ
-        let syncTimer: any = null;
-
         const updateWordProgress = () => {
+          if (this.currentSpeechId !== mySpeechId) {
+            if (this.currentSyncTimer) {
+              clearInterval(this.currentSyncTimer);
+              this.currentSyncTimer = null;
+            }
+            return;
+          }
           if (!audio.duration || isNaN(audio.duration) || audio.duration <= 0) return;
           const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
           let targetIndex = Math.floor(ratio * cleanText.length);
-          // Redondear al corte natural de la palabra más cercana
           if (targetIndex < cleanText.length) {
             const nextSpace = cleanText.indexOf(' ', targetIndex);
             if (nextSpace !== -1 && nextSpace - targetIndex < 6) {
@@ -212,11 +230,15 @@ class SpeechEngine {
           }
         };
 
-        syncTimer = setInterval(updateWordProgress, 40);
+        this.currentSyncTimer = setInterval(updateWordProgress, 40);
         audio.addEventListener('timeupdate', updateWordProgress);
 
         audio.onended = () => {
-          if (syncTimer) clearInterval(syncTimer);
+          if (this.currentSpeechId !== mySpeechId) return;
+          if (this.currentSyncTimer) {
+            clearInterval(this.currentSyncTimer);
+            this.currentSyncTimer = null;
+          }
           audio.removeEventListener('timeupdate', updateWordProgress);
           this.currentAudio = null;
           if (onBoundary) onBoundary(cleanText.length, 0);
@@ -224,10 +246,14 @@ class SpeechEngine {
         };
 
         audio.onerror = () => {
-          if (syncTimer) clearInterval(syncTimer);
+          if (this.currentSpeechId !== mySpeechId) return;
+          if (this.currentSyncTimer) {
+            clearInterval(this.currentSyncTimer);
+            this.currentSyncTimer = null;
+          }
           audio.removeEventListener('timeupdate', updateWordProgress);
           this.currentAudio = null;
-          this.fallbackBrowserSpeech(cleanText, onEnd, onBoundary);
+          this.fallbackBrowserSpeech(cleanText, mySpeechId, onEnd, onBoundary);
         };
 
         await audio.play();
@@ -237,15 +263,19 @@ class SpeechEngine {
       console.warn('Neural TTS Server unreachable, using browser speech fallback:', netErr);
     }
 
+    if (this.currentSpeechId !== mySpeechId) return;
+
     // 3. RESPALDO LOCAL: WEB SPEECH API DEL NAVEGADOR (NUNCA ESPAÑA)
-    this.fallbackBrowserSpeech(cleanText, onEnd, onBoundary);
+    this.fallbackBrowserSpeech(cleanText, mySpeechId, onEnd, onBoundary);
   }
 
   private fallbackBrowserSpeech(
     cleanText: string,
+    speechId: number,
     onEnd?: () => void,
     onBoundary?: (charIndex: number, charLength?: number) => void
   ) {
+    if (this.currentSpeechId !== speechId) return;
     if (!('speechSynthesis' in window)) {
       if (onEnd) onEnd();
       return;
@@ -277,6 +307,7 @@ class SpeechEngine {
 
       if (onBoundary) {
         utterance.onboundary = (e: any) => {
+          if (this.currentSpeechId !== speechId) return;
           if (e.name === 'word' || typeof e.charIndex === 'number') {
             onBoundary(e.charIndex, e.charLength || 0);
           }
@@ -284,8 +315,14 @@ class SpeechEngine {
       }
 
       if (onEnd) {
-        utterance.onend = () => onEnd();
-        utterance.onerror = () => onEnd();
+        utterance.onend = () => {
+          if (this.currentSpeechId !== speechId) return;
+          onEnd();
+        };
+        utterance.onerror = () => {
+          if (this.currentSpeechId !== speechId) return;
+          onEnd();
+        };
       }
 
       window.speechSynthesis.speak(utterance);
