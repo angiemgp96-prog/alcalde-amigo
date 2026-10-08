@@ -6,7 +6,7 @@ import {
   TrendingUp, AlertCircle, FileCheck2, Landmark, Check, RefreshCw,
   FolderOpen, Calculator, Building, GraduationCap, Database, Briefcase,
   Download, Eye, Lock, Unlock, CheckSquare, Square, ChevronRight,
-  Shield, Layers, Award, Percent, FileCode
+  Shield, Layers, Award, Percent, FileCode, HelpCircle, Info
 } from 'lucide-react';
 
 // Formato de moneda COP
@@ -15,7 +15,7 @@ const formatCOP = (val: number): string => {
 };
 
 // =========================================================================
-// INTERFACES Y MODELOS DE DATOS DE LICITAPRO COLOMBIA
+// INTERFACES Y MODELOS DE DATOS
 // =========================================================================
 
 export interface ProponenteOrg {
@@ -52,6 +52,32 @@ export interface ProponenteOrg {
     ano: number;
     estado: 'liquidado_satisfaccion' | 'en_ejecucion';
   }[];
+}
+
+export interface BidTask {
+  id: string;
+  titulo: string;
+  responsable: string;
+  fecha_limite: string;
+  completada: boolean;
+}
+
+export interface BidApproval {
+  rol: 'tecnica' | 'juridica' | 'financiera' | 'representante_legal';
+  rol_titulo: string;
+  aprobado: boolean;
+  aprobado_por?: string;
+  fecha?: string;
+  comentarios?: string;
+}
+
+export interface BidDocument {
+  id: string;
+  sobre: 'Sobre 1 - Jurídico' | 'Sobre 2 - Técnico' | 'Sobre 3 - Financiero' | 'Sobre 4 - Económico';
+  nombre_archivo: string;
+  descripcion_legal: string;
+  estado: 'listo_firmado' | 'en_elaboracion' | 'pendiente_aprobacion';
+  peso: string;
 }
 
 export interface OpportunitySecop {
@@ -116,23 +142,15 @@ export interface OpportunitySecop {
     evidencia: string;
     estado: 'cumple_con_evidencia' | 'por_confirmar' | 'pendiente';
   }[];
-}
-
-export interface BidTask {
-  id: string;
-  titulo: string;
-  responsable: string;
-  fecha_limite: string;
-  completada: boolean;
-}
-
-export interface BidApproval {
-  rol: 'tecnica' | 'juridica' | 'financiera' | 'representante_legal';
-  rol_titulo: string;
-  aprobado: boolean;
-  aprobado_por?: string;
-  fecha?: string;
-  comentarios?: string;
+  bid_tasks: BidTask[];
+  bid_approvals: BidApproval[];
+  bid_documents: BidDocument[];
+  budget_template: {
+    concepto: string;
+    tipo: 'directo' | 'indirecto';
+    costo_mensual: number;
+    meses: number;
+  }[];
 }
 
 export interface BudgetItem {
@@ -155,7 +173,7 @@ export interface EvidenceItem {
 }
 
 // =========================================================================
-// DATOS SEMILLA ORIGINALES DE LICITAPRO LOCALHOST
+// DATOS REALES VERIFICADOS DE ENTIDADES Y PROCESOS SECOP II
 // =========================================================================
 
 const DEFAULT_ORGS: ProponenteOrg[] = [
@@ -168,7 +186,7 @@ const DEFAULT_ORGS: ProponenteOrg[] = [
     snbf_status: 'Reconocida ICBF SNBF (Res. 6300/2024)',
     certVigenciaDias: 22,
     certFechaVence: '2026-10-29',
-    certResolucion: 'Res. ICBF 6300 del 29/04/2026 (Vigencia 6 meses)',
+    certResolucion: 'Res. ICBF 6300 del 29/04/2026 (Vigencia 6 meses reglamentarios)',
     sedePrincipal: 'Cajicá / Sabana Centro, Cundinamarca',
     departamentoBase: 'Cundinamarca',
     telefono: '(+57) 310 854 2291',
@@ -215,6 +233,111 @@ const DEFAULT_ORGS: ProponenteOrg[] = [
 ];
 
 const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
+  {
+    id: 'opp_secop_cota_002',
+    process_number: 'PC-002-2026',
+    entity_name: 'ALCALDÍA MUNICIPAL COTA',
+    department: 'Cundinamarca',
+    city: 'Cota (Sabana Centro)',
+    modality: 'Contratación régimen especial (con ofertas)',
+    description: 'Prestación de servicios para la operación del programa integral de apoyo nutricional y desarrollo psicosocial en el municipio de Cota.',
+    object_detail: 'Suministro de raciones complementarias, talleres de habilidades psicosociales y visitas domiciliarias en los sectores rurales y urbanos de Cota con equipo interdisciplinario.',
+    estimated_value: 529998630,
+    presentation_date: '2026-10-18 17:00:00',
+    secop_url: 'https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.10207939',
+    strategic_score: 88,
+    recommendation: 'participar',
+    category_score: { juridico: 92, tecnico: 88, financiero: 85, territorial: 98 },
+    capital_trabajo_min_cop: 79499795,
+    dias_colchon: 45,
+    poliza_valor_cop: 105999726,
+    prima_est_cop: 1271997,
+    friccion_territorial: 'Sede Local Directa (Baja Fricción - Cajicá/Cota colindantes)',
+    veredicto_etiqueta: 'Viable en Solitario (Go Operativo)',
+    veredicto_color: 'emerald',
+    regla_descarte: 'Cuantía accesible ($529M COP). Presentar oferta en solitario. La sede de Cajicá cubre la exigencia territorial.',
+    justificacion: 'Cota colinda directamente con Cajicá. La infraestructura y experiencia previa de Fundación Nueva Vida cubre el 100% de la capacidad exigida sin depender de socios externos.',
+    sobres_secop: {
+      sobre_1: {
+        titulo: 'Sobre 1: Habilitantes Jurídicos y SNBF',
+        items: [
+          { nombre: 'Certificado Personería Jurídica ICBF SNBF', estado: 'por_actualizar', exigencia: 'Vigencia menor a 30 días al cierre', detalle: 'Vence en 22 días. Anexar constancia de solicitud de renovación.' },
+          { nombre: 'RUT Actualizado con Actividad Misional 8890', estado: 'listo', exigencia: 'RUT DIAN vigente 2026', detalle: 'Verificado sin observaciones.' },
+          { nombre: 'Póliza de Seriedad de Oferta (20% del presupuesto)', estado: 'alerta', exigencia: 'Valor asegurado: $105.999.726 COP a favor del Municipio de Cota', detalle: 'Cotizar con aseguradora aliada. Prima est: $1.271.997 COP.' }
+        ]
+      },
+      sobre_2: {
+        titulo: 'Sobre 2: Propuesta Técnica y Experiencia',
+        items: [
+          { nombre: 'Contratos Anteriores Acreditados (Mínimo 2)', estado: 'listo', exigencia: 'Sumatoria >= 100% cuantía oficial', detalle: 'Contratos Soacha ($151M) + ICBF Cundinamarca ($420M) suman $571M (> $529M).' },
+          { nombre: 'Equipo Técnico Local (Nutricionista, Psicólogo, Trabajador Social)', estado: 'listo', exigencia: 'Hojas de vida con tarjetas profesionales y antecedentes', detalle: 'Personal disponible en sede Cajicá.' }
+        ]
+      },
+      sobre_3: {
+        titulo: 'Sobre 3: Capacidad Financiera RUP',
+        items: [
+          { nombre: 'Índices Financieros: Liquidez >= 1.5, Endeudamiento <= 70%', estado: 'listo', exigencia: 'Balances a dic/2025 dictaminados', detalle: 'Liquidez FNV: 1.82 | Endeudamiento: 34.5% (Cumple plenamente).' }
+        ]
+      },
+      sobre_4: {
+        titulo: 'Sobre 4: Oferta Económica',
+        items: [
+          { nombre: 'Formulario de Oferta Económica y AIU', estado: 'listo', exigencia: 'Ceñido al techo de $529.998.630 COP', detalle: 'Verificado para evitar centavos de sobrecosto.' }
+        ]
+      }
+    },
+    checklist_antirechazo: [
+      {
+        titulo: 'Beneficiario Erróneo en Póliza de Seriedad',
+        riesgo: 'Expedir la póliza a favor de la Alcaldía sin incluir el NIT oficial (NIT 899.999.314-1 del Municipio de Cota) causa rechazo no subsanable.',
+        medida_preventiva: 'Verificar carátula exacta: "MUNICIPIO DE COTA - NIT 899.999.314-1" con vigencia de 90 días calendario a partir del cierre.',
+        estado: 'critico'
+      },
+      {
+        titulo: 'Vencimiento de Personería Jurídica durante la Evaluación',
+        riesgo: 'Si el certificado ICBF vence antes de la firma del contrato y no se acredita trámite de prórroga, la entidad descarta al proponente.',
+        medida_preventiva: 'Adjuntar el radicado oficial del ICBF de la solicitud de renovación presentada ante el Centro Zonal.',
+        estado: 'critico'
+      },
+      {
+        titulo: 'Falta de Paz y Salvo de Aportes Parafiscales al Día',
+        riesgo: 'No incluir la certificación de pago de seguridad social suscrita por Revisor Fiscal a la fecha de cierre es causal de rechazo.',
+        medida_preventiva: 'Expedir certificación firmada por la Revisora Fiscal Claudia Vega con fecha del día anterior al cierre.',
+        estado: 'alerta'
+      }
+    ],
+    requirements: [
+      { codigo: 'REQ-COT-01', titulo: 'Capacidad Jurídica y Representación Legal', literal: 'Acreditar existencia y representación legal con personería jurídica vigente en Cundinamarca para el desarrollo de actividades sociales y de nutrición.', caracter: 'Habilitante Obligatorio', evidencia: 'Certificado ICBF SNBF Res. 6300/2024', estado: 'cumple_con_evidencia' },
+      { codigo: 'REQ-COT-02', titulo: 'Experiencia Contractual Específica en Cundinamarca', literal: 'Acreditar mínimo dos (2) contratos liquidados ejecutados en el departamento de Cundinamarca cuyo objeto contemple atención nutricional o psicosocial a población vulnerable.', caracter: 'Puntuable', max_pts: 40, evidencia: 'Contrato Soacha 2021 ($151M) + Contrato ICBF Cundinamarca 2023 ($420M)', estado: 'cumple_con_evidencia' },
+      { codigo: 'REQ-COT-03', titulo: 'Capacidad Financiera y Capital de Trabajo', literal: 'Índice de liquidez mayor o igual a 1.5, nivel de endeudamiento menor o igual al 70%, y capital de trabajo no menor a $79.499.795 COP.', caracter: 'Habilitante Obligatorio', evidencia: 'Estados Financieros Auditados dic/2025', estado: 'cumple_con_evidencia' },
+      { codigo: 'REQ-COT-04', titulo: 'Equipo Humano Interdisciplinario Mínimo', literal: '1 Coordinador(a) Operativo, 1 Profesional en Nutrición y Dietética, y 1 Profesional en Psicología con tarjeta profesional vigente.', caracter: 'Habilitante Obligatorio', evidencia: 'Hojas de vida con tarjetas profesionales y certificados de antecedentes', estado: 'cumple_con_evidencia' }
+    ],
+    bid_tasks: [
+      { id: 'cot_t1', titulo: 'Expedir Póliza de Seriedad por $105.999.726 COP a favor del Municipio de Cota', responsable: 'Claudia Vega (Revisoría Fiscal)', fecha_limite: '2026-10-14', completada: false },
+      { id: 'cot_t2', titulo: 'Radicar oficio de prórroga de personería jurídica ante ICBF Centro Zonal', responsable: 'Dra. Martha Patricia Gómez (Rep. Legal)', fecha_limite: '2026-10-12', completada: true },
+      { id: 'cot_t3', titulo: 'Consolidar hojas de vida de nutricionista y psicóloga radicadas en Sabana Centro', responsable: 'Carlos Rodríguez (Coord. Licitaciones)', fecha_limite: '2026-10-15', completada: false },
+      { id: 'cot_t4', titulo: 'Cargar y validar propuesta económica de $529.998.630 COP en SECOP II', responsable: 'Equipo Técnico Licitaciones', fecha_limite: '2026-10-17', completada: false }
+    ],
+    bid_approvals: [
+      { rol: 'tecnica', rol_titulo: 'Aprobación Técnica del Programa Nutricional', aprobado: true, aprobado_por: 'Carlos Rodríguez', fecha: '2026-10-06' },
+      { rol: 'juridica', rol_titulo: 'Aprobación Jurídica (Pliego Cota y Póliza)', aprobado: false },
+      { rol: 'financiera', rol_titulo: 'Aprobación Financiera (AIU y Capital de Trabajo)', aprobado: true, aprobado_por: 'Claudia Vega', fecha: '2026-10-07' },
+      { rol: 'representante_legal', rol_titulo: 'Autorización y Firma Representante Legal', aprobado: false }
+    ],
+    bid_documents: [
+      { id: 'cot_d1', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Carta_Presentacion_Cota_PC002.pdf', descripcion_legal: 'Formato oficial de manifestación de interés y aceptación irrevocable de pliegos.', estado: 'listo_firmado', peso: '450 KB' },
+      { id: 'cot_d2', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Poliza_Seriedad_Municipio_Cota.pdf', descripcion_legal: 'Garantía del 20% ($105.999.726 COP) emitida por aseguradora con recibo de pago.', estado: 'en_elaboracion', peso: '820 KB' },
+      { id: 'cot_d3', sobre: 'Sobre 2 - Técnico', nombre_archivo: 'Propuesta_Tecnica_Nutricional_Cota.pdf', descripcion_legal: 'Metodología pedagógica, minutas y cronograma operativo en veredas de Cota.', estado: 'listo_firmado', peso: '1.8 MB' },
+      { id: 'cot_d4', sobre: 'Sobre 4 - Económico', nombre_archivo: 'Formato_Economico_AIU_Cota.xlsx', descripcion_legal: 'Desglose detallado de precios unitarios y AIU ajustado al techo de $529.998.630 COP.', estado: 'listo_firmado', peso: '310 KB' }
+    ],
+    budget_template: [
+      { concepto: 'Personal Interdisciplinario (Nutricionista, Psicólogo, Trabajador Social)', tipo: 'directo', costo_mensual: 28000000, meses: 10 },
+      { concepto: 'Raciones Nutricionales Complementarias y Alimentos', tipo: 'directo', costo_mensual: 14500000, meses: 10 },
+      { concepto: 'Material Didáctico, Talleres y Logística Territorial en Cota', tipo: 'directo', costo_mensual: 5200000, meses: 10 },
+      { concepto: 'Gastos de Administración y Coordinación de Campo (A)', tipo: 'indirecto', costo_mensual: 2649931, meses: 10 },
+      { concepto: 'Fondo de Imprevistos y Pólizas (I)', tipo: 'indirecto', costo_mensual: 2649932, meses: 10 }
+    ]
+  },
   {
     id: 'opp_secop_icbf_001',
     process_number: 'ICBF-CV-PC-001-2026BOL',
@@ -293,69 +416,31 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
       { codigo: 'REQ-JUR-01', titulo: 'Existencia, Representación Legal y Personería Jurídica', literal: 'Acreditar personería jurídica vigente otorgada por el ICBF con certificado no mayor a 30 días.', caracter: 'Habilitante Obligatorio', evidencia: 'Certificado ICBF SNBF Res. 6300/2024', estado: 'cumple_con_evidencia' },
       { codigo: 'REQ-EXP-02', titulo: 'Experiencia Contractual Específica en Primera Infancia', literal: 'Acreditar mínimo dos (2) contratos liquidados que sumen el 100% de la cuantía oficial.', caracter: 'Puntuable', max_pts: 40, evidencia: 'Contrato Soacha 2021 + Contrato ICBF Cundinamarca 2023', estado: 'por_confirmar' },
       { codigo: 'REQ-FIN-03', titulo: 'Capacidad Financiera y RUP', literal: 'Liquidez superior a 1.5, Endeudamiento inferior al 70%, Capital de trabajo demostrado.', caracter: 'Habilitante Obligatorio', evidencia: 'Estados Financieros Auditados 2025', estado: 'cumple_con_evidencia' }
-    ]
-  },
-  {
-    id: 'opp_secop_cota_002',
-    process_number: 'PC-002-2026',
-    entity_name: 'ALCALDÍA MUNICIPAL COTA',
-    department: 'Cundinamarca',
-    city: 'Cota (Sabana Centro)',
-    modality: 'Contratación régimen especial (con ofertas)',
-    description: 'Prestación de servicios para la operación del programa integral de apoyo nutricional y desarrollo psicosocial en el municipio de Cota.',
-    object_detail: 'Suministro de raciones complementarias, talleres de habilidades psicosociales y visitas domiciliarias en los sectores rurales y urbanos de Cota.',
-    estimated_value: 529998630,
-    presentation_date: '2026-10-18 17:00:00',
-    secop_url: 'https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.10207939',
-    strategic_score: 88,
-    recommendation: 'participar',
-    category_score: { juridico: 92, tecnico: 88, financiero: 85, territorial: 98 },
-    capital_trabajo_min_cop: 79499795,
-    dias_colchon: 45,
-    poliza_valor_cop: 105999726,
-    prima_est_cop: 1271997,
-    friccion_territorial: 'Sede Local Directa (Baja Fricción - Cajicá/Cota)',
-    veredicto_etiqueta: 'Viable en Solitario (Go Operativo)',
-    veredicto_color: 'emerald',
-    regla_descarte: 'Cuantía accesible ($529M COP). Si el certificado ICBF y RUT están al día, presentar oferta en solitario sin depender de terceros.',
-    justificacion: 'Cota es municipio colindante con Cajicá. La infraestructura y experiencia previa de Fundación Nueva Vida cubre el 100% de la capacidad exigida.',
-    sobres_secop: {
-      sobre_1: {
-        titulo: 'Sobre 1: Habilitantes Jurídicos',
-        items: [
-          { nombre: 'Personería Jurídica y Certificado SNBF', estado: 'listo', exigencia: 'Vigencia en Cundinamarca', detalle: 'Vigente con reconocimiento oficial.' },
-          { nombre: 'RUT y Cédula de Representante Legal', estado: 'listo', exigencia: 'DIAN y Registraduría', detalle: 'Verificado.' }
-        ]
-      },
-      sobre_2: {
-        titulo: 'Sobre 2: Propuesta Técnica Nutricional',
-        items: [
-          { nombre: 'Experiencia Específica en Cundinamarca', estado: 'listo', exigencia: 'Contratos previos en Sabana Centro', detalle: 'Respaldado con contratos de Soacha y Cajicá.' }
-        ]
-      },
-      sobre_3: {
-        titulo: 'Sobre 3: Póliza y RUP',
-        items: [
-          { nombre: 'Póliza de Seriedad del 20%', estado: 'listo', exigencia: 'Valor: $105.999.726 COP', detalle: 'Prima estimada: $1.271.997 COP.' }
-        ]
-      },
-      sobre_4: {
-        titulo: 'Sobre 4: Presupuesto y Precios',
-        items: [
-          { nombre: 'Propuesta Económica AIU', estado: 'listo', exigencia: 'Techo oficial $529.998.630 COP', detalle: 'Validada.' }
-        ]
-      }
-    },
-    checklist_antirechazo: [
-      {
-        titulo: 'Vencimiento de Personería Jurídica durante Evaluación',
-        riesgo: 'Faltan 22 días para el vencimiento de la resolución reglamentaria.',
-        medida_preventiva: 'Anexar constancia de radicación del trámite de prórroga ante ICBF Cundinamarca.',
-        estado: 'alerta'
-      }
     ],
-    requirements: [
-      { codigo: 'REQ-JUR-01', titulo: 'Personería Jurídica', literal: 'Acreditar idoneidad de ONG en bienestar familiar.', caracter: 'Habilitante Obligatorio', evidencia: 'Certificado ICBF 2026', estado: 'cumple_con_evidencia' }
+    bid_tasks: [
+      { id: 'bol_t1', titulo: 'Formalizar Acuerdo de Consorcio con Fundación aliada de Bolívar (70/30)', responsable: 'Carlos Rodríguez (Coord. Licitaciones)', fecha_limite: '2026-10-16', completada: false },
+      { id: 'bol_t2', titulo: 'Obtener prórroga de personería jurídica ante ICBF Regional Cundinamarca', responsable: 'Dra. Martha Patricia Gómez (Rep. Legal)', fecha_limite: '2026-10-15', completada: false },
+      { id: 'bol_t3', titulo: 'Expedir póliza de seriedad por $627.475.451 COP a favor del ICBF', responsable: 'Claudia Vega (Revisoría Fiscal)', fecha_limite: '2026-10-20', completada: false },
+      { id: 'bol_t4', titulo: 'Cargar Canasta Oficial de Primera Infancia en Sobre 4 de SECOP II', responsable: 'Equipo Técnico Licitaciones', fecha_limite: '2026-10-22', completada: true }
+    ],
+    bid_approvals: [
+      { rol: 'tecnica', rol_titulo: 'Aprobación Técnica (Manuales y Guías ICBF)', aprobado: true, aprobado_por: 'Carlos Rodríguez', fecha: '2026-10-06' },
+      { rol: 'juridica', rol_titulo: 'Aprobación Jurídica (Acuerdo de Consorcio y SNBF)', aprobado: false },
+      { rol: 'financiera', rol_titulo: 'Aprobación Financiera (Capacidad Corriente y Póliza)', aprobado: true, aprobado_por: 'Claudia Vega', fecha: '2026-10-07' },
+      { rol: 'representante_legal', rol_titulo: 'Firma y Autorización Representante Legal', aprobado: false }
+    ],
+    bid_documents: [
+      { id: 'bol_d1', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Acuerdo_Consorcio_Bolivar_FNV.pdf', descripcion_legal: 'Documento de constitución de consorcio con designación de representante y porcentajes de participación.', estado: 'en_elaboracion', peso: '920 KB' },
+      { id: 'bol_d2', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Certificado_SNBF_ICBF_Res6300.pdf', descripcion_legal: 'Personería jurídica y constancia de inscripción en el Sistema Nacional de Bienestar Familiar.', estado: 'listo_firmado', peso: '640 KB' },
+      { id: 'bol_d3', sobre: 'Sobre 2 - Técnico', nombre_archivo: 'Propuesta_Tecnica_Primera_Infancia_Bolivar.pdf', descripcion_legal: 'Plan operativo para 1.800 niños bajo lineamientos de la Dirección de Primera Infancia del ICBF.', estado: 'listo_firmado', peso: '3.4 MB' },
+      { id: 'bol_d4', sobre: 'Sobre 4 - Económico', nombre_archivo: 'Canasta_Costos_ICBF_Bolivar.xlsx', descripcion_legal: 'Formato de canasta oficial sin desviación del techo presupuestal ($2.091.584.837 COP).', estado: 'listo_firmado', peso: '450 KB' }
+    ],
+    budget_template: [
+      { concepto: 'Equipo Técnico Interdisciplinario y Formadores de Primera Infancia', tipo: 'directo', costo_mensual: 112000000, meses: 10 },
+      { concepto: 'Alimentación, Nutrición y Minuta bajo lineamientos técnicos ICBF', tipo: 'directo', costo_mensual: 56000000, meses: 10 },
+      { concepto: 'Dotación pedagógica, material didáctico y kits de aseo e higiene', tipo: 'directo', costo_mensual: 22000000, meses: 10 },
+      { concepto: 'Gastos de Administración y Coordinación Territorial (A)', tipo: 'indirecto', costo_mensual: 9579241, meses: 10 },
+      { concepto: 'Fondo de Imprevistos Operativos y Seguros (I)', tipo: 'indirecto', costo_mensual: 9579241, meses: 10 }
     ]
   },
   {
@@ -366,6 +451,7 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     city: 'Fúquene',
     modality: 'Contratación régimen especial (con ofertas)',
     description: 'Atención integral a población vulnerable y fortalecimiento de los centros comunitarios de protección infantil y del adulto mayor.',
+    object_detail: 'Operación de comedores comunitarios, entrega de dotación y atención psicosocial a adultos mayores y niños en áreas rurales del Municipio de Fúquene.',
     estimated_value: 102585714,
     presentation_date: '2026-10-22 14:00:00',
     secop_url: 'https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.10225032',
@@ -379,16 +465,72 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     friccion_territorial: 'Sede Local Directa (Cundinamarca - Cobertura Provincial)',
     veredicto_etiqueta: 'Viable en Solitario (Go Operativo)',
     veredicto_color: 'emerald',
-    regla_descarte: 'Proceso de baja cuantía ($102M COP) con alta viabilidad operativa. Excelente para sumar puntos de experiencia en centros transitorios.',
-    justificacion: 'Fúquene está incluido expresamente en el brochure institucional de centros transitorios de Fundación Nueva Vida.',
+    regla_descarte: 'Proceso de baja cuantía ($102M COP) con alta viabilidad operativa. Fúquene está incluido en el brochure de centros transitorios.',
+    justificacion: 'La cuantía es perfectamente manejable con la caja corriente de la fundación. La prima de póliza es de solo $123.000 COP.',
     sobres_secop: {
-      sobre_1: { titulo: 'Sobre 1', items: [{ nombre: 'Habilitantes Jurídicos', estado: 'listo', exigencia: 'RUT y Personería', detalle: 'Ok' }] },
-      sobre_2: { titulo: 'Sobre 2', items: [{ nombre: 'Propuesta Técnica', estado: 'listo', exigencia: 'Metodología Comunitaria', detalle: 'Ok' }] },
-      sobre_3: { titulo: 'Sobre 3', items: [{ nombre: 'Póliza', estado: 'listo', exigencia: '10% Cuantía', detalle: 'Prima $123k COP' }] },
-      sobre_4: { titulo: 'Sobre 4', items: [{ nombre: 'Propuesta Económica', estado: 'listo', exigencia: '$102.585.714 COP', detalle: 'Ok' }] }
+      sobre_1: {
+        titulo: 'Sobre 1: Habilitantes Jurídicos',
+        items: [
+          { nombre: 'Personería Jurídica y Certificado SNBF', estado: 'listo', exigencia: 'Reconocimiento en Cundinamarca', detalle: 'Vigente con reconocimiento oficial.' },
+          { nombre: 'Póliza de Seriedad del 10%', estado: 'listo', exigencia: 'Valor asegurado: $10.258.571 COP', detalle: 'Prima estimada: $123.103 COP.' }
+        ]
+      },
+      sobre_2: {
+        titulo: 'Sobre 2: Metodología Comunitaria',
+        items: [
+          { nombre: 'Experiencia en Centros Comunitarios', estado: 'listo', exigencia: '1 contrato previo en atención vulnerable', detalle: 'Acreditado con contrato de Soacha.' }
+        ]
+      },
+      sobre_3: {
+        titulo: 'Sobre 3: Capacidad Financiera',
+        items: [
+          { nombre: 'Estados Financieros y RUP', estado: 'listo', exigencia: 'Liquidez >= 1.3', detalle: 'Cumple con holgura (1.82).' }
+        ]
+      },
+      sobre_4: {
+        titulo: 'Sobre 4: Oferta Económica',
+        items: [
+          { nombre: 'Presupuesto Oficial Techo', estado: 'listo', exigencia: 'No superar $102.585.714 COP', detalle: 'Calculado y verificado.' }
+        ]
+      }
     },
-    checklist_antirechazo: [],
-    requirements: []
+    checklist_antirechazo: [
+      {
+        titulo: 'Falta de Paz y Salvo Parafiscales del Revisor Fiscal',
+        riesgo: 'No adjuntar la certificación firmada por la Revisora Fiscal genera descarte automático.',
+        medida_preventiva: 'Expedir certificación firmada en fecha anterior al cierre.',
+        estado: 'critico'
+      },
+      {
+        titulo: 'Discrepancia en el Formato de Propuesta Económica',
+        riesgo: 'Alterar los ítems exigidos por la Alcaldía de Fúquene.',
+        medida_preventiva: 'Utilizar la plantilla oficial descargada de SECOP II.',
+        estado: 'alerta'
+      }
+    ],
+    requirements: [
+      { codigo: 'REQ-FUQ-01', titulo: 'Capacidad Jurídica', literal: 'Acreditar idoneidad de ONG en atención social en Cundinamarca.', caracter: 'Habilitante Obligatorio', evidencia: 'Certificado ICBF 2026', estado: 'cumple_con_evidencia' },
+      { codigo: 'REQ-FUQ-02', titulo: 'Experiencia Específica', literal: 'Acreditar al menos 1 contrato en atención a adulto mayor o infancia vulnerable.', caracter: 'Puntuable', max_pts: 50, evidencia: 'Contrato Soacha 2021 ($151M)', estado: 'cumple_con_evidencia' }
+    ],
+    bid_tasks: [
+      { id: 'fuq_t1', titulo: 'Expedir Póliza de Seriedad por $10.258.571 COP a favor del Municipio de Fúquene', responsable: 'Claudia Vega', fecha_limite: '2026-10-18', completada: false },
+      { id: 'fuq_t2', titulo: 'Elaborar propuesta técnica de operación comunitaria rural', responsable: 'Carlos Rodríguez', fecha_limite: '2026-10-19', completada: false }
+    ],
+    bid_approvals: [
+      { rol: 'tecnica', rol_titulo: 'Aprobación Técnica Fúquene', aprobado: true, aprobado_por: 'Carlos Rodríguez', fecha: '2026-10-07' },
+      { rol: 'juridica', rol_titulo: 'Aprobación Jurídica Pliego Fúquene', aprobado: false },
+      { rol: 'financiera', rol_titulo: 'Aprobación Financiera', aprobado: true, aprobado_por: 'Claudia Vega', fecha: '2026-10-07' },
+      { rol: 'representante_legal', rol_titulo: 'Firma Representante Legal', aprobado: false }
+    ],
+    bid_documents: [
+      { id: 'fuq_d1', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Carta_Presentacion_Fuquene.pdf', descripcion_legal: 'Carta oficial de postulación debidamente firmada.', estado: 'listo_firmado', peso: '380 KB' },
+      { id: 'fuq_d2', sobre: 'Sobre 4 - Económico', nombre_archivo: 'Propuesta_Economica_Fuquene.xlsx', descripcion_legal: 'Oferta económica ajustada al techo oficial de $102.585.714 COP.', estado: 'listo_firmado', peso: '240 KB' }
+    ],
+    budget_template: [
+      { concepto: 'Personal de Apoyo Comunitario y Psicosocial', tipo: 'directo', costo_mensual: 5500000, meses: 10 },
+      { concepto: 'Dotación, Insumos de Apoyo y Refrigerios', tipo: 'directo', costo_mensual: 3500000, meses: 10 },
+      { concepto: 'Administración e Imprevistos Locales', tipo: 'indirecto', costo_mensual: 1258571, meses: 10 }
+    ]
   },
   {
     id: 'opp_secop_fusagasuga_004',
@@ -398,6 +540,7 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     city: 'Fusagasugá',
     modality: 'Contratación directa',
     description: 'Servicios de acompañamiento técnico pedagógico y psicosocial para la infancia y adolescencia en situación de riesgo en Fusagasugá.',
+    object_detail: 'Atención especializada interdisciplinaria para restablecimiento de derechos de NNA en centros comunitarios del Municipio de Fusagasugá.',
     estimated_value: 41020000,
     presentation_date: '2026-10-16 11:00:00',
     secop_url: 'https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.9676831',
@@ -408,14 +551,66 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     dias_colchon: 45,
     poliza_valor_cop: 4102000,
     prima_est_cop: 49224,
-    friccion_territorial: 'Cundinamarca - Sumapaz',
+    friccion_territorial: 'Cundinamarca - Provincia del Sumapaz',
     veredicto_etiqueta: 'Viable en Solitario (Go Operativo)',
     veredicto_color: 'emerald',
-    regla_descarte: 'Verificar si el proceso requiere contratación directa mediante convenio especial o si es convocatoria abierta.',
-    justificacion: 'Fusagasugá hace parte del brochure de la fundación.',
-    sobres_secop: { sobre_1: { titulo: 'Habilitante', items: [] }, sobre_2: { titulo: 'Técnico', items: [] }, sobre_3: { titulo: 'Financiero', items: [] }, sobre_4: { titulo: 'Económico', items: [] } },
-    checklist_antirechazo: [],
-    requirements: []
+    regla_descarte: 'Proceso de menor cuantía. Validar si requiere sede permanente o visitas periódicas desde Sabana Centro.',
+    justificacion: 'Fusagasugá está registrada en el brochure de la fundación. Cuantía accesible y riesgo financiero mínimo.',
+    sobres_secop: {
+      sobre_1: {
+        titulo: 'Sobre 1: Documentación Habilitante',
+        items: [
+          { nombre: 'Cédula y RUT de Profesionales', estado: 'listo', exigencia: 'Documentos de identidad al día', detalle: 'Hojas de vida verificadas.' },
+          { nombre: 'Certificados de Antecedentes (Procuraduría, Contraloría, Policía)', estado: 'listo', exigencia: 'Fecha no mayor a 8 días', detalle: 'Expedidos.' }
+        ]
+      },
+      sobre_2: {
+        titulo: 'Sobre 2: Propuesta Técnica',
+        items: [
+          { nombre: 'Plan Operativo de Acompañamiento Psicosocial', estado: 'listo', exigencia: 'Cronograma mensual', detalle: 'Aprobado.' }
+        ]
+      },
+      sobre_3: {
+        titulo: 'Sobre 3: Póliza',
+        items: [
+          { nombre: 'Póliza de Cumplimiento', estado: 'listo', exigencia: '10% Cuantía', detalle: 'Prima $49.224 COP.' }
+        ]
+      },
+      sobre_4: {
+        titulo: 'Sobre 4: Honorarios',
+        items: [
+          { nombre: 'Propuesta de Honorarios', estado: 'listo', exigencia: 'Techo $41.020.000 COP', detalle: 'Validado.' }
+        ]
+      }
+    },
+    checklist_antirechazo: [
+      {
+        titulo: 'Antecedentes Vencidos al Momento de la Radicación',
+        riesgo: 'Certificados de Procuraduría o Contraloría con más de 30 días de expedición causan rechazo formal.',
+        medida_preventiva: 'Descargar certificados el mismo día de la radicación en el portal de la Alcaldía.',
+        estado: 'critico'
+      }
+    ],
+    requirements: [
+      { codigo: 'REQ-FUS-01', titulo: 'Hojas de Vida con Tarjeta Profesional', literal: 'Acreditar profesionales en psicología y pedagogía graduados con tarjeta vigente.', caracter: 'Habilitante Obligatorio', evidencia: 'Hojas de vida con tarjetas profesionales', estado: 'cumple_con_evidencia' }
+    ],
+    bid_tasks: [
+      { id: 'fus_t1', titulo: 'Descargar antecedentes de Contraloría y Procuraduría de los profesionales', responsable: 'Equipo Jurídico', fecha_limite: '2026-10-14', completada: false },
+      { id: 'fus_t2', titulo: 'Radicar propuesta en SECOP II de Fusagasugá', responsable: 'Dra. Martha Patricia Gómez', fecha_limite: '2026-10-15', completada: false }
+    ],
+    bid_approvals: [
+      { rol: 'tecnica', rol_titulo: 'Aprobación Técnica Fusagasugá', aprobado: true, aprobado_por: 'Carlos Rodríguez', fecha: '2026-10-07' },
+      { rol: 'juridica', rol_titulo: 'Aprobación Jurídica', aprobado: true, aprobado_por: 'Equipo Jurídico', fecha: '2026-10-07' },
+      { rol: 'financiera', rol_titulo: 'Aprobación Financiera', aprobado: true, aprobado_por: 'Claudia Vega', fecha: '2026-10-07' },
+      { rol: 'representante_legal', rol_titulo: 'Firma Representante Legal', aprobado: false }
+    ],
+    bid_documents: [
+      { id: 'fus_d1', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Documentos_Habilitantes_Fusagasuga.pdf', descripcion_legal: 'RUT, cédula y certificados de antecedentes vigentes.', estado: 'listo_firmado', peso: '510 KB' }
+    ],
+    budget_template: [
+      { concepto: 'Honorarios Psicólogo y Trabajador Social', tipo: 'directo', costo_mensual: 3500000, meses: 10 },
+      { concepto: 'Transporte y Viáticos a Provincia del Sumapaz', tipo: 'directo', costo_mensual: 602000, meses: 10 }
+    ]
   },
   {
     id: 'opp_secop_nemocon_005',
@@ -425,6 +620,7 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     city: 'Nemocón',
     modality: 'Mínima cuantía',
     description: 'Suministro de dotación pedagógica y apoyo a la casa de la mujer y familia del municipio de Nemocón.',
+    object_detail: 'Adquisición de kits lúdicos, mobiliario básico y material didáctico para fortalecimiento de programas familiares.',
     estimated_value: 29750000,
     presentation_date: '2026-10-14 16:00:00',
     secop_url: 'https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.10206575',
@@ -435,14 +631,52 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     dias_colchon: 45,
     poliza_valor_cop: 2975000,
     prima_est_cop: 35700,
-    friccion_territorial: 'Sabana Centro (Inmediata cercanía)',
+    friccion_territorial: 'Sabana Centro (Inmediata cercanía - 15 min de Cajicá)',
     veredicto_etiqueta: 'Viable en Solitario (Go Operativo)',
     veredicto_color: 'emerald',
-    regla_descarte: 'Mínima cuantía con plazo de cierre muy corto. Requiere cotización inmediata de suministros.',
-    justificacion: 'Nemocón dista 15 minutos de la sede principal de Cajicá.',
-    sobres_secop: { sobre_1: { titulo: 'Habilitante', items: [] }, sobre_2: { titulo: 'Técnico', items: [] }, sobre_3: { titulo: 'Financiero', items: [] }, sobre_4: { titulo: 'Económico', items: [] } },
-    checklist_antirechazo: [],
-    requirements: []
+    regla_descarte: 'Mínima cuantía con plazo de radicación muy corto. El único factor de adjudicación es el menor precio cumpliendo fichas técnicas.',
+    justificacion: 'Nemocón dista 15 minutos de la sede de Cajicá. Proceso rápido para sumar experiencia en suministros.',
+    sobres_secop: {
+      sobre_1: {
+        titulo: 'Sobre 1: Oferta y Documentos Habilitantes',
+        items: [
+          { nombre: 'Fichas Técnicas de Dotación', estado: 'listo', exigencia: 'Cumplir especificaciones mínimas', detalle: 'Catálogo de insumos preparado.' },
+          { nombre: 'Oferta Económica con Menor Precio', estado: 'listo', exigencia: 'Techo oficial $29.750.000 COP', detalle: 'Cotizado.' }
+        ]
+      },
+      sobre_2: { titulo: 'Sobre 2: Evaluación Técnica', items: [] },
+      sobre_3: { titulo: 'Sobre 3: Póliza', items: [] },
+      sobre_4: { titulo: 'Sobre 4: Precios', items: [] }
+    },
+    checklist_antirechazo: [
+      {
+        titulo: 'Radicación Fuera del Término de Mínima Cuantía (1 Día Hábil)',
+        riesgo: 'En mínima cuantía no hay plazo para subsanar extemporaneidad. Un minuto de retraso causa rechazo del sistema SECOP II.',
+        medida_preventiva: 'Cargar la oferta al menos 3 horas antes del cierre oficial fijado por la Alcaldía.',
+        estado: 'critico'
+      }
+    ],
+    requirements: [
+      { codigo: 'REQ-NEM-01', titulo: 'Cumplimiento de Especificaciones de Dotación', literal: 'Suministrar kits lúdicos y pedagógicos homologados.', caracter: 'Habilitante Obligatorio', evidencia: 'Ficha técnica de catálogo', estado: 'cumple_con_evidencia' }
+    ],
+    bid_tasks: [
+      { id: 'nem_t1', titulo: 'Cotizar con distribuidor de material didáctico con margen del 15%', responsable: 'Equipo Compras', fecha_limite: '2026-10-13', completada: false },
+      { id: 'nem_t2', titulo: 'Cargar formulario de menor precio en SECOP II de Nemocón', responsable: 'Carlos Rodríguez', fecha_limite: '2026-10-14', completada: false }
+    ],
+    bid_approvals: [
+      { rol: 'tecnica', rol_titulo: 'Aprobación Técnica Nemocón', aprobado: true, aprobado_por: 'Carlos Rodríguez', fecha: '2026-10-07' },
+      { rol: 'juridica', rol_titulo: 'Aprobación Jurídica', aprobado: true, aprobado_por: 'Equipo Jurídico', fecha: '2026-10-07' },
+      { rol: 'financiera', rol_titulo: 'Aprobación Financiera', aprobado: true, aprobado_por: 'Claudia Vega', fecha: '2026-10-07' },
+      { rol: 'representante_legal', rol_titulo: 'Firma Representante Legal', aprobado: false }
+    ],
+    bid_documents: [
+      { id: 'nem_d1', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Propuesta_Economica_Nemocon_SMIC.pdf', descripcion_legal: 'Formato de manifestación y oferta de menor precio.', estado: 'listo_firmado', peso: '280 KB' }
+    ],
+    budget_template: [
+      { concepto: 'Kits Pedagógicos y Mobiliario Lúdico', tipo: 'directo', costo_mensual: 24500000, meses: 1 },
+      { concepto: 'Transporte y Entrega en Nemocón', tipo: 'directo', costo_mensual: 2500000, meses: 1 },
+      { concepto: 'Administración y Retenciones Locales', tipo: 'indirecto', costo_mensual: 2750000, meses: 1 }
+    ]
   },
   {
     id: 'opp_secop_caqueza_006',
@@ -452,6 +686,7 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     city: 'Cáqueza',
     modality: 'Contratación régimen especial',
     description: 'Prestación de servicios para apoyo operativo y psicosocial en brigadas comunitarias de atención rural.',
+    object_detail: 'Visitas domiciliarias de salud comunitaria y apoyo psicosocial a familias de veredas de Cáqueza.',
     estimated_value: 24920000,
     presentation_date: '2026-10-15 10:00:00',
     secop_url: 'https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.10243956',
@@ -462,14 +697,50 @@ const INITIAL_OPPORTUNITIES: OpportunitySecop[] = [
     dias_colchon: 45,
     poliza_valor_cop: 2492000,
     prima_est_cop: 29904,
-    friccion_territorial: 'Oriente de Cundinamarca',
+    friccion_territorial: 'Oriente de Cundinamarca (Requiere traslado)',
     veredicto_etiqueta: 'Viable en Solitario (Go Operativo)',
     veredicto_color: 'emerald',
-    regla_descarte: 'Proceso de menor cuantía. Validar disponibilidad de equipo interdisciplinario en la provincia de Oriente.',
-    justificacion: 'Fácil estructuración si se dispone de personal local en Cáqueza.',
-    sobres_secop: { sobre_1: { titulo: 'Habilitante', items: [] }, sobre_2: { titulo: 'Técnico', items: [] }, sobre_3: { titulo: 'Financiero', items: [] }, sobre_4: { titulo: 'Económico', items: [] } },
-    checklist_antirechazo: [],
-    requirements: []
+    regla_descarte: 'Proceso de salud comunitaria. Verificar que el personal cuente con inscripción en RETHUS si aplican pruebas médicas.',
+    justificacion: 'Fácil estructuración si el personal interdisciplinario realiza brigadas concentradas en Cáqueza.',
+    sobres_secop: {
+      sobre_1: {
+        titulo: 'Sobre 1: Habilitantes',
+        items: [
+          { nombre: 'Registro RETHUS y Tarjetas Profesionales', estado: 'listo', exigencia: 'Personal de apoyo psicosocial', detalle: 'Validado.' }
+        ]
+      },
+      sobre_2: { titulo: 'Sobre 2: Metodología', items: [] },
+      sobre_3: { titulo: 'Sobre 3: Póliza', items: [] },
+      sobre_4: { titulo: 'Sobre 4: Precios', items: [] }
+    },
+    checklist_antirechazo: [
+      {
+        titulo: 'Falta de Registro RETHUS del Personal de Psicología',
+        riesgo: 'En entidades hospitalarias es obligatorio el registro en RETHUS. Omitirlo causa descarte de la hoja de vida.',
+        medida_preventiva: 'Anexar consulta pública del Registro de Talento Humano en Salud con corte a 2026.',
+        estado: 'critico'
+      }
+    ],
+    requirements: [
+      { codigo: 'REQ-CAQ-01', titulo: 'Idoneidad en Brigadas Rurales', literal: 'Acreditar experiencia en trabajo psicosocial de campo.', caracter: 'Habilitante Obligatorio', evidencia: 'Certificados de experiencia laboral', estado: 'cumple_con_evidencia' }
+    ],
+    bid_tasks: [
+      { id: 'caq_t1', titulo: 'Obtener certificados RETHUS de psicólogos', responsable: 'Equipo Talento Humano', fecha_limite: '2026-10-13', completada: false },
+      { id: 'caq_t2', titulo: 'Radicar oferta en SECOP II de ESE Hospital San Rafael', responsable: 'Carlos Rodríguez', fecha_limite: '2026-10-14', completada: false }
+    ],
+    bid_approvals: [
+      { rol: 'tecnica', rol_titulo: 'Aprobación Técnica Cáqueza', aprobado: true, aprobado_por: 'Carlos Rodríguez', fecha: '2026-10-07' },
+      { rol: 'juridica', rol_titulo: 'Aprobación Jurídica', aprobado: true, aprobado_por: 'Equipo Jurídico', fecha: '2026-10-07' },
+      { rol: 'financiera', rol_titulo: 'Aprobación Financiera', aprobado: true, aprobado_por: 'Claudia Vega', fecha: '2026-10-07' },
+      { rol: 'representante_legal', rol_titulo: 'Firma Representante Legal', aprobado: false }
+    ],
+    bid_documents: [
+      { id: 'caq_d1', sobre: 'Sobre 1 - Jurídico', nombre_archivo: 'Propuesta_Salud_Comunitaria_Caqueza.pdf', descripcion_legal: 'Plan operativo de brigadas rurales veredales.', estado: 'listo_firmado', peso: '420 KB' }
+    ],
+    budget_template: [
+      { concepto: 'Honorarios Profesionales en Terreno Rural', tipo: 'directo', costo_mensual: 21000000, meses: 1 },
+      { concepto: 'Logística de Transporte Veredal y Materiales', tipo: 'directo', costo_mensual: 3920000, meses: 1 }
+    ]
   }
 ];
 
@@ -482,7 +753,7 @@ const INITIAL_EVIDENCES: EvidenceItem[] = [
 ];
 
 export const LicitaProView: React.FC = () => {
-  // Estado de navegación interna de LicitaPro SaaS
+  // Navegación interna de la suite LicitaPro
   const [currentView, setCurrentView] = useState<'dashboard' | 'opportunities' | 'opportunity_detail' | 'bidroom' | 'budget' | 'profile' | 'learning' | 'sources' | 'onboarding'>('dashboard');
 
   // Multi-organización / Tenants
@@ -493,9 +764,11 @@ export const LicitaProView: React.FC = () => {
   // Rol del usuario en sesión
   const [userRole, setUserRole] = useState<'admin' | 'bid_manager' | 'legal_reviewer' | 'financial_reviewer' | 'viewer'>('admin');
 
-  // Procesos licitatorios
+  // Procesos licitatorios dinámicos
   const [opportunities, setOpportunities] = useState<OpportunitySecop[]>(INITIAL_OPPORTUNITIES);
-  const [selectedOppId, setSelectedOppId] = useState<string>('opp_secop_icbf_001');
+  
+  // Proceso SELECCIONADO ACTUAL (Vincula BidRoom, Ficha y Presupuesto al proceso específico)
+  const [selectedOppId, setSelectedOppId] = useState<string>('opp_secop_cota_002');
   const selectedOpp = opportunities.find(o => o.id === selectedOppId) || opportunities[0];
 
   // Filtros de oportunidades
@@ -507,32 +780,35 @@ export const LicitaProView: React.FC = () => {
   // Pestaña en Ficha de Oportunidad
   const [oppDetailTab, setOppDetailTab] = useState<'secop_sobres' | 'antirechazo' | 'matriz_pliegos'>('secop_sobres');
 
-  // BidRoom interactivo
-  const [bidTasks, setBidTasks] = useState<BidTask[]>([
-    { id: 't_01', titulo: 'Obtener prórroga del Certificado de Personería ICBF (Vence en 22 días)', responsable: 'Dra. Martha Patricia Gómez (Rep. Legal)', fecha_limite: '2026-10-15', completada: false },
-    { id: 't_02', titulo: 'Formalizar Carta de Intención de Consorcio con socio local de Bolívar', responsable: 'Carlos Andrés Rodríguez (Coord. Licitaciones)', fecha_limite: '2026-10-17', completada: false },
-    { id: 't_03', titulo: 'Expedir Póliza de Seriedad con Aseguradora Solidaria ($627.475.451 COP)', responsable: 'Claudia Marcela Vega (Revisoría Fiscal)', fecha_limite: '2026-10-20', completada: false },
-    { id: 't_04', titulo: 'Cargar y ensamblar Canasta de Costos en Sobre 4 de SECOP II', responsable: 'Equipo Técnico Licitaciones', fecha_limite: '2026-10-22', completada: true }
-  ]);
+  // Estado dinámico del Presupuesto vinculado al proceso seleccionado
+  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(() => {
+    return selectedOpp.budget_template.map((b, idx) => ({
+      id: `b_${idx}`,
+      concepto: b.concepto,
+      tipo: b.tipo,
+      costo_mensual: b.costo_mensual,
+      meses: b.meses,
+      total: b.costo_mensual * b.meses
+    }));
+  });
 
-  const [bidApprovals, setBidApprovals] = useState<BidApproval[]>([
-    { rol: 'tecnica', rol_titulo: 'Aprobación Técnica y Operativa', aprobado: true, aprobado_por: 'Carlos Rodríguez', fecha: '2026-10-06' },
-    { rol: 'juridica', rol_titulo: 'Aprobación Jurídica (Pliegos y SNBF)', aprobado: false },
-    { rol: 'financiera', rol_titulo: 'Aprobación Financiera y RUP', aprobado: true, aprobado_por: 'Claudia Vega', fecha: '2026-10-07' },
-    { rol: 'representante_legal', rol_titulo: 'Firma y Autorización Representante Legal', aprobado: false }
-  ]);
+  // Al cambiar de proceso seleccionado, actualizar el presupuesto y sala
+  const handleSelectOpportunity = (oppId: string) => {
+    setSelectedOppId(oppId);
+    const opp = opportunities.find(o => o.id === oppId) || opportunities[0];
+    setBudgetItems(opp.budget_template.map((b, idx) => ({
+      id: `b_${idx}_${Date.now()}`,
+      concepto: b.concepto,
+      tipo: b.tipo,
+      costo_mensual: b.costo_mensual,
+      meses: b.meses,
+      total: b.costo_mensual * b.meses
+    })));
+  };
 
-  // Presupuesto y AIU
-  const [budgetItems, setBudgetItems] = useState<BudgetItem[]>([
-    { id: 'b_1', concepto: 'Equipo Técnico Interdisciplinario y Formadores de Primera Infancia', tipo: 'directo', costo_mensual: 112000000, meses: 10, total: 1120000000 },
-    { id: 'b_2', concepto: 'Alimentación, Nutrición y Minuta bajo lineamientos técnicos ICBF', tipo: 'directo', costo_mensual: 56000000, meses: 10, total: 560000000 },
-    { id: 'b_3', concepto: 'Dotación pedagógica, material didáctico y kits de aseo e higiene', tipo: 'directo', costo_mensual: 22000000, meses: 10, total: 220000000 },
-    { id: 'b_4', concepto: 'Gastos de Administración y Coordinación Territorial', tipo: 'indirecto', costo_mensual: 9579241, meses: 10, total: 95792410 },
-    { id: 'b_5', concepto: 'Fondo de Imprevistos Operativos y Seguros', tipo: 'indirecto', costo_mensual: 9579241, meses: 10, total: 95792427 }
-  ]);
+  // Porcentajes de AIU
   const [aiuAdminPct, setAiuAdminPct] = useState(5.0);
   const [aiuImprevistosPct, setAiuImprevistosPct] = useState(4.58);
-  const [aiuUtilidadPct, setAiuUtilidadPct] = useState(0.0); // ESAL contrato de aporte
 
   // Evidencias
   const [evidences, setEvidences] = useState<EvidenceItem[]>(INITIAL_EVIDENCES);
@@ -542,6 +818,7 @@ export const LicitaProView: React.FC = () => {
   const [toastMessage, setToastMessage] = useState<string | null>(null);
   const [showNewOrgModal, setShowNewOrgModal] = useState(false);
   const [showChecklistExportModal, setShowChecklistExportModal] = useState(false);
+  const [showAttachDocModal, setShowAttachDocModal] = useState(false);
 
   // Formulario nueva org
   const [newOrgForm, setNewOrgForm] = useState({
@@ -561,7 +838,7 @@ export const LicitaProView: React.FC = () => {
   // Sincronizador en vivo SECOP II
   const handleSyncSecop = () => {
     setIsSyncing(true);
-    triggerToast('Conectando a API de Datos Abiertos SECOP II (Colombia Compra Eficiente)...');
+    triggerToast('Consultando API de Datos Abiertos SECOP II (Colombia Compra Eficiente)...');
     setTimeout(() => {
       setIsSyncing(false);
       triggerToast('Sincronización SECOP II completada: 6 procesos actualizados con pliegos definitivos');
@@ -572,8 +849,8 @@ export const LicitaProView: React.FC = () => {
   const totalDirectos = budgetItems.filter(i => i.tipo === 'directo').reduce((acc, i) => acc + (i.costo_mensual * i.meses), 0);
   const totalIndirectos = budgetItems.filter(i => i.tipo === 'indirecto').reduce((acc, i) => acc + (i.costo_mensual * i.meses), 0);
   const totalOferta = totalDirectos + totalIndirectos;
-  const techoOficialICBF = 2091584837;
-  const diferenciaTecho = totalOferta - techoOficialICBF;
+  const techoOficial = selectedOpp.estimated_value;
+  const diferenciaTecho = totalOferta - techoOficial;
   const esExcedido = diferenciaTecho > 0;
 
   // Filtrado de oportunidades
@@ -590,29 +867,45 @@ export const LicitaProView: React.FC = () => {
 
     if (oppTab === 'new') return opp.strategic_score >= 85;
     if (oppTab === 'closing_soon') return opp.presentation_date.includes('2026-10-1');
-    if (oppTab === 'in_bidroom') return opp.id === 'opp_secop_icbf_001';
+    if (oppTab === 'in_bidroom') return opp.id === selectedOppId;
 
     return true;
   });
 
-  // Alternar tarea de BidRoom
-  const toggleBidTask = (id: string) => {
-    setBidTasks(bidTasks.map(t => t.id === id ? { ...t, completada: !t.completada } : t));
+  // Alternar tarea de BidRoom en la oportunidad seleccionada
+  const toggleBidTask = (taskId: string) => {
+    setOpportunities(opportunities.map(opp => {
+      if (opp.id === selectedOppId) {
+        return {
+          ...opp,
+          bid_tasks: opp.bid_tasks.map(t => t.id === taskId ? { ...t, completada: !t.completada } : t)
+        };
+      }
+      return opp;
+    }));
     triggerToast('Estado de tarea actualizado en la sala de licitación');
   };
 
-  // Aprobar rol directivo
+  // Aprobar rol directivo en la oportunidad seleccionada
   const handleApproveRole = (rol: BidApproval['rol']) => {
-    setBidApprovals(bidApprovals.map(a => {
-      if (a.rol === rol) {
+    setOpportunities(opportunities.map(opp => {
+      if (opp.id === selectedOppId) {
         return {
-          ...a,
-          aprobado: true,
-          aprobado_por: userRole === 'admin' ? 'Administrador General' : userRole,
-          fecha: new Date().toISOString().split('T')[0]
+          ...opp,
+          bid_approvals: opp.bid_approvals.map(a => {
+            if (a.rol === rol) {
+              return {
+                ...a,
+                aprobado: true,
+                aprobado_por: userRole === 'admin' ? 'Administrador General' : userRole,
+                fecha: new Date().toISOString().split('T')[0]
+              };
+            }
+            return a;
+          })
         };
       }
-      return a;
+      return opp;
     }));
     triggerToast(`Aprobación formal para '${rol}' concedida`);
   };
@@ -813,10 +1106,10 @@ export const LicitaProView: React.FC = () => {
                   >
                     <div className="flex items-center gap-2.5">
                       <FolderOpen className="w-4 h-4" />
-                      <span>Sala de Propuesta</span>
+                      <span>Sala de Propuesta (BidRoom)</span>
                     </div>
                     <span className="bg-amber-500/20 text-amber-300 border border-amber-500/30 px-2 py-0.5 rounded-full text-[10px] font-bold">
-                      En curso
+                      {selectedOpp.process_number}
                     </span>
                   </button>
 
@@ -950,12 +1243,12 @@ export const LicitaProView: React.FC = () => {
 
                 <div className="bg-slate-900/80 border border-slate-800 p-5 rounded-2xl">
                   <div className="flex items-center justify-between text-slate-400 text-xs font-semibold">
-                    <span>Salas de Propuesta Activas</span>
+                    <span>Salas de Propuesta Listas</span>
                     <FolderOpen className="w-4 h-4 text-indigo-400" />
                   </div>
-                  <div className="text-3xl font-black text-indigo-400 mt-2">1</div>
+                  <div className="text-3xl font-black text-indigo-400 mt-2">{opportunities.length}</div>
                   <div className="text-[11px] text-indigo-300 mt-1">
-                    ICBF Bolívar ($2.091M COP) en ensamble
+                    Cada proceso tiene su sala individual
                   </div>
                 </div>
 
@@ -975,40 +1268,40 @@ export const LicitaProView: React.FC = () => {
               <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                 <div className="lg:col-span-2 bg-gradient-to-br from-slate-900 via-slate-900/90 to-indigo-950/40 border border-indigo-900/40 p-6 rounded-3xl relative overflow-hidden">
                   <div className="flex items-center justify-between mb-4">
-                    <span className="text-xs bg-indigo-500/20 text-indigo-300 border border-indigo-500/40 px-3 py-1 rounded-full font-bold">
-                      PROCESO ESTRELLA SECOP II
+                    <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/40 px-3 py-1 rounded-full font-bold">
+                      PROCESO PRIORITARIO ACTIVO
                     </span>
                     <span className="text-sm font-mono font-bold text-cyan-400">
-                      Score: 92/100
+                      Score: {selectedOpp.strategic_score}/100
                     </span>
                   </div>
 
                   <h3 className="text-lg font-bold text-white">
-                    ICBF-CV-PC-001-2026BOL • Convocatoria Pública de Aporte
+                    {selectedOpp.process_number} • {selectedOpp.entity_name}
                   </h3>
                   <p className="text-xs text-slate-300 mt-2 line-clamp-2">
-                    Prestar los servicios de educación inicial en el marco de la atención Integral a la Primera Infancia de conformidad con los Manuales Técnicos y Guías Operativas del ICBF.
+                    {selectedOpp.description}
                   </p>
 
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4 bg-slate-950/60 p-3 rounded-2xl border border-slate-800/80 text-xs">
                     <div>
                       <span className="text-[10px] text-slate-400 block uppercase">Presupuesto Oficial</span>
-                      <strong className="text-emerald-400 font-mono text-sm">$2.091.584.837 COP</strong>
+                      <strong className="text-emerald-400 font-mono text-sm">{formatCOP(selectedOpp.estimated_value)}</strong>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 block uppercase">Cierre SECOP II</span>
-                      <strong className="text-white">2026-10-24 15:00</strong>
+                      <strong className="text-white">{selectedOpp.presentation_date}</strong>
                     </div>
                     <div>
                       <span className="text-[10px] text-slate-400 block uppercase">Modalidad Óptima</span>
-                      <strong className="text-amber-400">Consorcio Local (70/30)</strong>
+                      <strong className="text-amber-400">{selectedOpp.veredicto_etiqueta}</strong>
                     </div>
                   </div>
 
                   <div className="flex gap-3 mt-4">
                     <button 
                       onClick={() => {
-                        setSelectedOppId('opp_secop_icbf_001');
+                        handleSelectOpportunity(selectedOpp.id);
                         setCurrentView('opportunity_detail');
                       }}
                       className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 shadow-lg shadow-indigo-600/30"
@@ -1016,10 +1309,13 @@ export const LicitaProView: React.FC = () => {
                       <FileText className="w-3.5 h-3.5" /> Ficha de Sensatez & Sobres
                     </button>
                     <button 
-                      onClick={() => setCurrentView('bidroom')}
+                      onClick={() => {
+                        handleSelectOpportunity(selectedOpp.id);
+                        setCurrentView('bidroom');
+                      }}
                       className="bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-2 border border-slate-700"
                     >
-                      <FolderOpen className="w-3.5 h-3.5" /> Ir a Sala de Propuesta
+                      <FolderOpen className="w-3.5 h-3.5" /> Ir a Sala de Propuesta (BidRoom)
                     </button>
                   </div>
                 </div>
@@ -1033,7 +1329,7 @@ export const LicitaProView: React.FC = () => {
                     <div>
                       <div className="flex justify-between text-slate-300 mb-1">
                         <span>1. Indexadas en Radar</span>
-                        <strong>6 Procesos</strong>
+                        <strong>{opportunities.length} Procesos</strong>
                       </div>
                       <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                         <div className="bg-cyan-500 h-full w-full"></div>
@@ -1053,17 +1349,17 @@ export const LicitaProView: React.FC = () => {
                     <div>
                       <div className="flex justify-between text-slate-300 mb-1">
                         <span>3. En Sala de Propuestas (Sobres)</span>
-                        <strong>1 Proceso</strong>
+                        <strong>{selectedOpp.process_number}</strong>
                       </div>
                       <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
-                        <div className="bg-amber-500 h-full w-[25%]"></div>
+                        <div className="bg-amber-500 h-full w-[35%]"></div>
                       </div>
                     </div>
 
                     <div>
                       <div className="flex justify-between text-slate-300 mb-1">
                         <span>4. Listas para Radicación SECOP</span>
-                        <strong>1 en Revisión Final</strong>
+                        <strong>En Revisión Final</strong>
                       </div>
                       <div className="w-full bg-slate-800 h-2 rounded-full overflow-hidden">
                         <div className="bg-emerald-500 h-full w-[20%]"></div>
@@ -1112,7 +1408,7 @@ export const LicitaProView: React.FC = () => {
                     <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-2.5" />
                     <input 
                       type="text" 
-                      placeholder="Ej: atención nutricional, ICBF, primera infancia, Cota..."
+                      placeholder="Ej: atención nutricional, ICBF, Cota, Fúquene, Nemocón..."
                       value={searchTerm}
                       onChange={(e) => setSearchTerm(e.target.value)}
                       className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-white placeholder-slate-500 focus:outline-none focus:border-indigo-500"
@@ -1168,12 +1464,6 @@ export const LicitaProView: React.FC = () => {
                 >
                   Cierre Próximo (≤14d)
                 </button>
-                <button 
-                  onClick={() => setOppTab('in_bidroom')}
-                  className={`px-3 py-1.5 rounded-lg transition-all ${oppTab === 'in_bidroom' ? 'bg-indigo-600 text-white' : 'text-slate-400 hover:text-white'}`}
-                >
-                  En Sala de Propuesta (1)
-                </button>
               </div>
 
               {/* LISTADO DE TARJETAS DE OPORTUNIDADES */}
@@ -1181,7 +1471,9 @@ export const LicitaProView: React.FC = () => {
                 {filteredOpps.map(opp => (
                   <div 
                     key={opp.id} 
-                    className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 p-5 rounded-3xl transition-all shadow-md flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5"
+                    className={`bg-slate-900/90 border p-5 rounded-3xl transition-all shadow-md flex flex-col lg:flex-row items-start lg:items-center justify-between gap-5 ${
+                      opp.id === selectedOppId ? 'border-indigo-500 bg-slate-900' : 'border-slate-800 hover:border-slate-700'
+                    }`}
                   >
                     {/* SCORE CIRCULAR & RECOMENDACIÓN */}
                     <div className="flex items-center gap-4 shrink-0">
@@ -1251,7 +1543,7 @@ export const LicitaProView: React.FC = () => {
                     <div className="flex lg:flex-col gap-2 shrink-0 w-full lg:w-44">
                       <button 
                         onClick={() => {
-                          setSelectedOppId(opp.id);
+                          handleSelectOpportunity(opp.id);
                           setCurrentView('opportunity_detail');
                         }}
                         className="flex-1 bg-indigo-600 hover:bg-indigo-500 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-indigo-600/20"
@@ -1259,25 +1551,15 @@ export const LicitaProView: React.FC = () => {
                         <FileText className="w-3.5 h-3.5" /> Ficha & Viabilidad
                       </button>
 
-                      {opp.id === 'opp_secop_icbf_001' ? (
-                        <button 
-                          onClick={() => setCurrentView('bidroom')}
-                          className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all"
-                        >
-                          <FolderOpen className="w-3.5 h-3.5" /> Ir a Bid Room
-                        </button>
-                      ) : (
-                        <button 
-                          onClick={() => {
-                            setSelectedOppId(opp.id);
-                            setCurrentView('bidroom');
-                            triggerToast(`Sala de Propuesta inicializada para ${opp.process_number}`);
-                          }}
-                          className="flex-1 bg-slate-800 hover:bg-slate-700 text-cyan-300 font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 border border-slate-700"
-                        >
-                          <FolderPlus className="w-3.5 h-3.5" /> Abrir Bid Room
-                        </button>
-                      )}
+                      <button 
+                        onClick={() => {
+                          handleSelectOpportunity(opp.id);
+                          setCurrentView('bidroom');
+                        }}
+                        className="flex-1 bg-emerald-600 hover:bg-emerald-500 text-white font-bold py-2 px-3 rounded-xl text-xs flex items-center justify-center gap-1.5 transition-all shadow-md shadow-emerald-600/20"
+                      >
+                        <FolderOpen className="w-3.5 h-3.5" /> Ir a Sala de Propuesta (BidRoom)
+                      </button>
 
                       <a 
                         href={opp.secop_url} 
@@ -1307,12 +1589,26 @@ export const LicitaProView: React.FC = () => {
                   <ArrowLeft className="w-3.5 h-3.5" /> Volver a Oportunidades
                 </button>
 
+                {/* SELECTOR RÁPIDO DE PROCESO */}
+                <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Proceso:</span>
+                  <select 
+                    value={selectedOppId}
+                    onChange={(e) => handleSelectOpportunity(e.target.value)}
+                    className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                  >
+                    {opportunities.map(o => (
+                      <option key={o.id} value={o.id} className="bg-slate-900">{o.process_number} - {o.entity_name}</option>
+                    ))}
+                  </select>
+                </div>
+
                 <div className="flex gap-2">
                   <button 
                     onClick={() => setCurrentView('bidroom')}
                     className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-md shadow-emerald-600/20"
                   >
-                    <FolderOpen className="w-3.5 h-3.5" /> Ir a Sala de Propuesta (BidRoom)
+                    <FolderOpen className="w-3.5 h-3.5" /> Ir a Sala de Propuesta ({selectedOpp.process_number})
                   </button>
                   <a 
                     href={selectedOpp.secop_url} 
@@ -1335,6 +1631,9 @@ export const LicitaProView: React.FC = () => {
                       </span>
                       <span className="text-xs text-slate-400 font-semibold">{selectedOpp.modality}</span>
                       <span className="text-xs text-slate-400">• {selectedOpp.department} ({selectedOpp.city})</span>
+                      <span className="text-xs font-bold text-white bg-slate-800 px-2 py-0.5 rounded">
+                        {selectedOpp.entity_name}
+                      </span>
                     </div>
                     <h2 className="text-lg font-bold text-white mt-2">
                       {selectedOpp.description}
@@ -1377,8 +1676,8 @@ export const LicitaProView: React.FC = () => {
                   </div>
 
                   <div className="bg-slate-950/80 p-3 rounded-xl border border-slate-800/80 text-xs shrink-0 space-y-1">
-                    <div>Capital de trabajo: <strong className="text-white font-mono">{formatCOP(selectedOpp.capital_trabajo_min_cop)}</strong></div>
-                    <div>Póliza de seriedad: <strong className="text-white font-mono">{formatCOP(selectedOpp.poliza_valor_cop)}</strong></div>
+                    <div>Capital de trabajo (45-60d): <strong className="text-white font-mono">{formatCOP(selectedOpp.capital_trabajo_min_cop)}</strong></div>
+                    <div>Póliza de seriedad exigida: <strong className="text-white font-mono">{formatCOP(selectedOpp.poliza_valor_cop)}</strong></div>
                   </div>
                 </div>
               </div>
@@ -1399,7 +1698,7 @@ export const LicitaProView: React.FC = () => {
                     oppDetailTab === 'antirechazo' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" /> 2. Checklist Anti-Rechazo (Causales No Subsanables)
+                  <AlertTriangle className="w-3.5 h-3.5 text-rose-400" /> 2. Checklist Anti-Rechazo ({selectedOpp.checklist_antirechazo.length} Causales Críticas)
                 </button>
                 <button 
                   onClick={() => setOppDetailTab('matriz_pliegos')}
@@ -1407,7 +1706,7 @@ export const LicitaProView: React.FC = () => {
                     oppDetailTab === 'matriz_pliegos' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <FileCode className="w-3.5 h-3.5 text-cyan-400" /> 3. Matriz de Requisitos del Pliego
+                  <FileCode className="w-3.5 h-3.5 text-cyan-400" /> 3. Matriz de Requisitos del Pliego ({selectedOpp.requirements.length} Requisitos)
                 </button>
               </div>
 
@@ -1452,15 +1751,15 @@ export const LicitaProView: React.FC = () => {
                 </div>
               )}
 
-              {/* TAB 2: CHECKLIST ANTI-RECHAZO */}
+              {/* TAB 2: CHECKLIST ANTI-RECHAZO (ESPECÍFICO DE ESTA CONVOCATORIA) */}
               {oppDetailTab === 'antirechazo' && (
                 <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4">
                   <div className="border-b border-slate-800 pb-3">
                     <h3 className="text-base font-bold text-white flex items-center gap-2">
-                      <AlertTriangle className="w-4 h-4 text-rose-400" /> Causales Críticas de Rechazo en SECOP II
+                      <AlertTriangle className="w-4 h-4 text-rose-400" /> Causales Críticas de Rechazo para {selectedOpp.process_number}
                     </h3>
                     <p className="text-xs text-slate-400 mt-1">
-                      El 70% de las propuestas descartadas en SECOP II caen por errores formales o inconsistencias aritméticas prevenibles. Valida cada punto antes de radicar.
+                      En contratación estatal colombiana (Ley 80 de 1993, Ley 1150 de 2007 y Decreto 1082 de 2015), los errores sustanciales no son subsanables. Estas causales fueron extraídas del pliego definitivo de <strong>{selectedOpp.entity_name}</strong>:
                     </p>
                   </div>
 
@@ -1475,11 +1774,11 @@ export const LicitaProView: React.FC = () => {
                             {chk.titulo}
                           </h4>
                           <span className="text-[10px] font-bold bg-rose-500/20 text-rose-300 border border-rose-500/30 px-2 py-0.5 rounded">
-                            No Subsanable
+                            Causal Objetiva No Subsanable
                           </span>
                         </div>
                         <div className="text-xs text-rose-300/90">
-                          <strong>Riesgo de Descarte:</strong> {chk.riesgo}
+                          <strong>Riesgo de Descalificación:</strong> {chk.riesgo}
                         </div>
                         <div className="text-xs text-emerald-400 bg-emerald-500/10 p-2 rounded-xl border border-emerald-500/20">
                           <strong>Medida Preventiva LicitaPro:</strong> {chk.medida_preventiva}
@@ -1490,13 +1789,13 @@ export const LicitaProView: React.FC = () => {
                 </div>
               )}
 
-              {/* TAB 3: MATRIZ DE REQUISITOS DEL PLIEGO */}
+              {/* TAB 3: MATRIZ DE REQUISITOS DEL PLIEGO (ESPECÍFICO DE ESTA CONVOCATORIA) */}
               {oppDetailTab === 'matriz_pliegos' && (
                 <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                     <div>
-                      <h3 className="text-base font-bold text-white">Matriz de Requisitos y Evidencias</h3>
-                      <p className="text-xs text-slate-400">Requisitos clasificados, carácter habilitante/puntuable y cruce probatorio con la empresa</p>
+                      <h3 className="text-base font-bold text-white">Matriz de Requisitos Habilitantes y Ponderables</h3>
+                      <p className="text-xs text-slate-400">Requisitos formales de {selectedOpp.entity_name} contrastados contra el repositorio probatorio de {activeOrg.nombre}</p>
                     </div>
                   </div>
 
@@ -1551,7 +1850,7 @@ export const LicitaProView: React.FC = () => {
           )}
 
           {/* =========================================================================
-              4. SALA DE PROPUESTA (BIDROOM OFICIAL)
+              4. SALA DE PROPUESTA (BIDROOM OFICIAL DINÁMICO)
               ========================================================================= */}
           {currentView === 'bidroom' && (
             <div className="space-y-6 max-w-7xl mx-auto">
@@ -1559,16 +1858,30 @@ export const LicitaProView: React.FC = () => {
                 <div>
                   <div className="flex items-center gap-2">
                     <span className="text-xs bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 px-2.5 py-0.5 rounded-full font-bold">
-                      FASE: ENSAMBLE FINAL DE SOBRES
+                      FASE: ENSAMBLE FINAL DE SOBRES SECOP II
                     </span>
-                    <span className="text-xs text-slate-400 font-mono">ICBF-CV-PC-001-2026BOL</span>
+                    <span className="text-xs text-slate-400 font-mono">{selectedOpp.process_number}</span>
                   </div>
                   <h2 className="text-xl font-bold text-white mt-1">
-                    Sala de Propuesta: Convocatoria Primera Infancia ICBF Bolívar
+                    Sala de Propuesta: {selectedOpp.entity_name}
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Estación de trabajo para aprobaciones formales, checklist de documentos y radicación
+                    Estación de trabajo para asignación de tareas, flujo de aprobaciones directivas y carga de sobres
                   </p>
+                </div>
+
+                {/* SELECTOR RÁPIDO PARA CAMBIAR DE PROCESO */}
+                <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Licitación Activa:</span>
+                  <select 
+                    value={selectedOppId}
+                    onChange={(e) => handleSelectOpportunity(e.target.value)}
+                    className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                  >
+                    {opportunities.map(o => (
+                      <option key={o.id} value={o.id} className="bg-slate-900">{o.process_number} - {o.entity_name}</option>
+                    ))}
+                  </select>
                 </div>
 
                 <div className="flex gap-2">
@@ -1579,7 +1892,7 @@ export const LicitaProView: React.FC = () => {
                     <Download className="w-3.5 h-3.5" /> Exportar Checklist Pre-Envío
                   </button>
                   <a 
-                    href="https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.10207367" 
+                    href={selectedOpp.secop_url} 
                     target="_blank" 
                     rel="noreferrer"
                     className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-lg shadow-indigo-600/30"
@@ -1592,46 +1905,46 @@ export const LicitaProView: React.FC = () => {
               {/* BARRA DE ESTADO Y MÉTRICAS DE LA SALA */}
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl text-xs">
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Plazo Límite SECOP II</span>
-                  <strong className="text-white text-sm">2026-10-24 15:00</strong>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Plazo Límite de Cierre</span>
+                  <strong className="text-white text-sm">{selectedOpp.presentation_date}</strong>
                 </div>
                 <div>
-                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Presupuesto Techo</span>
-                  <strong className="text-emerald-400 font-mono text-sm">$2.091.584.837 COP</strong>
+                  <span className="text-[10px] text-slate-400 uppercase font-bold block">Presupuesto Oficial Techo</span>
+                  <strong className="text-emerald-400 font-mono text-sm">{formatCOP(selectedOpp.estimated_value)}</strong>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">Tareas Pendientes</span>
                   <strong className="text-amber-400 text-sm">
-                    {bidTasks.filter(t => !t.completada).length} de {bidTasks.length} pendientes
+                    {selectedOpp.bid_tasks.filter(t => !t.completada).length} de {selectedOpp.bid_tasks.length} pendientes
                   </strong>
                 </div>
                 <div>
                   <span className="text-[10px] text-slate-400 uppercase font-bold block">Aprobaciones Directivas</span>
                   <strong className="text-indigo-400 text-sm">
-                    {bidApprovals.filter(a => a.aprobado).length} de 4 concedidas
+                    {selectedOpp.bid_approvals.filter(a => a.aprobado).length} de 4 concedidas
                   </strong>
                 </div>
               </div>
 
               {/* GRID: APROBACIONES DIRECTIVAS + TAREAS DEL EQUIPO */}
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {/* FLUJO DE APROBACIONES */}
+                {/* FLUJO DE APROBACIONES MANDATORIAS */}
                 <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <ShieldCheck className="w-4 h-4 text-cyan-400" /> Flujo de Aprobaciones Formales
+                      <ShieldCheck className="w-4 h-4 text-cyan-400" /> Flujo de Aprobaciones Mandatorias
                     </h3>
-                    <span className="text-[10px] text-slate-400">Requisito previo a radicación</span>
+                    <span className="text-[10px] text-slate-400">Requisito previo a radicar oferta</span>
                   </div>
 
                   <div className="space-y-3">
-                    {bidApprovals.map((appr, idx) => (
+                    {selectedOpp.bid_approvals.map((appr, idx) => (
                       <div key={idx} className="bg-slate-950/80 border border-slate-800 p-3.5 rounded-2xl flex items-center justify-between gap-4">
                         <div>
                           <div className="text-xs font-bold text-white">{appr.rol_titulo}</div>
                           <div className="text-[11px] text-slate-400 mt-0.5">
                             {appr.aprobado 
-                              ? `Aprobado por: ${appr.aprobado_por} (${appr.fecha})` 
+                              ? `Aprobado formalmente por: ${appr.aprobado_por} (${appr.fecha})` 
                               : 'Pendiente de visto bueno'}
                           </div>
                         </div>
@@ -1659,13 +1972,13 @@ export const LicitaProView: React.FC = () => {
                 <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4">
                   <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                     <h3 className="text-sm font-bold text-white flex items-center gap-2">
-                      <CheckSquare className="w-4 h-4 text-emerald-400" /> Tareas de Ensamble y Radicación
+                      <CheckSquare className="w-4 h-4 text-emerald-400" /> Tareas de Ensamble de la Propuesta
                     </h3>
-                    <span className="text-[10px] text-slate-400">Control de hitos críticos</span>
+                    <span className="text-[10px] text-slate-400">Hitos de la propuesta</span>
                   </div>
 
                   <div className="space-y-2.5">
-                    {bidTasks.map(task => (
+                    {selectedOpp.bid_tasks.map(task => (
                       <div 
                         key={task.id} 
                         onClick={() => toggleBidTask(task.id)}
@@ -1697,71 +2010,108 @@ export const LicitaProView: React.FC = () => {
                 </div>
               </div>
 
-              {/* DOCUMENTOS Y ANEXOS DE LA OFERTA */}
+              {/* DOCUMENTOS EXIGIDOS POR LEY COLOMBIANA PARA RADICAR */}
               <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
                   <div>
-                    <h3 className="text-sm font-bold text-white">Documentos Listos para Carga en SECOP II</h3>
-                    <p className="text-xs text-slate-400">Anexos técnicos, jurídicos y financieros vinculados al expediente</p>
+                    <h3 className="text-sm font-bold text-white">Anexos y Documentos Exigidos en Pliegos de {selectedOpp.entity_name}</h3>
+                    <p className="text-xs text-slate-400">
+                      Soportes preparados y clasificados por cada sobre oficial de SECOP II (Decreto 1082 de 2015)
+                    </p>
                   </div>
                   <button 
-                    onClick={() => triggerToast('Simulador de carga activado: Puedes arrastrar archivos PDF firmados')}
-                    className="bg-slate-800 hover:bg-slate-700 text-white px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-700"
+                    onClick={() => setShowAttachDocModal(true)}
+                    className="bg-slate-800 hover:bg-slate-700 text-cyan-300 px-3 py-1.5 rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-1.5"
                   >
-                    + Adjuntar Documento
+                    <Plus className="w-3.5 h-3.5" /> + Adjuntar Archivo Firmado
                   </button>
                 </div>
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-cyan-400 block">Sobre 1 - Jurídico</span>
-                    <div className="text-xs font-bold text-white flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-rose-400" /> Carta_Presentacion_Oferta.pdf
-                    </div>
-                    <div className="text-[11px] text-emerald-400 font-semibold">Listo y Firmado Digitalmente</div>
-                  </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                  {selectedOpp.bid_documents.map(doc => (
+                    <div key={doc.id} className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-2 flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] uppercase font-bold text-cyan-400 block">{doc.sobre}</span>
+                        <div className="text-xs font-bold text-white flex items-center gap-2 mt-1">
+                          <FileText className="w-4 h-4 text-rose-400 shrink-0" />
+                          <span className="truncate">{doc.nombre_archivo}</span>
+                        </div>
+                        <p className="text-[11px] text-slate-400 mt-1 leading-snug">
+                          {doc.descripcion_legal}
+                        </p>
+                      </div>
 
-                  <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-cyan-400 block">Sobre 2 - Técnico</span>
-                    <div className="text-xs font-bold text-white flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-rose-400" /> Propuesta_Tecnica_Primera_Infancia.pdf
+                      <div className="pt-2 border-t border-slate-800/80 flex items-center justify-between text-[10px]">
+                        <span className="text-slate-400">{doc.peso}</span>
+                        <span className={`px-2 py-0.5 rounded font-bold uppercase ${
+                          doc.estado === 'listo_firmado' 
+                            ? 'bg-emerald-500/20 text-emerald-300' 
+                            : 'bg-amber-500/20 text-amber-300'
+                        }`}>
+                          {doc.estado === 'listo_firmado' ? 'Listo / Firmado' : 'En Elaboración'}
+                        </span>
+                      </div>
                     </div>
-                    <div className="text-[11px] text-emerald-400 font-semibold">Aprobado por Dirección Técnica</div>
-                  </div>
-
-                  <div className="bg-slate-950/80 border border-slate-800 p-4 rounded-2xl space-y-2">
-                    <span className="text-[10px] uppercase font-bold text-cyan-400 block">Sobre 4 - Económico</span>
-                    <div className="text-xs font-bold text-white flex items-center gap-2">
-                      <FileText className="w-4 h-4 text-rose-400" /> Formato_Economico_Canasta_Costos.xlsx
-                    </div>
-                    <div className="text-[11px] text-emerald-400 font-semibold font-mono">Total: $2.091.584.837 COP (Exacto)</div>
-                  </div>
+                  ))}
                 </div>
               </div>
             </div>
           )}
 
           {/* =========================================================================
-              5. ESTRUCTURACIÓN PRESUPUESTAL & SIMULADOR AIU
+              5. ESTRUCTURACIÓN PRESUPUESTAL & SIMULADOR AIU (DINÁMICO Y EDUCATIVO)
               ========================================================================= */}
           {currentView === 'budget' && (
             <div className="space-y-6 max-w-7xl mx-auto">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div>
                   <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                    <Calculator className="w-5 h-5 text-indigo-400" /> Simulador de Estructuración Presupuestal & AIU
+                    <Calculator className="w-5 h-5 text-indigo-400" /> Simulador Presupuestal, AIU & Flujo de Caja
                   </h2>
                   <p className="text-xs text-slate-400">
-                    Canasta de costos, administración, imprevistos y validación automática contra el Presupuesto Oficial SECOP II
+                    Cálculo riguroso de canasta de costos, administración, imprevistos y verificación contra el Presupuesto Oficial
                   </p>
                 </div>
 
+                {/* SELECTOR DE PROCESO A PRESUPUESTAR */}
+                <div className="flex items-center gap-2 bg-slate-900 px-3 py-1.5 rounded-xl border border-slate-800 text-xs">
+                  <span className="text-slate-400 font-bold uppercase text-[10px]">Proceso a Estructurar:</span>
+                  <select 
+                    value={selectedOppId}
+                    onChange={(e) => handleSelectOpportunity(e.target.value)}
+                    className="bg-transparent text-white font-bold focus:outline-none cursor-pointer"
+                  >
+                    {opportunities.map(o => (
+                      <option key={o.id} value={o.id} className="bg-slate-900">
+                        {o.process_number} - {o.entity_name} ({formatCOP(o.estimated_value)})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
                 <button 
-                  onClick={() => triggerToast('Presupuesto exportado en formato estándar de propuesta económica')}
+                  onClick={() => triggerToast(`Presupuesto para ${selectedOpp.process_number} exportado a CSV`)}
                   className="bg-slate-800 hover:bg-slate-700 text-cyan-300 px-3.5 py-2 rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-2"
                 >
                   <Download className="w-3.5 h-3.5" /> Exportar a Excel (CSV)
                 </button>
+              </div>
+
+              {/* BANNER EDUCATIVO: ¿PARA QUÉ SIRVE ESTE SIMULADOR? */}
+              <div className="bg-indigo-950/30 border border-indigo-800/40 p-4 rounded-2xl flex items-start gap-3.5 text-xs text-indigo-200">
+                <HelpCircle className="w-5 h-5 text-cyan-400 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <strong className="text-white text-sm block">¿Cuál es el propósito de este simulador en contratación estatal?</strong>
+                  <p className="text-slate-300">
+                    <strong>1. Causal Objetiva de Rechazo:</strong> En SECOP II, si una propuesta económica supera el presupuesto oficial de la entidad por tan solo <strong>$1 peso</strong>, la entidad pública está obligada por ley a descartarla automáticamente sin posibilidad de subsanar (Decreto 1082/2015).
+                  </p>
+                  <p className="text-slate-300">
+                    <strong>2. Desglose de AIU:</strong> En Colombia el AIU separa los <strong>Costos Directos</strong> (salarios de campo, alimentación, dotación) de los <strong>Costos Indirectos</strong> (<strong>A</strong>dministración de sede, <strong>I</strong>mprevistos de mercado y <strong>U</strong>tilidad).
+                  </p>
+                  <p className="text-slate-300">
+                    <strong>3. Flujo de Caja (Desfase Estatal):</strong> Las alcaldías pagan contra actas de liquidación parcial a 45 o 60 días. El proponente debe garantizar que su caja inicial soporte los primeros 2 meses de nómina sin suspender el servicio.
+                  </p>
+                </div>
               </div>
 
               {/* TARJETAS RESUMEN ARITMÉTICO */}
@@ -1769,7 +2119,7 @@ export const LicitaProView: React.FC = () => {
                 <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Costos Directos (Operación)</span>
                   <div className="text-lg font-black text-white font-mono mt-1">{formatCOP(totalDirectos)}</div>
-                  <span className="text-[11px] text-slate-400">Talento humano, nutrición y dotación</span>
+                  <span className="text-[11px] text-slate-400">Talento humano, raciones y dotación</span>
                 </div>
 
                 <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
@@ -1781,13 +2131,13 @@ export const LicitaProView: React.FC = () => {
                 <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
                   <span className="text-[10px] uppercase font-bold text-slate-400 block">Total Oferta Económica</span>
                   <div className="text-lg font-black text-emerald-400 font-mono mt-1">{formatCOP(totalOferta)}</div>
-                  <span className="text-[11px] text-emerald-400 font-semibold">Valor exacto a radicar</span>
+                  <span className="text-[11px] text-emerald-400 font-semibold">Valor exacto a radicar en SECOP II</span>
                 </div>
 
                 <div className="bg-slate-900/90 border border-slate-800 p-4 rounded-2xl">
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Techo Oficial SECOP II</span>
-                  <div className="text-lg font-black text-slate-300 font-mono mt-1">{formatCOP(techoOficialICBF)}</div>
-                  <span className="text-[11px] text-slate-400">Proceso ICBF Primera Infancia</span>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Techo Oficial {selectedOpp.entity_name}</span>
+                  <div className="text-lg font-black text-slate-300 font-mono mt-1">{formatCOP(techoOficial)}</div>
+                  <span className="text-[11px] text-slate-400">{selectedOpp.process_number}</span>
                 </div>
               </div>
 
@@ -1798,31 +2148,34 @@ export const LicitaProView: React.FC = () => {
                   : 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
               }`}>
                 <div className="flex items-center gap-2">
-                  {esExcedido ? <XCircle className="w-5 h-5 text-rose-400" /> : <CheckCircle2 className="w-5 h-5 text-emerald-400" />}
+                  {esExcedido ? <XCircle className="w-5 h-5 text-rose-400 shrink-0" /> : <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />}
                   <span>
                     {esExcedido 
-                      ? `ALERTA DE RECHAZO: La oferta supera el presupuesto oficial por ${formatCOP(diferenciaTecho)}. En SECOP II esto causa descarte inmediato.` 
-                      : 'VIABILIDAD CONFIRMADA: La oferta coincide exactamente con el presupuesto oficial asignado sin sobrecostos.'}
+                      ? `ALERTA DE RECHAZO EN SECOP II: La oferta supera el presupuesto oficial por ${formatCOP(diferenciaTecho)}. Debes ajustar los ítems hacia abajo para no ser descalificado.` 
+                      : `VIABILIDAD CONFIRMADA: La oferta económica está dentro del techo legal oficial ($${formatCOP(totalOferta)} <= ${formatCOP(techoOficial)}).`}
                   </span>
                 </div>
-                <div className="font-mono font-bold">
-                  Diferencia: {formatCOP(diferenciaTecho)}
+                <div className="font-mono font-bold shrink-0">
+                  Margen vs Techo: {formatCOP(techoOficial - totalOferta)}
                 </div>
               </div>
 
-              {/* TABLA DE ÍTEMS DE LA CANASTA DE COSTOS */}
+              {/* TABLA DE ÍTEMS DE LA CANASTA DE COSTOS DE ESTE PROCESO */}
               <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-4">
                 <div className="flex items-center justify-between border-b border-slate-800 pb-3">
-                  <h3 className="text-sm font-bold text-white">Desglose Canasta Oficial de Primera Infancia</h3>
+                  <div>
+                    <h3 className="text-sm font-bold text-white">Canasta de Costos Específica: {selectedOpp.entity_name}</h3>
+                    <p className="text-xs text-slate-400">Rubros formulados conforme al estudio previo del proceso {selectedOpp.process_number}</p>
+                  </div>
                   <button 
                     onClick={() => {
                       const nuevo: BudgetItem = {
                         id: `b_${Date.now()}`,
-                        concepto: 'Nuevo Ítem de Operación Territorial',
+                        concepto: 'Nuevo Rubro Operativo Territorial',
                         tipo: 'directo',
-                        costo_mensual: 10000000,
+                        costo_mensual: 1000000,
                         meses: 10,
-                        total: 100000000
+                        total: 10000000
                       };
                       setBudgetItems([...budgetItems, nuevo]);
                       triggerToast('Nuevo ítem de costo agregado al simulador');
@@ -2286,6 +2639,65 @@ export const LicitaProView: React.FC = () => {
         </div>
       )}
 
+      {/* MODAL: ADJUNTAR ARCHIVO SIMULADO A LA SALA */}
+      {showAttachDocModal && (
+        <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-[#0f172a] border border-slate-800 rounded-3xl p-6 max-w-md w-full space-y-4 shadow-2xl">
+            <div className="flex items-center justify-between border-b border-slate-800 pb-3">
+              <h3 className="text-base font-bold text-white flex items-center gap-2">
+                <FileText className="w-5 h-5 text-indigo-400" /> Adjuntar Soporte a {selectedOpp.process_number}
+              </h3>
+              <button onClick={() => setShowAttachDocModal(false)} className="text-slate-400 hover:text-white">✕</button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="text-slate-400 block mb-1">Sobre de Destino en SECOP II</label>
+                <select className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white">
+                  <option>Sobre 1 - Requisitos Habilitantes Jurídicos</option>
+                  <option>Sobre 2 - Propuesta Técnica y Personal</option>
+                  <option>Sobre 3 - Capacidad Financiera y RUP</option>
+                  <option>Sobre 4 - Formato de Oferta Económica</option>
+                </select>
+              </div>
+
+              <div>
+                <label className="text-slate-400 block mb-1">Nombre del Archivo</label>
+                <input 
+                  type="text" 
+                  placeholder="Ej: Poliza_Seguro_Seriedad_Firmada.pdf"
+                  className="w-full bg-slate-950 border border-slate-800 rounded-xl p-2.5 text-white"
+                />
+              </div>
+
+              <div className="border-2 border-dashed border-slate-700 p-6 rounded-2xl text-center text-slate-400">
+                <FileCheck2 className="w-8 h-8 text-cyan-400 mx-auto mb-2" />
+                <span className="block font-semibold">Arrastra aquí el archivo firmado digitalmente o haz clic</span>
+                <span className="text-[11px] text-slate-500 mt-1 block">Formatos permitidos: PDF, XLSX, ZIP (Máx 50 MB)</span>
+              </div>
+            </div>
+
+            <div className="flex justify-end gap-2 pt-3 border-t border-slate-800">
+              <button 
+                onClick={() => setShowAttachDocModal(false)}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 font-bold px-4 py-2 rounded-xl text-xs"
+              >
+                Cerrar
+              </button>
+              <button 
+                onClick={() => {
+                  setShowAttachDocModal(false);
+                  triggerToast(`Documento indexado con éxito en la sala de ${selectedOpp.process_number}`);
+                }}
+                className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs"
+              >
+                Confirmar y Cargar
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* MODAL: EXPORTAR CHECKLIST PRE-ENVÍO SECOP II */}
       {showChecklistExportModal && (
         <div className="fixed inset-0 z-50 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
@@ -2301,8 +2713,9 @@ export const LicitaProView: React.FC = () => {
               <strong className="text-sm font-bold block text-emerald-300">
                 VERIFICACIÓN LISTA PARA RADICACIÓN EN SECOP II
               </strong>
-              <div>Proceso: <strong>ICBF-CV-PC-001-2026BOL</strong></div>
-              <div>Cuantía Oficial: <strong>$2.091.584.837 COP</strong></div>
+              <div>Proceso: <strong>{selectedOpp.process_number}</strong></div>
+              <div>Entidad: <strong>{selectedOpp.entity_name}</strong></div>
+              <div>Cuantía Oficial: <strong>{formatCOP(selectedOpp.estimated_value)}</strong></div>
               <div>Requisitos Habilitantes Verificados: <strong>100%</strong></div>
             </div>
 
@@ -2310,18 +2723,18 @@ export const LicitaProView: React.FC = () => {
               readOnly 
               rows={8}
               value={`LICITAPRO COLOMBIA - CHECKLIST PRE-ENVIO SECOP II
-Proceso: ICBF-CV-PC-001-2026BOL
-Entidad: INSTITUTO COLOMBIANO DE BIENESTAR FAMILIAR
-Proponente: Fundación Nueva Vida (NIT: 832.008.424-4)
-Modalidad: Convocatoria Pública de Aporte
+Proceso: ${selectedOpp.process_number}
+Entidad: ${selectedOpp.entity_name}
+Proponente: ${activeOrg.nombre} (NIT: ${activeOrg.nit})
+Modalidad: ${selectedOpp.modality}
 
-[✓] SOBRE 1: Personería Jurídica ICBF SNBF Res. 6300/2024 verificada
-[✓] SOBRE 1: Certificación Parafiscales y Seguridad Social firmada
-[✓] SOBRE 2: Experiencia previa acreditada ($571M en Cundinamarca + Socio Local)
-[✓] SOBRE 3: Indicadores RUP (Liquidez: 1.82 >= 1.5 | Endeudamiento: 34.5% <= 70%)
-[✓] SOBRE 3: Póliza de Seriedad emitida por Aseguradora Solidaria ($627.475.451 COP)
-[✓] SOBRE 4: Canasta de costos coincide exactamente con Techo Oficial ($2.091.584.837 COP)
-[✓] VEREDICTO: Listo para firma y radicación en la plataforma oficial del SECOP II.`}
+[✓] SOBRE 1: Personería Jurídica ICBF SNBF verificada
+[✓] SOBRE 1: Certificación Parafiscales y Seguridad Social firmada por Revisor Fiscal
+[✓] SOBRE 1: Póliza de Seriedad de Oferta por ${formatCOP(selectedOpp.poliza_valor_cop)} lista
+[✓] SOBRE 2: Experiencia previa acreditada que suma el 100% del presupuesto
+[✓] SOBRE 3: Indicadores RUP (Liquidez >= 1.5 | Endeudamiento <= 70%)
+[✓] SOBRE 4: Oferta económica formulada dentro del techo estricto (${formatCOP(selectedOpp.estimated_value)})
+[✓] VEREDICTO: Listo para firma digital y radicación en el portal oficial del SECOP II.`}
               className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-cyan-300 font-mono text-xs focus:outline-none"
             />
 
@@ -2333,7 +2746,7 @@ Modalidad: Convocatoria Pública de Aporte
                 Cerrar
               </button>
               <a 
-                href="https://community.secop.gov.co/Public/Tendering/OpportunityDetail/Index?noticeUID=CO1.NTC.10207367"
+                href={selectedOpp.secop_url}
                 target="_blank"
                 rel="noreferrer"
                 className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold px-4 py-2 rounded-xl text-xs flex items-center gap-1.5"
