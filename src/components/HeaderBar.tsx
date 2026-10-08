@@ -70,30 +70,19 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
           {/* FILA PRINCIPAL: RESPONSIVE EN MÓVILES Y DESKTOP */}
           <div className="flex items-center justify-between py-2 sm:h-20">
             
-            {/* Logo & Brand Identity iAlcaldía (Clic abre modal de clave 0777) */}
+            {/* Logo & Brand Identity iAlcaldía */}
             <div className="flex items-center space-x-2 sm:space-x-3 min-w-0">
-              <div 
-                className="cursor-pointer shrink-0 transition-transform hover:scale-105 active:scale-95" 
-                onClick={() => setShowAdminModal(true)}
-                title="Haz clic para acceder al Centro de Mando (Clave 0777)"
-              >
+              <div className="shrink-0">
                 <RamitosAvatarLogo size="sm" showHalo={true} municipioId={municipioId} />
               </div>
 
               <div className="min-w-0">
-                <div 
-                  className="flex items-center space-x-1.5 cursor-pointer select-none group"
-                  onClick={() => setShowAdminModal(true)}
-                  title="Haz clic para acceder al Centro de Mando (Clave 0777)"
-                >
-                  <span className="text-lg sm:text-2xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent group-hover:brightness-125 transition-all">
+                <div className="flex items-center space-x-1.5 select-none">
+                  <span className="text-lg sm:text-2xl font-black tracking-tight bg-gradient-to-r from-emerald-400 via-teal-300 to-cyan-400 bg-clip-text text-transparent">
                     iAlcaldía
                   </span>
                   <span className="text-[9px] sm:text-[10px] uppercase tracking-wider font-extrabold px-1.5 sm:px-2 py-0.5 rounded-full bg-slate-800 text-cyan-300 border border-slate-700 shadow-sm shrink-0 flex items-center gap-1">
                     <span>Unificada</span>
-                    {isSecretAdminUnlocked && (
-                      <span className="text-emerald-400 font-mono text-[9px]">🔓</span>
-                    )}
                   </span>
                 </div>
 
