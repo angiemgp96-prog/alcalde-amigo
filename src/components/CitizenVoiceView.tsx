@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { CitizenNeed, CitizenLead } from '../types';
 import { processRamitosConversationAsync } from '../services/ramitosBrain';
-import { voteCitizenNeed, getVotedNeedIds, getCitizenNeeds } from '../services/api';
+import { voteCitizenNeed, getVotedNeedIds, getCitizenNeeds, fetchCitizenNeedsFromSupabase } from '../services/api';
 import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { 
   ThumbsUp, TrendingUp, Sparkles, MapPin, 
@@ -41,6 +41,13 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
     } else {
       setLocalNeeds(needs);
     }
+
+    // Consulta en tiempo real a Supabase para sincronizar instantáneamente entre todos los celulares y PCs
+    fetchCitizenNeedsFromSupabase(municipioId).then((fromCloud) => {
+      if (fromCloud && fromCloud.length > 0) {
+        setLocalNeeds(fromCloud);
+      }
+    });
   }, [needs, municipioId]);
 
   useEffect(() => {
@@ -209,14 +216,14 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-800 pb-3">
           <h3 className="text-xl font-bold text-white flex items-center gap-2">
             <span>{isCaparrapi ? '🐎' : '🌿'}</span>
-            <span>Escucha Activa & Formulario Complementario ({isCaparrapi ? 'Caparrapí' : 'Guaduas'})</span>
+            <span>Voz del Pueblo: Escucha Activa ({isCaparrapi ? 'Caparrapí' : 'Guaduas'})</span>
           </h3>
           <span className="text-xs font-mono text-cyan-400 bg-slate-900 px-3 py-1 rounded-full border border-slate-700">
             {veredasList.length} veredas e inspecciones disponibles
           </span>
         </div>
         <p className="text-xs text-slate-300">
-          Esta vista te permite registrar inquietudes y propuestas para las veredas de {isCaparrapi ? 'Caparrapí' : 'Guaduas'}, o cargarlas automáticamente desde el diálogo en el Chat Copiloto.
+          Esta vista reúne la Voz del Pueblo: propuestas directas para las veredas de {isCaparrapi ? 'Caparrapí' : 'Guaduas'}, estructuradas automáticamente desde el Chat Copiloto o registradas mediante este formulario.
         </p>
 
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -289,7 +296,7 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-4">
           <div>
             <h3 className="text-xl font-bold text-white flex items-center gap-2">
-              <span>Inquietudes y Propuestas Comunitarias</span>
+              <span>Inquietudes y Propuestas: Voz del Pueblo</span>
               <span className="text-xs bg-emerald-500/20 text-emerald-400 font-mono px-2.5 py-0.5 rounded-full border border-emerald-500/30">
                 {displayedNeeds.length}
               </span>

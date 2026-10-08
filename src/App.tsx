@@ -99,6 +99,17 @@ export function App() {
     }
   };
 
+  // Sincronización instantánea con Supabase al abrir la pestaña Voz del Pueblo
+  useEffect(() => {
+    if (activeTab === 'escucha') {
+      fetchCitizenNeedsFromSupabase(municipioId).then((loaded) => {
+        if (loaded && loaded.length > 0) {
+          setNeeds(loaded);
+        }
+      });
+    }
+  }, [activeTab, municipioId]);
+
   const handleSaveNeed = async (
     needData: Omit<CitizenNeed, 'id' | 'fechaReporte' | 'votosApoyo'>,
     leadData?: Omit<CitizenLead, 'id' | 'fechaRegistro' | 'estadoNotificacion'>
@@ -108,7 +119,8 @@ export function App() {
       setLeads(getCitizenLeads());
     }
     await saveCitizenNeed(needData);
-    setNeeds(getCitizenNeeds(municipioId));
+    const updated = await fetchCitizenNeedsFromSupabase(municipioId);
+    setNeeds(updated && updated.length > 0 ? updated : getCitizenNeeds(municipioId));
   };
 
   const handleUpdateProposal = async (updated: BaseProposal) => {
@@ -171,7 +183,7 @@ export function App() {
           />
         )}
 
-        {/* MÓDULO VOZ CIUDADANA */}
+        {/* MÓDULO VOZ DEL PUEBLO */}
         {activeTab === 'escucha' && (
           <div className="max-w-7xl mx-auto px-4 py-8">
             <CitizenVoiceView

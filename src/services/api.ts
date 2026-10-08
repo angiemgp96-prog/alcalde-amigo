@@ -776,9 +776,10 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
   };
 
   // 3. Guardar en Supabase en las tablas problematicas_ciudadanas y propuestas_estructuradas_ia
-  if (supabaseClient) {
+  const client = supabaseClient || getSupabaseClient();
+  if (client) {
     try {
-      const { data: probData, error: probErr } = await supabaseClient.from('problematicas_ciudadanas').insert({
+      const { data: probData, error: probErr } = await client.from('problematicas_ciudadanas').insert({
         municipio_id: mun,
         ciudadano_nombre: newNeed.ciudadanoNombre,
         vereda_barrio: newNeed.veredaBarrio,
@@ -790,7 +791,8 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
       }).select().single();
 
       if (!probErr && probData) {
-        await supabaseClient.from('propuestas_estructuradas_ia').insert({
+        newNeed.id = probData.id;
+        await client.from('propuestas_estructuradas_ia').insert({
           municipio_id: mun,
           problematica_id: probData.id,
           intencion_sintetizada: newNeed.problematicaSintetizada,
@@ -798,6 +800,10 @@ export async function saveCitizenNeed(need: Omit<CitizenNeed, 'id' | 'fechaRepor
           propuesta_redactada_ramitos: newNeed.propuestaRamitos,
           estado_evaluacion: 'Pendiente Revision Humana'
         });
+        // Sincronizar inmediatamente desde Supabase a memoria
+        await fetchCitizenNeedsFromSupabase(mun);
+      } else if (probErr) {
+        console.warn('Error insertando en problematicas_ciudadanas:', probErr);
       }
     } catch (err) {
       console.warn('Error en Supabase saveNeed:', err);
@@ -832,7 +838,7 @@ export function getCitizenNeeds(municipioId: 'guaduas' | 'caparrapi' | string = 
 
     // Filtrar estrictamente: SOLO propuestas reales detectadas o registradas (cero inventos)
     const guaduasOnlyVeredas = ['puerto bogotá', 'puerto bogota', 'guaduero', 'piedras negras', 'guaduas centro', 'la paz', 'el hato', 'san josé', 'san jose', 'yaguara', 'la esperanza', 'carbonera', 'canta rana', 'versalles'];
-    const caparrapiOnlyVeredas = ['san carlos', 'san ramón', 'san ramon', 'pitalito', 'terán', 'teran', 'san pedro', 'la magdalena', 'el dindal', 'morro negro', 'córdoba', 'cordoba', 'puerto colombia', 'cuatro caminos', 'alto del roble', 'acuaparrapí', 'acuaparrapi', 'el silencio', 'el dinde', 'mata de mora', 'la chorrera', 'boca de monte', 'galiche', 'barranquillas', 'loma alta', 'hoyo caliente', 'caparrapí centro', 'caparrapi centro'];
+    const caparrapiOnlyVeredas = ['san carlos', 'san pablo', 'san ramón', 'san ramon', 'pitalito', 'terán', 'teran', 'san pedro', 'la magdalena', 'el dindal', 'morro negro', 'córdoba', 'cordoba', 'puerto colombia', 'cuatro caminos', 'alto del roble', 'acuaparrapí', 'acuaparrapi', 'el silencio', 'el dinde', 'mata de mora', 'la chorrera', 'boca de monte', 'galiche', 'barranquillas', 'loma alta', 'hoyo caliente', 'caparrapí centro', 'caparrapi centro'];
 
     const isCap = mun === 'caparrapi';
 
@@ -1956,7 +1962,7 @@ const PROYECTOS_TIPO_CAPARRAPI: ProyectoMgaEstructurado[] = [
         'Capacitación en alfabetización digital e integración a mercados electrónicos para 450 productores'
       ]
     },
-    justificacion_presidencia: 'Responde de manera directa a la petición comunitaria de San Carlos registrada en Voz Ciudadana. Permite conectar las aulas escolares y habilitar telemedicina y trámites en línea para la ruralidad dispersa de Caparrapí.',
+    justificacion_presidencia: 'Responde de manera directa a la petición comunitaria de San Carlos registrada en Voz del Pueblo. Permite conectar las aulas escolares y habilitar telemedicina y trámites en línea para la ruralidad dispersa de Caparrapí.',
     creado_por: 'Equipo de Trabajo RR',
     alternativa_practica: {
       titulo: 'Conectividad Escolar Rápida: Starlink Satelital Directo + Generador Solar EcoFlow',
@@ -2191,7 +2197,7 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       estado: 'cargado',
       archivo_nombre: 'Censo_Familias_Beneficiarias_SanCarlos.xlsx',
       archivo_size: 190000,
-      observaciones: 'Vinculado directamente con los reportes de campo y Voz Ciudadana.'
+      observaciones: 'Vinculado directamente con los reportes de campo y Voz del Pueblo.'
     },
     {
       id: `req-${proyectoId}-10`,
@@ -2672,7 +2678,7 @@ export async function addCensoBeneficiario(item: Omit<CensoBeneficiario, 'id' | 
   return newItem;
 }
 
-// 7. SINTETIZAR NUEVO PROYECTO MGA DIRECTAMENTE DESDE VOZ CIUDADANA
+// 7. SINTETIZAR NUEVO PROYECTO MGA DIRECTAMENTE DESDE VOZ DEL PUEBLO
 export async function crearProyectoDesdeVozCiudadana(
   need: CitizenNeed,
   municipioId: 'caparrapi' | 'guaduas'
@@ -2710,7 +2716,7 @@ export async function crearProyectoDesdeVozCiudadana(
     arbol_objetivos: {
       objetivo_general: need.propuestaRamitos || `Solucionar la problemática de ${need.sector} en ${need.veredaBarrio}`,
       fines_directos: [
-        'Atender de manera prioritaria la solicitud ciudadana registrada en Voz Ciudadana',
+        'Atender de manera prioritaria la solicitud ciudadana registrada en Voz del Pueblo',
         'Garantizar infraestructura duradera bajo especificaciones técnicas oficiales',
         'Beneficiar a las familias campesinas y productoras del sector'
       ]

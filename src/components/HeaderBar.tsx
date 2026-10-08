@@ -120,7 +120,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               <span>Centro de Mando & MGA (Adentro)</span>
             </button>
 
-            {/* BOTÓN VOZ CIUDADANA RESTAURADO */}
+            {/* BOTÓN VOZ DEL PUEBLO */}
             <button
               onClick={() => setActiveTab('escucha')}
               className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer ${
@@ -128,10 +128,10 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
                   ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-lg shadow-orange-950/50 border border-amber-400/50'
                   : 'bg-slate-900/80 text-amber-300 hover:text-white hover:bg-slate-800 border border-slate-800'
               }`}
-              title="Voz Ciudadana: Propuestas y Prioridades Comunitarias"
+              title="Voz del Pueblo: Propuestas y Prioridades Comunitarias"
             >
               <span>📣</span>
-              <span>Voz Ciudadana</span>
+              <span>Voz del Pueblo</span>
               {needsCount > 0 && (
                 <span className="ml-1 px-1.5 py-0.2 rounded-full text-[10px] font-black bg-rose-500 text-white">
                   {needsCount}
@@ -197,7 +197,7 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
             }`}
           >
             <span>📣</span>
-            <span className="truncate">Voz {needsCount > 0 ? `(${needsCount})` : ''}</span>
+            <span className="truncate">Voz del Pueblo {needsCount > 0 ? `(${needsCount})` : ''}</span>
           </button>
 
           <button

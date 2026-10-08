@@ -207,7 +207,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
             console.log('Modo offline/caché de respaldo activo para SECOP II:', err);
           });
 
-        // 3. Cargar aportes, proyectos MGA y necesidades de Voz Ciudadana desde Supabase
+        // 3. Cargar aportes, proyectos MGA y necesidades de Voz del Pueblo desde Supabase
         const [aportes, mgaProjs] = await Promise.all([
           getTeamContributions(municipioId).catch(() => []),
           fetchProyectosMgaFromSupabase(municipioId).catch(() => [])
@@ -641,7 +641,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
       n.sector.toLowerCase().includes((selectedProject.sector_dnp || '').toLowerCase())
     );
     if (matchNeeds.length === 0) {
-      alert('No se encontraron reportes en Voz Ciudadana para las veredas de este proyecto.');
+      alert('No se encontraron reportes en Voz del Pueblo para las veredas de este proyecto.');
       return;
     }
     matchNeeds.forEach(async (need) => {
@@ -653,11 +653,11 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
         numero_miembros_familia: 4,
         hectareas_o_unidad_productiva: 'Unidad Familiar Campesina ' + need.veredaBarrio,
         telefono_contacto: need.whatsapp || '',
-        observacion_territorial: `Respaldo registrado en Voz Ciudadana (${need.votosApoyo || 1} votos): "${need.problematicaSintetizada}"`
+        observacion_territorial: `Respaldo registrado en Voz del Pueblo (${need.votosApoyo || 1} votos): "${need.problematicaSintetizada}"`
       });
       setCensoList(prev => [added, ...prev]);
     });
-    alert(`Se vincularon ${matchNeeds.length} respaldos comunitarios de Voz Ciudadana al censo.`);
+    alert(`Se vincularon ${matchNeeds.length} respaldos comunitarios de Voz del Pueblo al censo.`);
   };
 
   const handleExportarCensoCsv = () => {
@@ -2247,7 +2247,7 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                         className="px-3.5 py-2.5 bg-slate-800 hover:bg-slate-700 text-cyan-300 hover:text-white border border-cyan-500/30 font-bold text-xs rounded-xl flex items-center gap-2 cursor-pointer transition-all"
                       >
                         <Sparkles className="w-4 h-4 text-cyan-400" />
-                        <span>Estructurar desde Voz Ciudadana ({needsParaFormular.length})</span>
+                        <span>Estructurar desde Voz del Pueblo ({needsParaFormular.length})</span>
                       </button>
 
                       <div className="absolute right-0 top-full mt-2 w-80 bg-slate-900 border border-slate-700 rounded-2xl p-3 shadow-2xl space-y-2 z-30 hidden group-hover:block animate-fadeIn">
@@ -3341,7 +3341,7 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                         className="px-3 py-1.5 rounded-xl bg-indigo-950 border border-indigo-700/60 text-indigo-300 hover:text-white text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-all"
                       >
                         <Sparkles className="w-3.5 h-3.5 text-indigo-400" />
-                        <span>Vincular Voz Ciudadana</span>
+                        <span>Vincular Voz del Pueblo</span>
                       </button>
 
                       <button

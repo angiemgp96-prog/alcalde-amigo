@@ -122,7 +122,7 @@ export function cleanHumanName(name?: string): string | undefined {
   ]);
 
   const veredas = [
-    'san carlos', 'san ramon', 'san ramón', 'pitalito', 'el dinde', 'mata de mora', 'la chorrera',
+    'san carlos', 'san pablo', 'san ramon', 'san ramón', 'pitalito', 'el dinde', 'mata de mora', 'la chorrera',
     'boca de monte', 'galiche', 'el silencio', 'puerto colombia', 'casco urbano',
     'piedras negras', 'puerto bogota', 'puerto bogotá', 'la paz', 'el hato', 'san jose', 'san josé',
     'yaguara', 'la esperanza', 'carbonera', 'canta rana', 'versalles'
@@ -242,6 +242,7 @@ export function detectVeredaOrBarrioFromText(text: string, municipioId: 'guaduas
   const t = text.toLowerCase();
 
   if (municipioId === 'caparrapi') {
+    if (t.includes('san pablo')) return 'San Pablo';
     if (t.includes('san ramon') || t.includes('san ramón')) return 'San Ramón';
     if (t.includes('san carlos')) return 'San Carlos';
     if (t.includes('pitalito')) return 'Pitalito';
@@ -285,9 +286,9 @@ IDENTIDAD CLARA Y DISTINCIÓN DE ROLES (ORDEN SUPREMA):
    - Las Alcaldías Anteriores (${isCap ? 'Gonzalo Ramírez 2020–2023, Joaquín Sánchez 2016–2019' : 'Germán Herrera 2020–2023, Jesús Edisson Ramírez 2016–2019'}) son administraciones pasadas cuyos contratos auditamos en SECOP I para conocer la historia y los rezagos acumulados.
    - NO confundas lo que la gente propone o lo que el Equipo de Trabajo RR planea y estructura, con lo que la alcaldía actual está haciendo. Nosotros no prometemos obras públicas oficiales ni actuamos como alcaldía.
 
-2. FUNCIÓN PRINCIPAL DEL COPILOTO Y PUBLICACIÓN EN VOZ CIUDADANA:
+2. FUNCIÓN PRINCIPAL DEL COPILOTO Y PUBLICACIÓN EN VOZ DEL PUEBLO:
    - 1️⃣ Escuchar, valorar y registrar las problemáticas e ideas de las veredas.
-   - 2️⃣ Tu sistema SÍ registra, redacta y publica de inmediato la propuesta en el módulo de 'Voz Ciudadana' en tiempo real. Cuando el ciudadano plantee una petición o pregunte si quedó agregada, confírmale con total seguridad y amabilidad que ya quedó registrada y publicada en 'Voz Ciudadana' para que los vecinos la conozcan y la apoyen con su voto. ¡PROHIBIDO decir que no tienes acceso técnico a la base de datos o que deben esperar días a una validación humana!
+   - 2️⃣ Tu sistema SÍ registra, redacta y publica de inmediato la propuesta en el módulo de 'Voz del Pueblo' en tiempo real. Cuando el ciudadano plantee una petición o pregunte si quedó agregada, confírmale con total seguridad y amabilidad que ya quedó registrada y publicada en 'Voz del Pueblo' para que los vecinos la conozcan y la apoyen con su voto. ¡PROHIBIDO decir que no tienes acceso técnico a la base de datos o que deben esperar días a una validación humana!
    - 3️⃣ Orientar posibilidades técnicas preliminares viables como guía para el equipo de trabajo RR.
 
 3. RECOPILACIÓN, INVITACIÓN A VOTAR Y PARTICIPACIÓN COMUNAL (SIN SPAM):
@@ -298,8 +299,8 @@ IDENTIDAD CLARA Y DISTINCIÓN DE ROLES (ORDEN SUPREMA):
      * 2️⃣ Agua: Optimización de acueductos rurales en Puerto Bogotá y riberas.
      * 3️⃣ Salud: Dotación y telemedicina para el Hospital San José y brigadas veredales.`}
    - INVITACIÓN A APOYAR Y VOTAR AL CONCLUIR IDEAS O AL DESPEDIRSE:
-     * Cuando el ciudadano expone o concluye una propuesta o necesidad (o dice "gracias", "eso era", etc.), confírmale que su idea queda redactada técnicamente para su vereda, e invítalo con calidez a apoyarla y votar en la sección "Voz Ciudadana":
-       "He dejado estructurada tu propuesta para tu vereda. En la sección de 'Voz Ciudadana' puedes revisarla, apoyarla y votar por las prioridades comunitarias de ${nombreMun} para que identifiquemos juntos lo que la mayoría necesita."
+     * Cuando el ciudadano expone o concluye una propuesta o necesidad (o dice "gracias", "eso era", etc.), confírmale que su idea queda redactada técnicamente para su vereda, e invítalo con calidez a apoyarla y votar en la sección "Voz del Pueblo":
+       "He dejado estructurada tu propuesta para tu vereda. En la sección de 'Voz del Pueblo' puedes revisarla, apoyarla y votar por las prioridades comunitarias de ${nombreMun} para que identifiquemos juntos lo que la mayoría necesita."
    - CONTROL DE IDEAS DISTINTAS DE LA MISMA PERSONA:
      * Si la misma persona plantea en mensajes o momentos distintos varias inquietudes diferentes (ej. primero una vía, luego un acueducto), atiende y formula cada una por separado sin mezclarlas ni fusionarlas erróneamente.
    - CAPTURA DE VOTOS: Si el ciudadano elige o apoya una opción (ej. "la 1", "las vías", "el acueducto", "las escuelas"), valida su voto con calidez y confírmale que su prioridad queda registrada en el consolidado comunal del Equipo RR.
@@ -774,7 +775,7 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
     textLower.includes('solicitamos') || textLower.includes('pedimos') ||
     textLower.includes('queremos proponer') || textLower.includes('queremos') || textLower.includes('quiero') ||
     textLower.includes('petición') || textLower.includes('peticion') ||
-    textLower.includes('agregar') || textLower.includes('voz ciudadana') ||
+    textLower.includes('agregar') || textLower.includes('voz del pueblo') || textLower.includes('voz ciudadana') ||
     textLower.includes('problemática') || textLower.includes('problematica') ||
     textLower.includes('problema') || textLower.includes('sugerencia') || textLower.includes('sugiero') ||
     textLower.includes('inquietud') || textLower.includes('idea') ||
@@ -807,8 +808,8 @@ function buildResponseObject(responseText: string, textLower: string, currentVer
   let realSintesis: string | undefined = voteSintesis;
   if (!realSintesis && isRealProblemOrProposal) {
     const locPrefix = currentVereda && currentVereda !== 'Por definir' ? ` (${currentVereda})` : '';
-    const cleanInput = extractedFromResponse || originalInput.replace(/^(hola|buenas|mira|oye|quiero decirte que|te comento que|ramitos|copiloto|puedes agregar lo que yo te he pedido a voz ciudadana porque no aparece en voz ciudadana|pero tienes clara cuál es la petición que yo quiero)\s*,?\s*/i, '').trim();
-    realSintesis = `Propuesta Ciudadana${locPrefix}: ${cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1)}`;
+    const cleanInput = extractedFromResponse || originalInput.replace(/^(hola|buenas|mira|oye|quiero decirte que|te comento que|ramitos|copiloto|puedes agregar lo que yo te he pedido a voz del pueblo porque no aparece en voz del pueblo|puedes agregar lo que yo te he pedido a voz ciudadana porque no aparece en voz ciudadana|pero tienes clara cuál es la petición que yo quiero)\s*,?\s*/i, '').trim();
+    realSintesis = `Propuesta del Pueblo${locPrefix}: ${cleanInput.charAt(0).toUpperCase() + cleanInput.slice(1)}`;
   }
 
   const detectedTopicSector = extractedFromResponse ? detectSector(extractedFromResponse.toLowerCase()) : undefined;

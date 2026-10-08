@@ -43,7 +43,8 @@ export const VEREDAS_CAPARRAPI: VeredaInfo[] = [
   { nombre: 'Galiche', zona: 'Veredal', descripcion: 'Sector veredal con alta necesidad de mantenimiento de maquinaria amarilla.' },
   { nombre: 'Barranquillas', zona: 'Veredal', descripcion: 'Corredor panelero que conecta con la vía principal de Terán.' },
   { nombre: 'Loma Alta', zona: 'Veredal', descripcion: 'Vereda cafetera con alta pendiente y necesidad de placas huellas modulares.' },
-  { nombre: 'Hoyo Caliente', zona: 'Veredal', descripcion: 'Comunidad rural con fuentes termales y acueductos comunitarios veredales.' }
+  { nombre: 'Hoyo Caliente', zona: 'Veredal', descripcion: 'Comunidad rural con fuentes termales y acueductos comunitarios veredales.' },
+  { nombre: 'San Pablo', zona: 'Veredal', descripcion: 'Sector rural con corredor vial y puentes sobre fuentes hídricas, requiere placas huellas.' }
 ];
 
 export const BASE_PROPOSALS_CAPARRAPI: BaseProposal[] = [

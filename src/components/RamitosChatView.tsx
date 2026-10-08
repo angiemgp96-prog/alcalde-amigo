@@ -669,7 +669,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
       <div className="flex items-center justify-center w-full max-w-7xl h-full max-h-[820px] gap-4 xl:gap-6 px-1 sm:px-2">
 
         {/* FRAME CENTRAL: APROVECHA MÁS ANCHO EN PC (lg:max-w-2xl xl:max-w-3xl) Y PERFECTAMENTE ADAPTABLE EN MÓVIL */}
-        <div className="relative w-full max-w-[430px] lg:max-w-2xl xl:max-w-3xl h-full bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[32px] sm:rounded-[40px] mobile-frame-glow border-[4px] sm:border-[5px] border-white/80 overflow-hidden flex flex-col justify-between p-2.5 sm:p-5 shadow-2xl">
+        <div className="relative w-full max-w-[430px] lg:max-w-2xl xl:max-w-3xl h-full bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[28px] sm:rounded-[40px] mobile-frame-glow border-[3px] sm:border-[5px] border-white/80 overflow-hidden flex flex-col justify-between p-2 sm:p-5 shadow-2xl">
         
         {/* LINEAS DE CIRCUITO Y DESTELLOS DE FONDO */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
@@ -682,54 +682,54 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         </div>
 
         {/* TOP MOBILE BAR */}
-        <div className="relative z-20 space-y-2 sm:space-y-4">
+        <div className="relative z-20 space-y-1.5 sm:space-y-4">
           <div className="flex items-center justify-between">
             {isSecretAdminUnlocked ? (
               <button
                 onClick={() => setShowSideMenu(true)}
-                className="p-2 rounded-xl text-slate-600 hover:text-slate-900 transition-colors animate-fadeIn"
+                className="p-1.5 sm:p-2 rounded-xl text-slate-600 hover:text-slate-900 transition-colors animate-fadeIn"
                 title="Menú"
               >
-                <Menu className="w-6 h-6" />
+                <Menu className="w-5 h-5 sm:w-6 sm:h-6" />
               </button>
             ) : (
-              <div className="w-10"></div>
+              <div className="w-8 sm:w-10"></div>
             )}
 
-            <div className="flex items-center space-x-1.5 bg-white/70 px-3.5 py-1 rounded-full border border-white text-xs text-slate-700 shadow-sm">
+            <div className="flex items-center space-x-1.5 bg-white/70 px-3 py-0.5 sm:py-1 rounded-full border border-white text-xs text-slate-700 shadow-sm">
               <Sparkles className="w-3.5 h-3.5 text-emerald-600" />
-              <span className="font-bold text-slate-800 text-xs">Atención Abierta</span>
+              <span className="font-bold text-slate-800 text-[11px] sm:text-xs">Atención Abierta</span>
             </div>
 
             <div className="flex items-center space-x-1">
               {isSecretAdminUnlocked && (
                 <button
                   onClick={() => setShowKeySettings(!showKeySettings)}
-                  className="p-2 text-slate-600 hover:text-amber-600 animate-fadeIn"
+                  className="p-1.5 sm:p-2 text-slate-600 hover:text-amber-600 animate-fadeIn"
                   title="Configurar IA Keys (Gemini / Groq)"
                 >
-                  <Settings className="w-5 h-5" />
+                  <Settings className="w-4 h-4 sm:w-5 sm:h-5" />
                 </button>
               )}
               <button
                 onClick={handleToggleVoice}
-                className="p-2 text-slate-600 hover:text-slate-900"
+                className="p-1.5 sm:p-2 text-slate-600 hover:text-slate-900"
                 title="Voz de Ramitos"
               >
-                {isMuted ? <VolumeX className="w-5 h-5 text-slate-400" /> : <Volume2 className="w-5 h-5 text-emerald-600 animate-pulse" />}
+                {isMuted ? <VolumeX className="w-4 h-4 sm:w-5 sm:h-5 text-slate-400" /> : <Volume2 className="w-4 h-4 sm:w-5 sm:h-5 text-emerald-600 animate-pulse" />}
               </button>
               <button
                 onClick={() => setShowHistoryDrawer(true)}
-                className="p-2 text-slate-600 hover:text-slate-900"
+                className="p-1.5 sm:p-2 text-slate-600 hover:text-slate-900"
                 title="Historial"
               >
-                <History className="w-5 h-5" />
+                <History className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             </div>
           </div>
 
           {/* User Avatar + Speech Bubble ("Respuesta Limpia:") - Sin iconos vacíos en celular para aprovechar todo el ancho */}
-          <div className="flex items-start space-x-0 sm:space-x-3 pt-1 sm:pt-2 w-full">
+          <div className="flex items-start space-x-0 sm:space-x-3 pt-0.5 sm:pt-2 w-full">
             <div className="hidden sm:flex flex-col items-center space-y-3">
               <div className="w-10 h-10 rounded-full bg-slate-300/80 border-2 border-white flex items-center justify-center text-slate-600 shadow-sm">
                 <User className="w-5 h-5" />
@@ -739,9 +739,9 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               </div>
             </div>
 
-            {/* SPEECH BUBBLE (EFECTO MÁQUINA DE ESCRIBIR + ANCHO COMPLETO EN MÓVIL) */}
-            <div className="flex-1 speech-bubble-light rounded-2xl p-3 sm:p-3.5 space-y-1.5 relative animate-fadeIn shadow-sm min-h-[75px] sm:min-h-[85px] max-h-36 sm:max-h-44 overflow-y-auto w-full">
-              <div className="text-xs font-bold text-slate-600 flex items-center justify-between">
+            {/* SPEECH BUBBLE (EFECTO MÁQUINA DE ESCRIBIR + ANCHO COMPLETO EN MÓVIL + MÁXIMO DE ALTURA CONTROLADO) */}
+            <div className="flex-1 speech-bubble-light rounded-2xl p-2 sm:p-3.5 space-y-1 sm:space-y-1.5 relative animate-fadeIn shadow-sm min-h-[50px] sm:min-h-[85px] max-h-24 sm:max-h-44 overflow-y-auto w-full">
+              <div className="text-[11px] sm:text-xs font-bold text-slate-600 flex items-center justify-between">
                 <span className="flex items-center space-x-1">
                   <span>Respuesta Limpia:</span>
                   {isRamitosSpeaking && (
@@ -752,13 +752,13 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                     </span>
                   )}
                 </span>
-                <span className="text-[10px] capitalize font-mono text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200">
+                <span className="text-[9px] sm:text-[10px] capitalize font-mono text-emerald-700 bg-emerald-50 px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded border border-emerald-200">
                   {currentExpresion}
                 </span>
               </div>
 
               {/* TEXTO CON EFECTO MÁQUINA DE ESCRIBIR (NUNCA DESAPARECE AL TERMINAR DE HABLAR) */}
-              <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-snug">
+              <p className="text-[11px] sm:text-sm font-semibold text-slate-800 leading-snug">
                 {displayedResponse || currentResponse}
                 {isRamitosSpeaking && (displayedResponse || '').length < currentResponse.length && (
                   <span className="inline-block w-1.5 h-3.5 bg-emerald-600 ml-0.5 animate-pulse"></span>
@@ -766,7 +766,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               </p>
 
               {/* BARRA DE ACCIÓN: BOTÓN DE COPIAR AL PORTAPAPELES DEBAJO DE LA RESPUESTA */}
-              <div className="flex items-center justify-between pt-1.5 border-t border-slate-200/80 mt-1">
+              <div className="flex items-center justify-between pt-1 border-t border-slate-200/80 mt-1">
                 <button
                   type="button"
                   onClick={() => {
@@ -774,17 +774,17 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                     setCopied(true);
                     setTimeout(() => setCopied(false), 2000);
                   }}
-                  className="flex items-center space-x-1 text-[11px] font-bold text-slate-700 hover:text-emerald-700 bg-white/90 px-2.5 py-1 rounded-lg border border-slate-200 shadow-2xs hover:bg-slate-50 transition-all cursor-pointer"
+                  className="flex items-center space-x-1 text-[10px] sm:text-[11px] font-bold text-slate-700 hover:text-emerald-700 bg-white/90 px-2 py-0.5 sm:py-1 rounded-lg border border-slate-200 shadow-2xs hover:bg-slate-50 transition-all cursor-pointer"
                   title="Copiar respuesta al portapapeles"
                 >
                   {copied ? (
                     <>
-                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                      <Check className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
                       <span className="text-emerald-600">¡Copiado!</span>
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 text-slate-500" />
+                      <Copy className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-slate-500" />
                       <span>Copiar respuesta</span>
                     </>
                   )}
@@ -793,10 +793,10 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                 <button
                   type="button"
                   onClick={() => setShowShareModal(true)}
-                  className="flex items-center space-x-1 text-[11px] font-bold text-emerald-700 bg-emerald-50/90 hover:bg-emerald-100 px-2.5 py-1 rounded-lg border border-emerald-200 transition-all cursor-pointer"
+                  className="flex items-center space-x-1 text-[10px] sm:text-[11px] font-bold text-emerald-700 bg-emerald-50/90 hover:bg-emerald-100 px-2 py-0.5 sm:py-1 rounded-lg border border-emerald-200 transition-all cursor-pointer"
                   title="Compartir a WhatsApp"
                 >
-                  <Share2 className="w-3.5 h-3.5 text-emerald-600" />
+                  <Share2 className="w-3 h-3 sm:w-3.5 sm:h-3.5 text-emerald-600" />
                   <span>Compartir</span>
                 </button>
               </div>
@@ -808,18 +808,18 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         </div>
 
         {/* STREAM DE HISTORIAL DE FONDO EN MÓVIL (DIFUMINADO VERTICAL HACIA ABAJO DETRÁS DEL LOGO) */}
-        <div className="absolute inset-x-4 top-[185px] bottom-[75px] z-0 pointer-events-none overflow-hidden flex flex-col items-center justify-start space-y-2 lg:hidden [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,0.45)_50%,transparent_95%)]">
+        <div className="absolute inset-x-4 top-[155px] bottom-[65px] z-0 pointer-events-none overflow-hidden flex flex-col items-center justify-start space-y-1.5 lg:hidden [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,0.45)_50%,transparent_95%)]">
           {history.slice(0, -1).slice(-4).reverse().map((h, i) => (
             <div
               key={i}
-              className={`w-full max-w-[92%] px-3 py-1.5 rounded-xl text-[11px] leading-relaxed shadow-2xs border backdrop-blur-xs transition-opacity ${
+              className={`w-full max-w-[92%] px-2.5 py-1 rounded-xl text-[10px] leading-relaxed shadow-2xs border backdrop-blur-xs transition-opacity ${
                 h.sender === 'user'
                   ? 'bg-indigo-100/70 border-indigo-200/60 text-indigo-950 self-end mr-1 text-right'
                   : 'bg-white/70 border-white/80 text-slate-800 self-start ml-1 text-left'
               }`}
               style={{ opacity: Math.max(0.18, 0.85 - i * 0.22) }}
             >
-              <span className="font-bold text-[10px] block opacity-75">
+              <span className="font-bold text-[9px] block opacity-75">
                 {h.sender === 'user' ? '👤 Tú' : (isCaparrapi ? '🐎 Copiloto' : '🌿 Ramitos')}
               </span>
               <p className="truncate line-clamp-1">{h.text}</p>
@@ -881,8 +881,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           </form>
         )}
 
-        {/* CENTERPIECE: RAMITOS CHARACTER (LOGO AJUSTADO EN MÓVIL PARA LIBERAR ESPACIO DEL CHAT) */}
-        <div className="relative z-10 flex flex-col items-center justify-center my-auto space-y-1 sm:space-y-2">
+        {/* CENTERPIECE: RAMITOS CHARACTER (COMPACTO Y ELEGANTE EN MÓVIL) */}
+        <div className="relative z-10 flex flex-col items-center justify-center my-0.5 sm:my-auto space-y-0.5 sm:space-y-2">
           
           <div
             onMouseDown={handleStartHoldMic}
@@ -896,10 +896,10 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                 ? 'scale-105 speaking-pulse-ramitos'
                 : 'hover:scale-105 hover:shadow-[0_0_30px_rgba(52,211,153,0.3)]'
             }`}
-            title="Mantén presionado a Ramitos para dictar tu propuesta"
+            title="Mantén presionado para dictar tu propuesta"
           >
             {/* BADGE FLOTANTE DE MICRÓFONO */}
-            <div className={`absolute top-1 right-1 sm:top-3 sm:right-3 z-30 p-1.5 sm:p-2.5 rounded-full border border-white/90 shadow-lg transition-all duration-300 flex items-center justify-center ${
+            <div className={`absolute top-0.5 right-0.5 sm:top-3 sm:right-3 z-30 p-1 sm:p-2.5 rounded-full border border-white/90 shadow-lg transition-all duration-300 flex items-center justify-center ${
               isHoldingMic
                 ? 'bg-emerald-500 text-white scale-110 animate-bounce ring-2 ring-emerald-300'
                 : 'bg-white/90 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white'
@@ -907,25 +907,25 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               <Mic className="w-3 h-3 sm:w-4 sm:h-4" />
             </div>
 
-            <div className="absolute inset-0 -m-4 sm:-m-10 rounded-full bg-radial from-slate-900/80 via-slate-800/40 to-transparent blur-xl pointer-events-none"></div>
+            <div className="absolute inset-0 -m-3 sm:-m-10 rounded-full bg-radial from-slate-900/80 via-slate-800/40 to-transparent blur-xl pointer-events-none"></div>
 
-            <div className="relative w-28 h-28 sm:w-52 sm:h-52 flex items-center justify-center">
+            <div className="relative w-20 h-20 sm:w-52 sm:h-52 flex items-center justify-center">
               
               {isCaparrapi ? (
                 /* EMBLEMA CÍVICO E INTELIGENCIA TERRITORIAL DE CAPARRAPÍ (MEDALLÓN ESCALADO) */
-                <div className="relative w-28 h-28 sm:w-48 sm:h-48 flex flex-col items-center justify-center animate-fadeIn select-none">
+                <div className="relative w-20 h-20 sm:w-48 sm:h-48 flex flex-col items-center justify-center animate-fadeIn select-none">
                   {/* Anillos concéntricos de audio y tecnología */}
                   <div className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-ping pointer-events-none opacity-20"></div>
                   <div className="absolute inset-1 sm:inset-2 rounded-full border border-sky-400/40 pointer-events-none"></div>
-                  <div className="absolute inset-3 sm:inset-6 rounded-full border-2 border-dashed border-indigo-400/30 animate-spin" style={{ animationDuration: '25s' }}></div>
+                  <div className="absolute inset-2 sm:inset-6 rounded-full border-2 border-dashed border-indigo-400/30 animate-spin" style={{ animationDuration: '25s' }}></div>
                   
                   {/* Medallón Central */}
-                  <div className="relative w-24 h-24 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-2 sm:border-4 border-blue-500/80 p-1.5 sm:p-3 flex flex-col items-center justify-center shadow-[0_0_35px_rgba(59,130,246,0.5)] transform hover:scale-105 transition-transform">
-                    <div className="w-8 h-8 sm:w-16 sm:h-16 rounded-xl sm:rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-lg border border-blue-300/40 mb-0.5 sm:mb-1">
-                      <span className="text-base sm:text-3xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
+                  <div className="relative w-18 h-18 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-2 sm:border-4 border-blue-500/80 p-1 sm:p-3 flex flex-col items-center justify-center shadow-[0_0_25px_rgba(59,130,246,0.4)] transform hover:scale-105 transition-transform">
+                    <div className="w-6 h-6 sm:w-16 sm:h-16 rounded-lg sm:rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-lg border border-blue-300/40 mb-0.5 sm:mb-1">
+                      <span className="text-sm sm:text-3xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
                     </div>
-                    <p className="text-[9px] sm:text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
-                    <span className="text-[7px] sm:text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-1.5 sm:px-2 py-0.2 sm:py-0.5 rounded-full mt-0.5 border border-blue-400/40 shadow-xs">
+                    <p className="text-[8px] sm:text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
+                    <span className="text-[6px] sm:text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-1 sm:px-2 py-0.2 sm:py-0.5 rounded-full mt-0.5 border border-blue-400/40 shadow-xs">
                       Copiloto Ciudadano
                     </span>
                   </div>
@@ -935,7 +935,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   src={`/assets/ramitos/ramitos_${currentExpresion}.png`}
                   alt={`Ramitos ${currentExpresion}`}
                   onError={() => setUseCustomAssetFailed(true)}
-                  className="w-28 h-28 sm:w-48 sm:h-48 object-contain z-10 drop-shadow-2xl animate-fadeIn pointer-events-none"
+                  className="w-20 h-20 sm:w-48 sm:h-48 object-contain z-10 drop-shadow-2xl animate-fadeIn pointer-events-none"
                 />
               ) : (
                 <>
@@ -951,7 +951,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   </svg>
 
                   {/* CLOUD SHAPED HEAD CON EXPRESIONES DINÁMICAS */}
-                  <div className="relative w-28 h-24 sm:w-38 sm:h-34 flex items-center justify-center z-10">
+                  <div className="relative w-20 h-16 sm:w-38 sm:h-34 flex items-center justify-center z-10">
                     <svg className="absolute inset-0 w-full h-full drop-shadow-2xl" viewBox="0 0 160 140" fill="none">
                       <path d="M45 110 C25 110 10 92 20 72 C8 55 24 35 44 42 C54 22 86 20 100 35 C116 22 144 32 142 52 C158 66 150 94 132 104 C120 114 90 115 80 110 Z" fill={currentExpresion === 'enojado' ? '#2d141e' : '#1b2434'} stroke="#ffffff" strokeWidth="4.5" strokeLinejoin="round" />
                     </svg>
@@ -962,12 +962,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   </div>
 
                   {/* WHITE TRUNK WITH 2 GREEN LEAF HANDS */}
-                  <div className="absolute bottom-1 sm:bottom-4 flex flex-col items-center z-10">
-                    <svg className="absolute -top-3 w-16 sm:w-28 h-8 sm:h-14 pointer-events-none" viewBox="0 0 120 60" fill="none">
+                  <div className="absolute bottom-0.5 sm:bottom-4 flex flex-col items-center z-10">
+                    <svg className="absolute -top-3 w-14 sm:w-28 h-7 sm:h-14 pointer-events-none" viewBox="0 0 120 60" fill="none">
                       <path d="M45 35 Q15 15 10 35 Q30 55 45 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
                       <path d="M75 35 Q105 15 110 35 Q90 55 75 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
                     </svg>
-                    <div className="w-6 sm:w-9 h-8 sm:h-14 border-l-2 sm:border-l-4 border-r-2 sm:border-r-4 border-b-2 sm:border-b-4 border-white rounded-b-2xl"></div>
+                    <div className="w-5 sm:w-9 h-6 sm:h-14 border-l-2 sm:border-l-4 border-r-2 sm:border-r-4 border-b-2 sm:border-b-4 border-white rounded-b-2xl"></div>
                   </div>
                 </>
               )}
@@ -977,17 +977,17 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           </div>
 
           {/* TITLE & ESTADO DINÁMICO */}
-          <div className="text-center min-h-[26px] sm:min-h-[40px] flex flex-col items-center justify-center">
-            <h1 className="text-lg sm:text-3xl font-extrabold text-white tracking-wide shadow-sm">
+          <div className="text-center min-h-[18px] sm:min-h-[40px] flex flex-col items-center justify-center">
+            <h1 className="text-sm sm:text-3xl font-extrabold text-white tracking-wide shadow-sm">
               {isCaparrapi ? 'Caparrapí' : 'Ramitos'}
             </h1>
             {isThinking || currentExpresion === 'pensativo' ? (
-              <p className={`text-xs font-bold ${isCaparrapi ? 'text-blue-400' : 'text-amber-600'} animate-pulse tracking-wide pt-0.5 sm:pt-1 flex items-center justify-center gap-1.5`}>
+              <p className={`text-[9px] sm:text-xs font-bold ${isCaparrapi ? 'text-blue-400' : 'text-amber-600'} animate-pulse tracking-wide pt-0 sm:pt-1 flex items-center justify-center gap-1`}>
                 <span>{isCaparrapi ? '🐎' : '🌿'}</span>
                 <span>Pensando...</span>
               </p>
             ) : isHoldingMic ? (
-              <p className={`text-xs font-bold ${isCaparrapi ? 'text-blue-400' : 'text-emerald-600'} animate-pulse tracking-wide pt-0.5 sm:pt-1 flex items-center justify-center gap-1.5`}>
+              <p className={`text-[9px] sm:text-xs font-bold ${isCaparrapi ? 'text-blue-400' : 'text-emerald-600'} animate-pulse tracking-wide pt-0 sm:pt-1 flex items-center justify-center gap-1`}>
                 <span>🎙️</span>
                 <span>Escuchando... ¡Suelta para responder!</span>
               </p>
@@ -996,8 +996,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
         </div>
 
-        {/* BOTTOM INPUT & ACTION BAR (ESPACIO CÓMODO Y VISIBLE EN MÓVILES) */}
-        <div className="relative z-20 space-y-1.5 sm:space-y-2 pt-0.5 pb-1 sm:pb-0">
+        {/* BOTTOM INPUT & ACTION BAR (100% VISIBLE, SHRUNK-0 Y FIJO EN MÓVILES) */}
+        <div className="relative z-30 shrink-0 space-y-1 sm:space-y-2 pt-0 pb-1 sm:pb-0 w-full">
           
           <form
             onSubmit={(e) => {
