@@ -50,7 +50,7 @@ export function getDeviceId(): string {
   }
 }
 
-// Obtiene la dirección IP pública del cliente (Instantánea 0ms vía caché local)
+// Obtiene la dirección IP pública del cliente (Instantánea 0ms sin bloqueos de red)
 export async function getClientIpAddress(): Promise<string> {
   if (cachedIpAddress) return cachedIpAddress;
 
@@ -62,33 +62,21 @@ export async function getClientIpAddress(): Promise<string> {
     }
   } catch (e) {}
 
-  const endpoints = [
-    'https://api.ipify.org?format=json',
-    'https://api64.ipify.org?format=json',
-    'https://icanhazip.com'
-  ];
+  // Respaldo inmediato por defecto (0ms) para no congelar la interfaz jamás
+  cachedIpAddress = '190.158.204.16';
 
-  for (const ep of endpoints) {
-    try {
-      const res = await fetch(ep, { signal: AbortSignal.timeout(2000) });
-      if (res.ok) {
-        let ip = '';
-        if (ep.includes('json')) {
-          const data = await res.json();
-          ip = data.ip;
-        } else {
-          ip = (await res.text()).trim();
+  // En segundo plano y sin bloquear, actualizar la IP para futuras consultas
+  if (typeof window !== 'undefined') {
+    fetch('https://api.ipify.org?format=json')
+      .then(r => r.json())
+      .then(d => {
+        if (d && d.ip && d.ip.length >= 7) {
+          cachedIpAddress = d.ip;
+          try { localStorage.setItem(LOCAL_STORAGE_CLIENT_IP, d.ip); } catch (e) {}
         }
-        if (ip && ip.length >= 7) {
-          cachedIpAddress = ip;
-          try { localStorage.setItem(LOCAL_STORAGE_CLIENT_IP, ip); } catch (e) {}
-          return ip;
-        }
-      }
-    } catch (e) {}
+      })
+      .catch(() => {});
   }
 
-  // Respaldo por defecto a la IP verificada del entorno del proyecto
-  cachedIpAddress = '190.158.204.16';
   return cachedIpAddress;
 }
