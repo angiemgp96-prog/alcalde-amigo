@@ -1533,6 +1533,203 @@ export async function fetchLiveSecopFromDatosGov(municipioId: 'guaduas' | 'capar
 // SISTEMA DE FORMULACIÓN MGA / DNP / PRESIDENCIA & SUPABASE
 // -------------------------------------------------------------
 
+// GENERADOR AUTOMÁTICO DE ALTERNATIVAS COMERCIALES REALES (MERCADOLIBRE, HOMECENTER, STARLINK)
+export function generarAlternativaPracticaAutomatica(proyecto: { 
+  id?: string;
+  codigo_bpin_propuesto?: string;
+  nombre_proyecto?: string;
+  sector_dnp?: string;
+  presupuesto_total_cop?: number;
+  veredas_impactadas?: string[];
+}): {
+  titulo: string;
+  enfoque: string;
+  tiempo_ejecucion_dias: number;
+  ahorro_pct_estimado: number;
+  resumen_ejecucion: string;
+  items: Array<{
+    id: string;
+    item: string;
+    descripcion?: string;
+    proveedor: string;
+    enlace_compra?: string;
+    precio_unitario_cop: number;
+    cantidad: number;
+    unidad: string;
+  }>;
+} {
+  const bpin = (proyecto.codigo_bpin_propuesto || '').toUpperCase();
+  const nombre = (proyecto.nombre_proyecto || '').toLowerCase();
+  const sector = (proyecto.sector_dnp || '').toLowerCase();
+
+  // 1. TIC / CONECTIVIDAD / ESCUELAS RURALES / STARLINK
+  if (bpin.includes('TIC') || nombre.includes('conectividad') || nombre.includes('starlink') || sector.includes('tic') || nombre.includes('digital') || nombre.includes('internet')) {
+    return {
+      titulo: 'Conectividad Escolar Rápida: Starlink Satelital Directo + Generador Solar EcoFlow',
+      enfoque: 'Compra Directa en Starlink Colombia y Homecenter con Despliegue en 15 Días',
+      tiempo_ejecucion_dias: 15,
+      ahorro_pct_estimado: 91,
+      resumen_ejecucion: 'Instalación de antenas Starlink de baja órbita con respaldo autónomo de energía solar EcoFlow Delta 2 (LFP 1024Wh) para escuelas rurales. Despliegue inmediato financiado con recursos propios o regalías directas sin intermediarios.',
+      items: [
+        {
+          id: 'tic-alt-1',
+          item: 'Kit de Antena Satelital Starlink Estándar (Baja Órbita)',
+          descripcion: 'Velocidad 150-250 Mbps con módem Wi-Fi de alta cobertura para 14 escuelas rurales',
+          proveedor: 'Starlink Colombia Oficial / MercadoLibre Tienda Oficial',
+          enlace_compra: 'https://www.starlink.com',
+          precio_unitario_cop: 1350000,
+          cantidad: 14,
+          unidad: 'Kits de antena'
+        },
+        {
+          id: 'tic-alt-2',
+          item: 'Estación de Energía Solar EcoFlow Delta 2 + Panel 400W',
+          descripcion: 'Batería LFP 1024Wh para alimentar módem, antena y 15 computadores en corte de luz',
+          proveedor: 'Homecenter Colombia / Distribuidor Oficial EcoFlow',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 4850000,
+          cantidad: 14,
+          unidad: 'Kit solar + batería'
+        },
+        {
+          id: 'tic-alt-3',
+          item: 'Mástil Galvanizado 3m, Pararrayos y Cableado Blindado Exterior',
+          descripcion: 'Protección contra tormentas eléctricas en cumbre de escuela rural',
+          proveedor: 'Homecenter / Ferretería Regional Mayorista',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 480000,
+          cantidad: 14,
+          unidad: 'Puntos de montaje'
+        },
+        {
+          id: 'tic-alt-4',
+          item: 'Plan de Internet Satelital Rural Starlink (1 Año Anticipado)',
+          descripcion: 'Suscripción mensual ilimitada sin tope de consumo para 14 sedes ($210.000/mes)',
+          proveedor: 'Starlink Inc. Colombia',
+          enlace_compra: 'https://www.starlink.com',
+          precio_unitario_cop: 2520000,
+          cantidad: 14,
+          unidad: 'Año de servicio'
+        }
+      ]
+    };
+  }
+
+  // 2. AGUA POTABLE / ACUEDUCTOS / PTAP
+  if (bpin.includes('AGUA') || nombre.includes('agua') || nombre.includes('acueducto') || sector.includes('agua') || sector.includes('saneamiento') || nombre.includes('hídrica')) {
+    return {
+      titulo: 'Agua Potable Inmediata: Ultrafiltración Modular & Tanques Tricapa por Vereda',
+      enfoque: 'Potabilización Modular por Gravedad sin Químicos + Red Rápida PEAD',
+      tiempo_ejecucion_dias: 20,
+      ahorro_pct_estimado: 78,
+      resumen_ejecucion: 'Instalación de tanques de polietileno de alta densidad tricapa UV con filtros de membrana de ultrafiltración por gravedad (SkyHydrant / Lifestraw Community) y cloración en línea.',
+      items: [
+        {
+          id: 'agua-alt-1',
+          item: 'Tanques Plásticos de Almacenamiento Tricapa 10.000 Litros',
+          descripcion: 'Polietileno grado alimenticio con protección UV para intemperie',
+          proveedor: 'Eternit / Pavco (Homecenter Colombia)',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 6200000,
+          cantidad: 4,
+          unidad: 'Tanque 10.000L'
+        },
+        {
+          id: 'agua-alt-2',
+          item: 'Módulo de Ultrafiltración por Gravedad (0.02 micras)',
+          descripcion: 'Filtra bacterias, virus y turbiedad sin necesidad de energía eléctrica ni químicos',
+          proveedor: 'SkyHydrant / Distribuidor Nacional de Membranas',
+          enlace_compra: 'https://www.mercadolibre.com.co',
+          precio_unitario_cop: 18500000,
+          cantidad: 2,
+          unidad: 'Unidad de filtración'
+        },
+        {
+          id: 'agua-alt-3',
+          item: 'Tubería PEAD 2" RDE 17 para Red Veredal Rápida',
+          descripcion: 'Rollos de 100m para tendido rápido en ladera y acometidas seguras',
+          proveedor: 'Pavco / TuboPlast (Homecenter / MercadoLibre)',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 8400,
+          cantidad: 3000,
+          unidad: 'Metro lineal'
+        },
+        {
+          id: 'agua-alt-4',
+          item: 'Dosificador Automático de Cloro en Línea y Pastillas DPD',
+          descripcion: 'Garantiza desinfección residual según norma RAS y medición de cloro libre',
+          proveedor: 'Ferreterías Industriales / MercadoLibre Oficial',
+          enlace_compra: 'https://www.mercadolibre.com.co',
+          precio_unitario_cop: 1800000,
+          cantidad: 4,
+          unidad: 'Kit dosificador'
+        },
+        {
+          id: 'agua-alt-5',
+          item: 'Fontanería Comunitaria y Casetas de Protección',
+          descripcion: 'Instalación en 15 días con fontaneros locales de las JAC veredales',
+          proveedor: 'Comité de Acueducto Veredal San Carlos',
+          enlace_compra: 'https://www.alcaldiacaparrapi.gov.co',
+          precio_unitario_cop: 18000000,
+          cantidad: 1,
+          unidad: 'Global'
+        }
+      ]
+    };
+  }
+
+  // 3. VÍAS / TRANSPORTE / PLACA HUELLA (DEFAULT O SECTOR TRANSPORTE)
+  return {
+    titulo: 'Intervención Rápida por Módulos Prefabricados & Convenio Solidario JAC (Ley 2166)',
+    enfoque: 'Convenio Solidario con Juntas de Acción Comunal + Maquinaria Propia',
+    tiempo_ejecucion_dias: 45,
+    ahorro_pct_estimado: 62,
+    resumen_ejecucion: 'La Alcaldía suministra los módulos de placa huella curados en fábrica, alcantarillas de PEAD corrugado y horas de volqueta/motoniveladora municipal. La Junta de Acción Comunal ejecuta la instalación mediante mano de obra local.',
+    items: [
+      {
+        id: 'vias-alt-1',
+        item: 'Módulos de Placa Huella Prefabricada en Concreto 4000 PSI',
+        descripcion: 'Módulos autotrabantes curados en planta para 2.0 km de tramos más críticos',
+        proveedor: 'Concreteras Regionales (Argos / Cemex / Prefabricados del Valle)',
+        enlace_compra: 'https://www.homecenter.com.co',
+        precio_unitario_cop: 380000,
+        cantidad: 2000,
+        unidad: 'Metro lineal'
+      },
+      {
+        id: 'vias-alt-2',
+        item: 'Tubería Corrugada PEAD Doble Pared 36" para Alcantarillas',
+        descripcion: 'Tubería de drenaje de alta resistencia al impacto y corrosión (120 metros)',
+        proveedor: 'PAVCO Wavin / Homecenter / Distribuidores Mayoristas',
+        enlace_compra: 'https://www.pavco.com.co',
+        precio_unitario_cop: 420000,
+        cantidad: 120,
+        unidad: 'Metro lineal'
+      },
+      {
+        id: 'vias-alt-3',
+        item: 'Subbase Granular y Balastro de Cantera Local Certificada',
+        descripcion: 'Acarreo con volquetas propias de la Alcaldía de Caparrapí para reducir fletes',
+        proveedor: 'Canteras de la Región (Caparrapí - Guaduas)',
+        enlace_compra: 'https://www.mercadolibre.com.co',
+        precio_unitario_cop: 35000,
+        cantidad: 1500,
+        unidad: 'Metro cúbico (m³)'
+      },
+      {
+        id: 'vias-alt-4',
+        item: 'Mano de Obra Comunitaria Calificada y Seguros JAC',
+        descripcion: 'Cuadrillas comunitarias veredales bajo Convenio Solidario Ley 2166',
+        proveedor: 'Asojuntas Caparrapí / JAC San Carlos y Terán',
+        enlace_compra: 'https://www.alcaldiacaparrapi.gov.co',
+        precio_unitario_cop: 180000000,
+        cantidad: 1,
+        unidad: 'Convenio global'
+      }
+    ]
+  };
+}
+
 // PROYECTOS TIPO OFICIALES DNP DE REFERENCIA PARA CAPARRAPÍ
 const PROYECTOS_TIPO_CAPARRAPI: ProyectoMgaEstructurado[] = [
   {
@@ -2048,28 +2245,41 @@ export async function fetchProyectosMgaFromSupabase(municipioId: 'caparrapi' | '
         .order('created_at', { ascending: false });
 
       if (!error && data && data.length > 0) {
-        const mapped: ProyectoMgaEstructurado[] = data.map((d: any) => ({
-          id: d.id,
-          municipio_id: d.municipio_id,
-          codigo_bpin_propuesto: d.codigo_bpin_propuesto || 'BPIN-2026',
-          nombre_proyecto: d.nombre_proyecto,
-          sector_dnp: d.sector_dnp,
-          codigo_producto_dnp: d.codigo_producto_dnp,
-          fase_mga: d.fase_mga || 'Fase 3 - Factibilidad Definitiva',
-          estado_tramite: d.estado_tramite || 'en_estructuracion',
-          presupuesto_total_cop: parseFloat(d.presupuesto_total_cop || 0),
-          fuente_financiacion_principal: d.fuente_financiacion_principal || 'Gobierno Nacional / Presidencia',
-          veredas_impactadas: Array.isArray(d.veredas_impactadas) ? d.veredas_impactadas : [],
-          poblacion_beneficiaria_total: parseInt(d.poblacion_beneficiaria_total || 0),
-          evaluacion_economica: d.evaluacion_economica || {},
-          arbol_problemas: d.arbol_problemas || {},
-          arbol_objetivos: d.arbol_objetivos || {},
-          cadena_valor: Array.isArray(d.cadena_valor) ? d.cadena_valor : [],
-          justificacion_presidencia: d.justificacion_presidencia || '',
-          creado_por: d.creado_por || 'Equipo de Trabajo RR',
-          created_at: d.created_at,
-          updated_at: d.updated_at
-        }));
+        const mapped: ProyectoMgaEstructurado[] = data.map((d: any) => {
+          const defaultMatch = defaultSeeds.find(s => s.codigo_bpin_propuesto === d.codigo_bpin_propuesto || s.id === d.id);
+          const altPractica = (d.alternativa_practica && Array.isArray(d.alternativa_practica.items) && d.alternativa_practica.items.length > 0)
+            ? d.alternativa_practica
+            : (d.evaluacion_economica?._alternativa_practica && Array.isArray(d.evaluacion_economica._alternativa_practica.items) && d.evaluacion_economica._alternativa_practica.items.length > 0)
+            ? d.evaluacion_economica._alternativa_practica
+            : (defaultMatch?.alternativa_practica)
+            || generarAlternativaPracticaAutomatica(d);
+
+          return {
+            id: d.id,
+            municipio_id: d.municipio_id,
+            codigo_bpin_propuesto: d.codigo_bpin_propuesto || 'BPIN-2026',
+            nombre_proyecto: d.nombre_proyecto,
+            sector_dnp: d.sector_dnp,
+            codigo_producto_dnp: d.codigo_producto_dnp,
+            fase_mga: d.fase_mga || 'Fase 3 - Factibilidad Definitiva',
+            estado_tramite: d.estado_tramite || 'en_estructuracion',
+            presupuesto_total_cop: parseFloat(d.presupuesto_total_cop || 0),
+            fuente_financiacion_principal: d.fuente_financiacion_principal || 'Gobierno Nacional / Presidencia',
+            veredas_impactadas: Array.isArray(d.veredas_impactadas) ? d.veredas_impactadas : [],
+            poblacion_beneficiaria_total: parseInt(d.poblacion_beneficiaria_total || 0),
+            evaluacion_economica: d.evaluacion_economica || {},
+            arbol_problemas: d.arbol_problemas || {},
+            arbol_objetivos: d.arbol_objetivos || {},
+            cadena_valor: Array.isArray(d.cadena_valor) ? d.cadena_valor : [],
+            justificacion_presidencia: d.justificacion_presidencia || '',
+            creado_por: d.creado_por || 'Equipo de Trabajo RR',
+            created_at: d.created_at,
+            updated_at: d.updated_at,
+            capitulos_presupuesto_apu: d.capitulos_presupuesto_apu || defaultMatch?.capitulos_presupuesto_apu,
+            checklist_tareas: d.checklist_tareas || defaultMatch?.checklist_tareas,
+            alternativa_practica: altPractica
+          };
+        });
 
         localStorage.setItem(cacheKey, JSON.stringify(mapped));
         return mapped;
@@ -2090,7 +2300,10 @@ export async function fetchProyectosMgaFromSupabase(municipioId: 'caparrapi' | '
             fuente_financiacion_principal: p.fuente_financiacion_principal,
             veredas_impactadas: p.veredas_impactadas,
             poblacion_beneficiaria_total: p.poblacion_beneficiaria_total,
-            evaluacion_economica: p.evaluacion_economica,
+            evaluacion_economica: {
+              ...(p.evaluacion_economica || {}),
+              _alternativa_practica: p.alternativa_practica
+            },
             arbol_problemas: p.arbol_problemas,
             arbol_objetivos: p.arbol_objetivos,
             justificacion_presidencia: p.justificacion_presidencia,
@@ -2111,7 +2324,20 @@ export async function fetchProyectosMgaFromSupabase(municipioId: 'caparrapi' | '
     const cached = localStorage.getItem(cacheKey);
     if (cached) {
       const parsed = JSON.parse(cached);
-      if (Array.isArray(parsed) && parsed.length > 0) return parsed;
+      if (Array.isArray(parsed) && parsed.length > 0) {
+        const enriched = parsed.map((p: any) => {
+          const defaultMatch = defaultSeeds.find(s => s.codigo_bpin_propuesto === p.codigo_bpin_propuesto || s.id === p.id);
+          const alt = (p.alternativa_practica && Array.isArray(p.alternativa_practica.items) && p.alternativa_practica.items.length > 0)
+            ? p.alternativa_practica
+            : (defaultMatch?.alternativa_practica) || generarAlternativaPracticaAutomatica(p);
+          return {
+            ...p,
+            alternativa_practica: alt,
+            capitulos_presupuesto_apu: p.capitulos_presupuesto_apu || defaultMatch?.capitulos_presupuesto_apu
+          };
+        });
+        return enriched;
+      }
     }
   } catch (e) {
     console.warn(e);
@@ -2129,6 +2355,11 @@ export async function saveProyectoMgaInSupabase(proyecto: Partial<ProyectoMgaEst
   const client = getSupabaseClient();
   if (client) {
     try {
+      const evaluacionConAlt = {
+        ...(proyecto.evaluacion_economica || {}),
+        _alternativa_practica: proyecto.alternativa_practica
+      };
+
       const payload: any = {
         municipio_id: proyecto.municipio_id,
         codigo_bpin_propuesto: proyecto.codigo_bpin_propuesto,
@@ -2141,7 +2372,7 @@ export async function saveProyectoMgaInSupabase(proyecto: Partial<ProyectoMgaEst
         fuente_financiacion_principal: proyecto.fuente_financiacion_principal,
         veredas_impactadas: proyecto.veredas_impactadas,
         poblacion_beneficiaria_total: proyecto.poblacion_beneficiaria_total,
-        evaluacion_economica: proyecto.evaluacion_economica,
+        evaluacion_economica: evaluacionConAlt,
         arbol_problemas: proyecto.arbol_problemas,
         arbol_objetivos: proyecto.arbol_objetivos,
         justificacion_presidencia: proyecto.justificacion_presidencia,

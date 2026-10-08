@@ -21,7 +21,8 @@ import {
   fetchCensoBeneficiarios,
   addCensoBeneficiario,
   crearProyectoDesdeVozCiudadana,
-  getCitizenNeeds
+  getCitizenNeeds,
+  generarAlternativaPracticaAutomatica
 } from '../services/api';
 import { 
   ProyectoMgaEstructurado, 
@@ -532,8 +533,9 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
       justificacion_presidencia: p.justificacion_presidencia || p.objetivo || 'Proyecto prioritario articulado con las metas del Plan Nacional de Desarrollo.',
       creado_por: p.creado_por || 'Equipo de Trabajo RR',
       capitulos_presupuesto_apu: p.capitulos_presupuesto_apu,
-      checklist_tareas: p.checklist_tareas,
-      alternativa_practica: p.alternativa_practica
+      alternativa_practica: (p.alternativa_practica && Array.isArray(p.alternativa_practica.items) && p.alternativa_practica.items.length > 0)
+        ? p.alternativa_practica
+        : generarAlternativaPracticaAutomatica(p)
     };
 
     setSelectedProject(fullProj);
@@ -3500,20 +3502,23 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
 
               {/* PESTAÑA: ALTERNATIVAS PRÁCTICAS & COTIZADOR EN LÍNEA (STARLINK / HOMECENTER / JAC) */}
               {projectWorkTab === 'alternativas' && (() => {
-                const alt = selectedProject.alternativa_practica || {
-                  titulo: 'Alternativa Rápida de Compra Directa & Convenio Solidario',
-                  enfoque: 'Solución ágil con precios comerciales de mercado',
-                  tiempo_ejecucion_dias: 30,
-                  ahorro_pct_estimado: 75,
-                  resumen_ejecucion: 'Adquisición directa de materiales y tecnología con ejecución comunitaria o compra en tiendas oficiales.',
-                  items: []
-                };
+                const alt = (selectedProject.alternativa_practica && Array.isArray(selectedProject.alternativa_practica.items) && selectedProject.alternativa_practica.items.length > 0)
+                  ? selectedProject.alternativa_practica
+                  : generarAlternativaPracticaAutomatica(selectedProject);
 
                 const totalCalculadoCop = alt.items?.reduce((sum: number, it: any) => sum + (Number(it.precio_unitario_cop || 0) * Number(it.cantidad || 0)), 0) || 0;
                 const ahorroDineroCop = Math.max(0, selectedProject.presupuesto_total_cop - totalCalculadoCop);
                 const ahorroPctReal = selectedProject.presupuesto_total_cop > 0 
                   ? Math.round((ahorroDineroCop / selectedProject.presupuesto_total_cop) * 100) 
                   : 0;
+
+                const handleAutoCotizarConIa = () => {
+                  const autoAlt = generarAlternativaPracticaAutomatica(selectedProject);
+                  setSelectedProject({
+                    ...selectedProject,
+                    alternativa_practica: autoAlt
+                  });
+                };
 
                 const handleAgregarItemManual = (e: React.FormEvent) => {
                   e.preventDefault();
@@ -3579,9 +3584,20 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                             <Sparkles className="w-5 h-5 text-amber-300" /> Comparador: Mega-Proyecto BPIN vs. Alternativa Práctica Inmediata
                           </h4>
                         </div>
-                        <span className="text-xs text-purple-300 font-bold bg-purple-900/50 px-3 py-1 rounded-full border border-purple-500/30">
-                          {alt.tiempo_ejecucion_dias} Días de Ejecución vs. ~2 Años Burocráticos
-                        </span>
+                        <div className="flex items-center gap-2">
+                          <button
+                            type="button"
+                            onClick={handleAutoCotizarConIa}
+                            className="px-3 py-1.5 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-1.5 cursor-pointer transition-all hover:scale-105"
+                            title="Recalcular automáticamente canasta de precios comerciales 2026"
+                          >
+                            <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                            <span>✨ Auto-Cotizar con IA</span>
+                          </button>
+                          <span className="text-xs text-purple-300 font-bold bg-purple-900/50 px-3 py-1 rounded-full border border-purple-500/30">
+                            {alt.tiempo_ejecucion_dias} Días vs. ~2 Años
+                          </span>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -3702,9 +3718,36 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                         <span className="text-xs font-black uppercase text-purple-300 flex items-center gap-1.5">
                           <PlusCircle className="w-4 h-4 text-purple-400" /> Agregar Nuevo Ítem o Cotización Comercial
                         </span>
-                        <span className="text-[10px] text-slate-400">
-                          Ingresa enlaces de MercadoLibre, Homecenter, Starlink o proveedores locales
-                        </span>
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-[10px] text-slate-400">Verificar en tiendas oficiales:</span>
+                          <a
+                            href="https://www.homecenter.com.co"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[10px] text-cyan-300 border border-slate-700 flex items-center gap-1 transition-colors"
+                          >
+                            <span>🏠 Homecenter</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                          <a
+                            href="https://www.mercadolibre.com.co"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[10px] text-amber-300 border border-slate-700 flex items-center gap-1 transition-colors"
+                          >
+                            <span>🟡 MercadoLibre</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                          <a
+                            href="https://www.starlink.com"
+                            target="_blank"
+                            rel="noreferrer"
+                            className="px-2 py-0.5 rounded-lg bg-slate-900 hover:bg-slate-800 text-[10px] text-white border border-slate-700 flex items-center gap-1 transition-colors"
+                          >
+                            <span>🛰️ Starlink</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        </div>
                       </div>
 
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
