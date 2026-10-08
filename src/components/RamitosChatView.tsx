@@ -824,7 +824,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
             <div className="space-y-1">
               <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
-                <span>ElevenLabs API Key (Opcional - Juan F):</span>
+                <span>ElevenLabs API Key (Opcional - Oscar Lopez Paisa):</span>
                 <span className="text-[9px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">Voz Neural Gratis Activa</span>
               </label>
               <input

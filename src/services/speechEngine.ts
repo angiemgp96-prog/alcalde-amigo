@@ -171,7 +171,7 @@ class SpeechEngine {
           body: JSON.stringify({
             text: cleanText,
             apiKey: elevenKey.trim(),
-            voiceId: 'xWKjCHKgvEuUUiyfjRX1' // Juan F Colombian Voice
+            voiceId: 'XRJWcG2EfnXUf27dRJZn' // Oscar Lopez Paisa / Medellín Colombian Voice
           })
         });
         if (elRes.ok) {
@@ -225,7 +225,7 @@ class SpeechEngine {
       console.warn('Neural TTS Server unreachable, using browser speech fallback:', netErr);
     }
 
-    // 3. RESPALDO LOCAL: WEB SPEECH API DEL NAVEGADOR
+    // 3. RESPALDO LOCAL: WEB SPEECH API DEL NAVEGADOR (NUNCA ESPAÑA)
     this.fallbackBrowserSpeech(cleanText, onEnd, onBoundary);
   }
 
@@ -247,14 +247,20 @@ class SpeechEngine {
       utterance.pitch = 1.02;
 
       const voices = window.speechSynthesis.getVoices();
-      // Priorizar voces naturales o colombianas del dispositivo
-      const esVoice = voices.find(v => 
-        (v.name.includes('Neural') || v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Gonzalo')) && 
-        v.lang.toLowerCase().startsWith('es')
-      ) || voices.find(v => v.lang.toLowerCase().includes('es-co') || v.lang.toLowerCase().startsWith('es'));
+      // Filtrar estrictamente: NUNCA permitir acento de España (es-ES)
+      const nonSpainVoices = voices.filter(v => {
+        const lang = (v.lang || '').toLowerCase();
+        const name = (v.name || '').toLowerCase();
+        return !lang.includes('es-es') && !name.includes('spain') && !name.includes('españa');
+      });
 
-      if (esVoice) {
-        utterance.voice = esVoice;
+      // Priorizar voz colombiana (es-CO) o latinoamericana
+      const coVoice = nonSpainVoices.find(v => v.lang.toLowerCase() === 'es-co' || v.name.toLowerCase().includes('colombia'))
+        || nonSpainVoices.find(v => (v.name.includes('Neural') || v.name.includes('Natural')) && v.lang.toLowerCase().startsWith('es'))
+        || nonSpainVoices.find(v => v.lang.toLowerCase().includes('419') || v.lang.toLowerCase().includes('mx') || v.lang.toLowerCase().startsWith('es'));
+
+      if (coVoice) {
+        utterance.voice = coVoice;
       }
 
       if (onBoundary) {

@@ -35,11 +35,11 @@ app.get('/api/tts', async (req, res) => {
   try {
     const tts = new MsEdgeTTS();
     await tts.setMetadata(voice, OUTPUT_FORMAT.AUDIO_24KHZ_48KBITRATE_MONO_MP3);
-    const readable = tts.toStream(text);
+    const stream = tts.toStream(text);
     const chunks: Buffer[] = [];
 
-    readable.on('data', (chunk: Buffer) => chunks.push(chunk));
-    readable.on('end', () => {
+    stream.audioStream.on('data', (chunk: Buffer) => chunks.push(chunk));
+    stream.audioStream.on('end', () => {
       const audioBuffer = Buffer.concat(chunks);
       if (audioCache.size > 300) {
         audioCache.clear();
@@ -49,7 +49,7 @@ app.get('/api/tts', async (req, res) => {
       res.setHeader('Cache-Control', 'public, max-age=86400');
       res.send(audioBuffer);
     });
-    readable.on('error', (err: any) => {
+    stream.audioStream.on('error', (err: any) => {
       console.error('Edge TTS Stream Error:', err);
       if (!res.headersSent) res.status(500).send('TTS streaming failed');
     });
@@ -59,10 +59,10 @@ app.get('/api/tts', async (req, res) => {
   }
 });
 
-// 2. ENDPOINT ELEVENLABS (CON VOZ JUAN F 'xWKjCHKgvEuUUiyfjRX1' SI EL USUARIO PEGA SU API KEY)
+// 2. ENDPOINT ELEVENLABS (CON VOZ OSCAR LOPEZ PAISA 'XRJWcG2EfnXUf27dRJZn' SI EL USUARIO TIENE API KEY)
 app.post('/api/tts-elevenlabs', async (req, res) => {
   const { text, apiKey, voiceId } = req.body;
-  const targetVoice = voiceId || 'xWKjCHKgvEuUUiyfjRX1'; // Juan F (Colombian Voice)
+  const targetVoice = voiceId || 'XRJWcG2EfnXUf27dRJZn'; // Oscar Lopez (Paisa / Medellín Colombia)
 
   if (!apiKey || !text) {
     res.status(400).json({ error: 'API key y texto requeridos' });
