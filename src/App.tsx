@@ -6,6 +6,7 @@ import { CitizenVoiceView } from './components/CitizenVoiceView';
 import { GreenApiCrmView } from './components/GreenApiCrmView';
 import { CopilotoAlcaldiaView } from './components/CopilotoAlcaldiaView';
 import { CentroMandoView } from './components/CentroMandoView';
+import { LicitaProView } from './components/LicitaProView';
 import {
   getCitizenNeeds,
   fetchCitizenNeedsFromSupabase,
@@ -207,6 +208,13 @@ export function App() {
               isSecretAdminUnlocked={isSecretAdminUnlocked}
               municipioId={municipioId}
             />
+          </div>
+        )}
+
+        {/* MÓDULO LICITAPRO SAAS - LICITACIONES PÚBLICAS SECOP II */}
+        {activeTab === 'licitaciones' && (
+          <div className="max-w-7xl mx-auto px-2 sm:px-6 py-6">
+            <LicitaProView />
           </div>
         )}
       </main>

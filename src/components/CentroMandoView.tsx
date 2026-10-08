@@ -2024,31 +2024,173 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
           {/* ========================================================================= */}
           {activeTab === 'politicas' && (
             <div className="space-y-6 animate-fadeIn">
-              <div className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-xl">
-                <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-400/30">
-                  GOBIERNO NACIONAL 2026 - 2030
-                </span>
-                <h3 className="text-xl sm:text-2xl font-black text-white mt-2">
-                  Matriz de Oportunidades: Cómo Jalonar Recursos en el Escenario Presidencial 2026
-                </h3>
-                <p className="text-xs sm:text-sm text-slate-400 mt-1">
-                  Enfoque pragmático: Seguridad territorial en veredas, Obras por Impuestos para vías, desregulación agroindustrial, crédito ágil y fomento pecuario.
-                </p>
+              
+              {/* BASTIÓN DE DISTINCIÓN JURÍDICA: ALCALDÍA vs. LICITANTE SECOP II */}
+              <div className="bg-gradient-to-r from-slate-900 via-purple-950/40 to-slate-900 border-2 border-purple-500/40 rounded-3xl p-6 sm:p-7 shadow-2xl relative overflow-hidden">
+                <div className="absolute -right-10 -bottom-10 w-60 h-60 bg-purple-500/10 rounded-full blur-3xl pointer-events-none"></div>
+                <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 relative z-10">
+                  <div className="space-y-2 max-w-3xl">
+                    <div className="flex items-center gap-2">
+                      <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                        MARCO LEGAL • LEY 80 DE 1993 & LEY 152 DE 1994
+                      </span>
+                      <span className="px-2.5 py-0.5 rounded text-[10px] font-bold bg-amber-500/20 text-amber-300 border border-amber-400/30">
+                        DISTINCIÓN FUNDAMENTAL
+                      </span>
+                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white">
+                      ¿Formular Proyectos para la Alcaldía o Licitar como Empresa / Fundación?
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+                      <strong className="text-purple-300">1. Formular Proyectos (Esta Pestaña & MGA):</strong> Es el rol de la Alcaldía de {m.nombre}. Gestiona y radica fichas ante Presidencia y Ministerios para <em>conseguir</em> recursos de la Nación (cofinanciación 80%-90% y contrapartida municipal 10%-20%).<br />
+                      <strong className="text-emerald-300">2. Licitar en SECOP II:</strong> Es el rol de las empresas, fundaciones (ej: <em>Fundación Nueva Vida</em>) y contratistas que compiten para <em>ejecutar</em> las obras y servicios una vez la Alcaldía o el Estado abren el proceso contractual.
+                    </p>
+                  </div>
+
+                  <div className="shrink-0 flex flex-col gap-2">
+                    <button
+                      onClick={() => handleSelectTab('licitaciones')}
+                      className="px-5 py-3.5 bg-gradient-to-r from-purple-600 via-indigo-600 to-pink-600 hover:from-purple-500 hover:to-pink-500 text-white font-black text-xs sm:text-sm rounded-2xl shadow-xl shadow-purple-950/60 flex items-center justify-center gap-3 transition-all hover:scale-105 cursor-pointer border border-purple-400/40"
+                    >
+                      <span className="text-lg">📑</span>
+                      <span>Ir a LicitaPro SaaS (Gestión Licitaciones SECOP II)</span>
+                      <ArrowRight className="w-4 h-4 text-purple-200" />
+                    </button>
+                    <span className="text-[10px] text-center text-slate-400">
+                      Incluye perfil de Fundación Nueva Vida y registro de proponentes
+                    </span>
+                  </div>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {politicasGobierno.map((pol: any, idx: number) => (
-                  <div key={idx} className="bg-slate-900/80 border border-slate-800 rounded-2xl p-6 shadow-lg space-y-3">
-                    <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-400/30">
-                      {pol.eje}
+              {/* TABLERO DE CAPACIDAD FISCAL Y SENSATEZ DE CONTRAPARTIDAS */}
+              <div className="bg-slate-900/90 border border-slate-800 rounded-3xl p-6 sm:p-7 shadow-xl space-y-5">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                  <div>
+                    <span className="px-3 py-1 rounded-full text-xs font-black uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-400/30">
+                      SENSIBILIDAD FISCAL REAL • MUNICIPIO CATEGORÍA 6 (LEY 617)
                     </span>
-                    <h4 className="text-base font-black text-white">{pol.programa}</h4>
-                    <p className="text-xs text-slate-300 leading-relaxed"><strong className="text-slate-200">Mecanismo Operativo:</strong> {pol.mecanismo}</p>
-                    <div className="pt-2 border-t border-slate-800 text-xs font-semibold text-emerald-400">
-                      ✓ Beneficio para {m.nombre}: {pol.beneficio}
-                    </div>
+                    <h3 className="text-xl sm:text-2xl font-black text-white mt-2 flex items-center gap-2">
+                      <Landmark className="w-6 h-6 text-cyan-400" /> Presupuesto Municipal & Capacidad Real de Contrapartida
+                    </h3>
+                    <p className="text-xs sm:text-sm text-slate-400 mt-1 max-w-3xl">
+                      Para no engañarse postulando a convocatorias que la Alcaldía no puede pagar. La mayoría de fondos exigen entre el 10% y 20% de contrapartida en efectivo del municipio.
+                    </p>
                   </div>
-                ))}
+                  
+                  <div className="bg-slate-950 p-3.5 rounded-2xl border border-slate-800 text-right shrink-0">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">MUNICIPIO ANALIZADO</span>
+                    <span className="text-lg font-black text-white font-mono">{m.nombre.toUpperCase()}</span>
+                    <span className="block text-[10px] text-emerald-400 font-bold">Categoría 6ta • DNP</span>
+                  </div>
+                </div>
+
+                {/* KPIs Presupuestales Oficiales */}
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-slate-950/80 border border-slate-800/90 p-4 rounded-2xl">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">PRESUPUESTO ANUAL TOTAL</span>
+                    <div className="text-2xl font-black font-mono text-white mt-1">
+                      {isCaparrapi ? '$30.000 Millones' : '$51.000 Millones'}
+                    </div>
+                    <span className="text-[10px] text-slate-400">Aprobado Concejo Municipal</span>
+                  </div>
+
+                  <div className="bg-slate-950/80 border border-slate-800/90 p-4 rounded-2xl">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">SGP DESTINACIÓN FIJA</span>
+                    <div className="text-2xl font-black font-mono text-cyan-400 mt-1">
+                      {isCaparrapi ? '$18.500 Millones' : '$28.000 Millones'}
+                    </div>
+                    <span className="text-[10px] text-cyan-300">Intocable (Salud, Educación, Agua)</span>
+                  </div>
+
+                  <div className="bg-slate-950/80 border border-slate-800/90 p-4 rounded-2xl">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">ICLD (LIBRE DESTINACIÓN)</span>
+                    <div className="text-2xl font-black font-mono text-amber-400 mt-1">
+                      {isCaparrapi ? '$4.200 Millones' : '$9.500 Millones'}
+                    </div>
+                    <span className="text-[10px] text-amber-300">Ingresos propios (Predial + ICA)</span>
+                  </div>
+
+                  <div className="bg-slate-950/80 border border-slate-800/90 p-4 rounded-2xl">
+                    <span className="text-[10px] uppercase font-bold text-slate-400 block">TECHO SANO CONTRAPARTIDA (15%)</span>
+                    <div className="text-2xl font-black font-mono text-emerald-400 mt-1">
+                      {isCaparrapi ? '$630 Millones' : '$1.425 Millones'}
+                    </div>
+                    <span className="text-[10px] text-emerald-300">Límite para no quebrar el municipio</span>
+                  </div>
+                </div>
+
+                <div className="bg-slate-950/50 p-4 rounded-2xl border border-slate-800 flex items-center justify-between text-xs text-slate-300">
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-emerald-500"></span>
+                    <span><strong>🟢 Viable Propio:</strong> Contrapartida &lt; Techo Sano</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-amber-500"></span>
+                    <span><strong>🟡 Requiere Co-financiación:</strong> Acudir a Gobernación Cundinamarca (ICCUD)</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <span className="w-3 h-3 rounded-full bg-rose-500"></span>
+                    <span><strong>🔴 Asfixia Fiscal:</strong> Exige bolsa 100% no reembolsable de la Presidencia</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* LISTADO DE POLÍTICAS Y CONVOCATORIAS CON ANÁLISIS DE CONTRAPARTIDA */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                {politicasGobierno.map((pol: any, idx: number) => {
+                  const valorPromedioCop = isCaparrapi ? 3000000000 : 4500000000;
+                  const contrapartidaEstimadaCop = valorPromedioCop * 0.15;
+                  const techoSano = isCaparrapi ? 630000000 : 1425000000;
+                  const esViablePropio = contrapartidaEstimadaCop <= techoSano;
+
+                  return (
+                    <div key={idx} className="bg-slate-900/80 border border-slate-800 hover:border-slate-700 rounded-3xl p-6 shadow-lg space-y-4 flex flex-col justify-between transition-all">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between">
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-cyan-500/20 text-cyan-400 border border-cyan-400/30">
+                            {pol.eje}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-extrabold uppercase border ${
+                            esViablePropio 
+                              ? 'bg-emerald-500/20 text-emerald-300 border-emerald-400/30' 
+                              : 'bg-amber-500/20 text-amber-300 border-amber-400/30'
+                          }`}>
+                            {esViablePropio ? '🟢 Viable con ICLD Propio' : '🟡 Requiere Gobernación'}
+                          </span>
+                        </div>
+                        <h4 className="text-base font-black text-white leading-snug">{pol.programa}</h4>
+                        <p className="text-xs text-slate-300 leading-relaxed"><strong className="text-slate-200">Mecanismo Operativo:</strong> {pol.mecanismo}</p>
+                        
+                        <div className="bg-slate-950/70 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
+                          <div className="flex justify-between items-center text-slate-300">
+                            <span className="text-slate-400">Contrapartida Municipal (15%):</span>
+                            <span className="font-mono font-bold text-amber-400">{formatCOP(contrapartidaEstimadaCop)}</span>
+                          </div>
+                          <div className="flex justify-between items-center text-slate-300">
+                            <span className="text-slate-400">Aporte Nacional (85%):</span>
+                            <span className="font-mono font-bold text-emerald-400">{formatCOP(valorPromedioCop * 0.85)}</span>
+                          </div>
+                        </div>
+
+                        <div className="pt-2 border-t border-slate-800 text-xs font-semibold text-emerald-400">
+                          ✓ Beneficio para {m.nombre}: {pol.beneficio}
+                        </div>
+                      </div>
+
+                      <div className="pt-2 flex items-center justify-between text-[11px] text-slate-400 border-t border-slate-800/80">
+                        <span>Ficha BPIN Requerida en MGA</span>
+                        <button
+                          onClick={() => handleSelectTab('mga')}
+                          className="text-cyan-400 hover:text-cyan-300 font-bold flex items-center gap-1 cursor-pointer"
+                        >
+                          <span>Ver en Banco MGA</span>
+                          <ArrowRight className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           )}
@@ -2155,6 +2297,69 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                 </div>
               </div>
 
+              {/* RADAR ANTI-DEVOLUCIÓN DNP: LAS 4 RAZONES POR LAS QUE DEVUELVEN PROYECTOS */}
+              <div className="bg-slate-900/90 border-2 border-emerald-500/40 rounded-3xl p-6 sm:p-7 shadow-xl space-y-4">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                  <div>
+                    <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
+                      BLINDAJE TÉCNICO DNP & MINISTERIOS
+                    </span>
+                    <h3 className="text-base sm:text-lg font-black text-white mt-1 flex items-center gap-2">
+                      <CheckCircle2 className="w-5 h-5 text-emerald-400" /> Checklist Anti-Devolución DNP: Los 4 Filtros para Aprobación Ministerial
+                    </h3>
+                  </div>
+                  <span className="text-xs text-slate-400 font-mono">
+                    Aplica a todos los proyectos BPIN radicados
+                  </span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                  <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex items-center gap-2 text-cyan-400 text-xs font-black uppercase">
+                      <span>1. Predial & Jurídico</span>
+                    </div>
+                    <h5 className="text-xs font-black text-white">Titularidad y Servidumbres</h5>
+                    <p className="text-[11px] text-slate-300 leading-snug">
+                      Certificado de tradición &lt; 30 días a nombre del municipio o cartas notariales de servidumbre en vías terciarias. Cero embargos.
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-emerald-400 font-mono">✓ 0% Tolerancia DNP</span>
+                  </div>
+
+                  <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex items-center gap-2 text-emerald-400 text-xs font-black uppercase">
+                      <span>2. Gestión del Riesgo</span>
+                    </div>
+                    <h5 className="text-xs font-black text-white">Certificado CMGRD</h5>
+                    <p className="text-[11px] text-slate-300 leading-snug">
+                      Acta firmada por el Consejo Municipal de Gestión del Riesgo certificando que la zona NO presenta amenaza alta no mitigable según PBOT.
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-emerald-400 font-mono">✓ Ley 1523 de 2012</span>
+                  </div>
+
+                  <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex items-center gap-2 text-amber-400 text-xs font-black uppercase">
+                      <span>3. Presupuesto & APU</span>
+                    </div>
+                    <h5 className="text-xs font-black text-white">Precios Oficiales 2026</h5>
+                    <p className="text-[11px] text-slate-300 leading-snug">
+                      Análisis de Precios Unitarios actualizados con fletes de acarreo a veredas rurales (San Carlos/Guaduero). No cotizaciones genéricas.
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-amber-400 font-mono">✓ Metodología DNP</span>
+                  </div>
+
+                  <div className="bg-slate-950/80 p-4 rounded-2xl border border-slate-800 space-y-2">
+                    <div className="flex items-center gap-2 text-purple-400 text-xs font-black uppercase">
+                      <span>4. Cadena de Valor MGA</span>
+                    </div>
+                    <h5 className="text-xs font-black text-white">Coherencia Insumo-Producto</h5>
+                    <p className="text-[11px] text-slate-300 leading-snug">
+                      Alineación estricta entre el catálogo de productos DNP, metas del Plan Nacional de Desarrollo y transferibilidad MGA Web.
+                    </p>
+                    <span className="inline-block text-[10px] font-bold text-purple-400 font-mono">✓ Sin Inconsistencias</span>
+                  </div>
+                </div>
+              </div>
+
               {/* Cuadrícula de Proyectos MGA Fase 3 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                 {bancoProyectosMga.map((p: any, idx: number) => (
@@ -2187,6 +2392,26 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                         <span className="text-slate-400 font-mono">{p.fase}</span>
                       </div>
                       <p className="text-xs text-slate-300 leading-relaxed font-medium">{p.objetivo}</p>
+
+                      {/* Mini Resumen 4 Componentes MGA */}
+                      <div className="grid grid-cols-2 gap-1.5 py-1">
+                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                          <span className="text-slate-400 block">🏛️ Jurídico & Predial:</span>
+                          <span className="font-bold text-emerald-400">Verificado / En regla</span>
+                        </div>
+                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                          <span className="text-slate-400 block">📐 Técnico Fase 3:</span>
+                          <span className="font-bold text-cyan-400">APU y Planos Ok</span>
+                        </div>
+                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                          <span className="text-slate-400 block">💰 Contrapartida Mpal:</span>
+                          <span className="font-bold text-amber-400">15% ($375M - $500M)</span>
+                        </div>
+                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                          <span className="text-slate-400 block">📑 Posterior SECOP II:</span>
+                          <span className="font-bold text-purple-400">Licitación Obra Pública</span>
+                        </div>
+                      </div>
 
                       <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
                         <p><strong className="text-slate-400">Beneficiarios:</strong> <span className="text-slate-200">{p.beneficiarios}</span></p>

@@ -152,6 +152,23 @@ export const HeaderBar: React.FC<HeaderBarProps> = ({
               <span>CRM</span>
             </button>
 
+            {/* BOTÓN APARTE EXCLUSIVO: LICITAPRO SAAS */}
+            <button
+              onClick={() => setActiveTab('licitaciones')}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-black transition-all cursor-pointer shadow-lg ${
+                activeTab === 'licitaciones'
+                  ? 'bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 text-white shadow-purple-950/70 border border-purple-400/50 scale-[1.03] ring-1 ring-purple-400/30'
+                  : 'bg-purple-950/40 text-purple-300 hover:text-white hover:bg-purple-900/60 border border-purple-800/70'
+              }`}
+              title="Plataforma de Licitaciones Públicas SECOP II (Fundación Nueva Vida & Proponentes)"
+            >
+              <span>📑</span>
+              <span className="font-extrabold tracking-wide">LicitaPro SaaS</span>
+              <span className="text-[9px] px-1.5 py-0.2 rounded-full bg-purple-500/30 text-purple-200 border border-purple-400/30 uppercase font-mono font-bold hidden sm:inline">
+                SECOP
+              </span>
+            </button>
+
             {/* Status Supabase */}
             <div className="flex items-center space-x-1.5 px-2.5 py-1.5 rounded-full bg-slate-900 border border-slate-800 text-xs">
               {isConnectedDb ? (

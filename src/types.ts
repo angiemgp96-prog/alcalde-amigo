@@ -12,7 +12,8 @@ export type ActiveTab =
   | 'chat' 
   | 'escucha' 
   | 'crm' 
-  | 'copiloto';
+  | 'copiloto'
+  | 'licitaciones';
 
 export interface CitizenLead {
   id: string;
