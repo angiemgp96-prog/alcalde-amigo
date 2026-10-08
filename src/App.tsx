@@ -150,7 +150,7 @@ export function App() {
       />
 
       {/* Main Content Area */}
-      <main className="flex-1 w-full mx-auto pb-12">
+      <main className={`flex-1 w-full mx-auto ${activeTab === 'chat' ? 'overflow-hidden' : 'pb-12'}`}>
         {/* MÓDULOS DE INTELIGENCIA TERRITORIAL, SECOP II, MGA Y ELECCIONES */}
         {['radiografia', 'auditoria', 'politicas', 'mga', 'speech', 'territorio', 'gira', 'veredas'].includes(activeTab) && (
           <CentroMandoView
@@ -162,15 +162,13 @@ export function App() {
 
         {/* MÓDULO CHAT: COPILOTO CIUDADANO (CAPARRAPÍ) / RAMITOS (GUADUAS) */}
         {activeTab === 'chat' && (
-          <div className="pt-2">
-            <RamitosChatView
-              onSaveNeed={handleSaveNeed}
-              onOpenFullPlan={() => setActiveTab('mga')}
-              onOpenMenu={(tab) => setActiveTab(tab)}
-              isSecretAdminUnlocked={isSecretAdminUnlocked}
-              municipioId={municipioId}
-            />
-          </div>
+          <RamitosChatView
+            onSaveNeed={handleSaveNeed}
+            onOpenFullPlan={() => setActiveTab('mga')}
+            onOpenMenu={(tab) => setActiveTab(tab)}
+            isSecretAdminUnlocked={isSecretAdminUnlocked}
+            municipioId={municipioId}
+          />
         )}
 
         {/* MÓDULO VOZ CIUDADANA */}

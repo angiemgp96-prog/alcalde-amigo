@@ -641,21 +641,13 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-[#eef2f6] via-[#e2e8f0] to-[#cbd5e1] flex flex-col items-center justify-center p-2 sm:p-4 select-none">
+    <div className="h-[calc(100vh-4.25rem)] w-full bg-gradient-to-b from-[#eef2f6] via-[#e2e8f0] to-[#cbd5e1] flex items-center justify-center p-2 lg:p-4 select-none overflow-hidden">
       
-      {/* BOTÓN DIRECTO PARA INGRESAR AL CENTRO DE MANDO (ADENTRO) - Solo en desktop/tablet */}
-      <div className="mb-2 hidden sm:flex justify-center animate-fadeIn">
-        <button
-          onClick={onOpenFullPlan}
-          className="px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-black shadow-2xl flex items-center gap-2 transition-all cursor-pointer hover:scale-105"
-        >
-          <Building2 className="w-4 h-4 text-cyan-400" />
-          <span>Ingresar al Centro de Mando Estratégico & MGA (Adentro) ➜</span>
-        </button>
-      </div>
+      {/* CONTENEDOR FLEX: FRAME CENTRAL + HISTORIAL EN PC (UNA SOLA VISTA SIN SCROLL) */}
+      <div className="flex items-center justify-center w-full h-full max-h-[820px] gap-4">
 
-      {/* FRAME MÓVIL VERTICAL ADAPTABLE */}
-      <div className="relative w-full max-w-[440px] h-[calc(100dvh-125px)] sm:h-[840px] max-h-[860px] min-h-[550px] bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[32px] sm:rounded-[44px] mobile-frame-glow border-[4px] sm:border-[6px] border-white/80 overflow-hidden flex flex-col justify-between p-3.5 sm:p-6 shadow-2xl">
+        {/* FRAME MÓVIL VERTICAL ADAPTABLE */}
+        <div className="relative w-full max-w-[430px] h-full bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[32px] sm:rounded-[40px] mobile-frame-glow border-[4px] sm:border-[5px] border-white/80 overflow-hidden flex flex-col justify-between p-3.5 sm:p-5 shadow-2xl">
         
         {/* LINEAS DE CIRCUITO Y DESTELLOS DE FONDO */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
@@ -726,7 +718,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             </div>
 
             {/* SPEECH BUBBLE (EFECTO MÁQUINA DE ESCRIBIR + VENTANA FLUIDA QUE ADAPTA TAMAÑO SIN ESCROLEAR) */}
-            <div className="flex-1 speech-bubble-light rounded-2xl p-3.5 space-y-2 relative animate-fadeIn shadow-sm min-h-[110px] max-h-56 sm:max-h-64 overflow-y-auto">
+            <div className="flex-1 speech-bubble-light rounded-2xl p-3 sm:p-3.5 space-y-1.5 relative animate-fadeIn shadow-sm min-h-[85px] max-h-36 sm:max-h-44 overflow-y-auto">
               <div className="text-xs font-bold text-slate-600 flex items-center justify-between">
                 <span className="flex items-center space-x-1">
                   <span>Respuesta Limpia:</span>
@@ -743,10 +735,10 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                 </span>
               </div>
 
-              {/* TEXTO CON EFECTO MÁQUINA DE ESCRIBIR */}
+              {/* TEXTO CON EFECTO MÁQUINA DE ESCRIBIR (NUNCA DESAPARECE AL TERMINAR DE HABLAR) */}
               <p className="text-xs sm:text-sm font-semibold text-slate-800 leading-snug">
-                {displayedResponse}
-                {displayedResponse.length < currentResponse.length && (
+                {displayedResponse || currentResponse}
+                {isRamitosSpeaking && (displayedResponse || '').length < currentResponse.length && (
                   <span className="inline-block w-1.5 h-3.5 bg-emerald-600 ml-0.5 animate-pulse"></span>
                 )}
               </p>
@@ -791,6 +783,26 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             </div>
           </div>
 
+        </div>
+
+        {/* STREAM DE HISTORIAL DE FONDO EN MÓVIL (DIFUMINADO VERTICAL HACIA ABAJO DETRÁS DEL LOGO) */}
+        <div className="absolute inset-x-4 top-[220px] bottom-[85px] z-0 pointer-events-none overflow-hidden flex flex-col items-center justify-start space-y-2 lg:hidden [mask-image:linear-gradient(to_bottom,black_15%,rgba(0,0,0,0.45)_50%,transparent_95%)]">
+          {history.slice(0, -1).slice(-4).reverse().map((h, i) => (
+            <div
+              key={i}
+              className={`w-full max-w-[92%] px-3 py-1.5 rounded-xl text-[11px] leading-relaxed shadow-2xs border backdrop-blur-xs transition-opacity ${
+                h.sender === 'user'
+                  ? 'bg-indigo-100/70 border-indigo-200/60 text-indigo-950 self-end mr-1 text-right'
+                  : 'bg-white/70 border-white/80 text-slate-800 self-start ml-1 text-left'
+              }`}
+              style={{ opacity: Math.max(0.18, 0.85 - i * 0.22) }}
+            >
+              <span className="font-bold text-[10px] block opacity-75">
+                {h.sender === 'user' ? '👤 Tú' : (isCaparrapi ? '🐎 Copiloto' : '🌿 Ramitos')}
+              </span>
+              <p className="truncate line-clamp-1">{h.text}</p>
+            </div>
+          ))}
         </div>
 
         {/* MODAL CONFIGURACIÓN IA KEYS */}
@@ -875,23 +887,23 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
             <div className="absolute inset-0 -m-6 sm:-m-10 rounded-full bg-radial from-slate-900/80 via-slate-800/40 to-transparent blur-xl pointer-events-none"></div>
 
-            <div className="relative w-48 h-48 sm:w-72 sm:h-72 flex items-center justify-center">
+            <div className="relative w-36 h-36 sm:w-52 sm:h-52 flex items-center justify-center">
               
               {isCaparrapi ? (
                 /* EMBLEMA CÍVICO E INTELIGENCIA TERRITORIAL DE CAPARRAPÍ */
-                <div className="relative w-44 h-44 sm:w-64 sm:h-64 flex flex-col items-center justify-center animate-fadeIn select-none">
+                <div className="relative w-36 h-36 sm:w-48 sm:h-48 flex flex-col items-center justify-center animate-fadeIn select-none">
                   {/* Anillos concéntricos de audio y tecnología */}
                   <div className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-ping pointer-events-none opacity-20"></div>
                   <div className="absolute inset-2 rounded-full border border-sky-400/40 pointer-events-none"></div>
                   <div className="absolute inset-4 sm:inset-6 rounded-full border-2 border-dashed border-indigo-400/30 animate-spin" style={{ animationDuration: '25s' }}></div>
                   
                   {/* Medallón Central */}
-                  <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-3 sm:border-4 border-blue-500/80 p-2 sm:p-4 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.6)] transform hover:scale-105 transition-transform">
-                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-xl border border-blue-300/40 mb-1 sm:mb-2">
-                      <span className="text-2xl sm:text-4xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
+                  <div className="relative w-30 h-30 sm:w-40 sm:h-40 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-3 sm:border-4 border-blue-500/80 p-2 sm:p-3 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.6)] transform hover:scale-105 transition-transform">
+                    <div className="w-11 h-11 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-xl border border-blue-300/40 mb-1">
+                      <span className="text-xl sm:text-3xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
                     </div>
-                    <p className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
-                    <span className="text-[8px] sm:text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-2 sm:px-2.5 py-0.5 rounded-full mt-0.5 sm:mt-1 border border-blue-400/40 shadow-xs">
+                    <p className="text-[10px] sm:text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
+                    <span className="text-[8px] sm:text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-2 py-0.5 rounded-full mt-0.5 border border-blue-400/40 shadow-xs">
                       Copiloto Ciudadano
                     </span>
                   </div>
@@ -901,7 +913,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   src={`/assets/ramitos/ramitos_${currentExpresion}.png`}
                   alt={`Ramitos ${currentExpresion}`}
                   onError={() => setUseCustomAssetFailed(true)}
-                  className="w-44 h-44 sm:w-64 sm:h-64 object-contain z-10 drop-shadow-2xl animate-fadeIn pointer-events-none"
+                  className="w-36 h-36 sm:w-48 sm:h-48 object-contain z-10 drop-shadow-2xl animate-fadeIn pointer-events-none"
                 />
               ) : (
                 <>
@@ -917,7 +929,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   </svg>
 
                   {/* CLOUD SHAPED HEAD CON EXPRESIONES DINÁMICAS */}
-                  <div className="relative w-36 h-32 sm:w-44 sm:h-40 flex items-center justify-center z-10">
+                  <div className="relative w-32 h-28 sm:w-38 sm:h-34 flex items-center justify-center z-10">
                     <svg className="absolute inset-0 w-full h-full drop-shadow-2xl" viewBox="0 0 160 140" fill="none">
                       <path d="M45 110 C25 110 10 92 20 72 C8 55 24 35 44 42 C54 22 86 20 100 35 C116 22 144 32 142 52 C158 66 150 94 132 104 C120 114 90 115 80 110 Z" fill={currentExpresion === 'enojado' ? '#2d141e' : '#1b2434'} stroke="#ffffff" strokeWidth="4.5" strokeLinejoin="round" />
                     </svg>
@@ -928,12 +940,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   </div>
 
                   {/* WHITE TRUNK WITH 2 GREEN LEAF HANDS */}
-                  <div className="absolute bottom-3 sm:bottom-5 flex flex-col items-center z-10">
-                    <svg className="absolute -top-3 w-24 sm:w-32 h-12 sm:h-16 pointer-events-none" viewBox="0 0 120 60" fill="none">
+                  <div className="absolute bottom-2 sm:bottom-4 flex flex-col items-center z-10">
+                    <svg className="absolute -top-3 w-20 sm:w-28 h-10 sm:h-14 pointer-events-none" viewBox="0 0 120 60" fill="none">
                       <path d="M45 35 Q15 15 10 35 Q30 55 45 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
                       <path d="M75 35 Q105 15 110 35 Q90 55 75 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
                     </svg>
-                    <div className="w-8 sm:w-10 h-12 sm:h-16 border-l-3 sm:border-l-4 border-r-3 sm:border-r-4 border-b-3 sm:border-b-4 border-white rounded-b-2xl"></div>
+                    <div className="w-7 sm:w-9 h-10 sm:h-14 border-l-3 sm:border-l-4 border-r-3 sm:border-r-4 border-b-3 sm:border-b-4 border-white rounded-b-2xl"></div>
                   </div>
                 </>
               )}
@@ -943,8 +955,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           </div>
 
           {/* TITLE & ESTADO DINÁMICO */}
-          <div className="text-center min-h-[36px] sm:min-h-[44px] flex flex-col items-center justify-center">
-            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-wide shadow-sm">
+          <div className="text-center min-h-[32px] sm:min-h-[40px] flex flex-col items-center justify-center">
+            <h1 className="text-xl sm:text-3xl font-extrabold text-white tracking-wide shadow-sm">
               {isCaparrapi ? 'Caparrapí' : 'Ramitos'}
             </h1>
             {isThinking || currentExpresion === 'pensativo' ? (
@@ -1028,6 +1040,73 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
       </div>
 
+      {/* PANEL LATERAL DE HISTORIAL EN PC (SIEMPRE VISIBLE SIN TAPAR EL MENÚ SUPERIOR) */}
+      <aside className="hidden lg:flex flex-col w-80 xl:w-96 h-full bg-[#0f172a] rounded-[32px] border border-slate-800 shadow-2xl p-4 text-slate-100 overflow-hidden justify-between animate-fadeIn">
+        <div className="space-y-3 flex-1 flex flex-col overflow-hidden">
+          <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+            <div className="flex items-center gap-2">
+              <History className="w-4 h-4 text-sky-400" />
+              <h3 className="text-xs font-bold text-white tracking-wide uppercase">Historial en Vivo</h3>
+              <button
+                type="button"
+                onClick={handleCopyHistory}
+                title="Copiar historial completo al portapapeles"
+                className="p-1 rounded text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-all flex items-center justify-center cursor-pointer ml-1"
+              >
+                {copiedHistory ? <Check className="w-3.5 h-3.5 text-emerald-400" /> : <Copy className="w-3.5 h-3.5" />}
+              </button>
+            </div>
+            <span className="text-[10px] font-mono text-slate-400 bg-slate-900 px-2 py-0.5 rounded-full border border-slate-800">
+              {history.length} {history.length === 1 ? 'intervención' : 'intervenciones'}
+            </span>
+          </div>
+
+          <div className="flex-1 overflow-y-auto space-y-2.5 pr-1 text-xs">
+            {[...history].slice().reverse().map((h, i) => (
+              <div
+                key={i}
+                className={`p-3 rounded-2xl text-xs space-y-1 shadow-sm border transition-all ${
+                  h.sender === 'user'
+                    ? 'bg-indigo-950/70 border-indigo-500/30 text-indigo-100 ml-3'
+                    : 'bg-slate-900/90 border-slate-700/50 text-slate-100 mr-3'
+                }`}
+              >
+                <div className="flex items-center justify-between text-[10px] font-bold text-slate-400 border-b border-slate-800/60 pb-1">
+                  <span className={h.sender === 'user' ? 'text-indigo-300' : (isCaparrapi ? 'text-sky-400' : 'text-emerald-400')}>
+                    {h.sender === 'user' ? '👤 Tú' : (isCaparrapi ? '🐎 Copiloto Caparrapí' : '🌿 Ramitos')}
+                  </span>
+                  <span className="font-mono text-[9px] text-slate-400">{h.time}</span>
+                </div>
+                <p className="whitespace-pre-wrap break-words leading-relaxed text-[11px] font-normal">
+                  {h.text}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {history.length > 1 && (
+          <div className="pt-2 border-t border-slate-800/80">
+            <button
+              type="button"
+              onClick={() => {
+                clearConversationHistory(municipioId);
+                const greeting = munData.saludoInicial;
+                setHistory([{ sender: 'ramitos', text: greeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }]);
+                setCurrentResponse(greeting);
+                setDisplayedResponse(greeting);
+              }}
+              className="w-full py-1.5 bg-red-950/30 hover:bg-red-900/50 text-red-300 border border-red-800/30 text-[11px] font-bold rounded-xl flex items-center justify-center gap-1.5 transition-all cursor-pointer"
+            >
+              <Trash2 className="w-3.5 h-3.5 text-red-400" />
+              <span>Reiniciar Diálogo de {isCaparrapi ? 'Caparrapí' : 'Guaduas'}</span>
+            </button>
+          </div>
+        )}
+      </aside>
+
+    </div>
+
       {/* DISCREET HAMBURGER SIDE MENU (☰) */}
       {showSideMenu && (
         <div className="fixed inset-0 z-50 bg-slate-950/70 backdrop-blur-md flex justify-start animate-fadeIn">
@@ -1081,9 +1160,9 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         </div>
       )}
 
-      {/* SECONDARY HISTORY DRAWER */}
+      {/* SECONDARY HISTORY DRAWER (SOLO MÓVIL) */}
       {showHistoryDrawer && (
-        <div className="fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-[#0f172a] text-slate-100 p-6 space-y-4 shadow-2xl flex flex-col justify-between animate-fadeIn">
+        <div className="lg:hidden fixed inset-y-0 right-0 z-50 w-full sm:w-96 bg-[#0f172a] text-slate-100 p-6 space-y-4 shadow-2xl flex flex-col justify-between animate-fadeIn">
           <div className="space-y-4 flex-1 flex flex-col overflow-hidden">
             <div className="flex items-center justify-between border-b border-slate-800 pb-3">
               <div className="flex items-center gap-2">
