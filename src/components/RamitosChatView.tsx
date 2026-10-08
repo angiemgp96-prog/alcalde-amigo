@@ -248,14 +248,18 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     let hasBoundaryReceived = false;
     let fallbackCharIndex = 0;
 
-    // Respaldo cadencial al compás natural de la voz (avanza palabras cada ~200ms) por si el sintetizador no emite onboundary
-    typewriterTimerRef.current = setInterval(() => {
-      if (!hasBoundaryReceived && fallbackCharIndex < text.length) {
-        const nextSpace = text.indexOf(' ', fallbackCharIndex + 1);
-        fallbackCharIndex = nextSpace !== -1 ? nextSpace : fallbackCharIndex + 4;
-        setDisplayedResponse(text.substring(0, Math.min(fallbackCharIndex, text.length)));
+    // Respaldo cadencial lento SOLO por si el sintetizador no emite onboundary tras 700ms
+    typewriterTimerRef.current = setTimeout(() => {
+      if (!hasBoundaryReceived) {
+        typewriterTimerRef.current = setInterval(() => {
+          if (!hasBoundaryReceived && fallbackCharIndex < text.length) {
+            const nextSpace = text.indexOf(' ', fallbackCharIndex + 1);
+            fallbackCharIndex = nextSpace !== -1 ? nextSpace : fallbackCharIndex + 4;
+            setDisplayedResponse(text.substring(0, Math.min(fallbackCharIndex, text.length)));
+          }
+        }, 280);
       }
-    }, 190);
+    }, 700);
 
     speechEngine.speakRamitos(
       text,
@@ -268,11 +272,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           scheduleIdleNudgeTimer(text);
         }
       },
-      // onBoundary (evento oficial palabra a palabra de Web Speech API):
+      // onBoundary (evento oficial palabra a palabra sincronizado con la voz):
       (charIndex: number, charLength: number = 0) => {
         hasBoundaryReceived = true;
+        clearTypewriterTimer();
         // Revela el texto exactamente hasta la palabra que la voz está pronunciando en este instante
-        const visibleLength = Math.min(text.length, charIndex + (charLength || 4));
+        const visibleLength = Math.min(text.length, charIndex + (charLength || 0));
         setDisplayedResponse(text.substring(0, visibleLength));
       }
     );

@@ -193,27 +193,39 @@ class SpeechEngine {
         const audio = new Audio(audioUrl);
         this.currentAudio = audio;
 
-        // Simular eventos de límite de palabras con el tiempo del audio
-        const totalDurationEstimate = cleanText.length * 60; // ms estimados
-        const intervalStep = totalDurationEstimate / Math.max(cleanText.length, 1);
-        let charIndex = 0;
-        const progressTimer = setInterval(() => {
-          if (charIndex < cleanText.length && onBoundary) {
-            onBoundary(charIndex, 5);
-            charIndex += 4;
-          } else {
-            clearInterval(progressTimer);
+        // SINCRONIZACIÓN PRECISA AL COMPÁS REAL DE LA VOZ
+        let syncTimer: any = null;
+
+        const updateWordProgress = () => {
+          if (!audio.duration || isNaN(audio.duration) || audio.duration <= 0) return;
+          const ratio = Math.min(1, Math.max(0, audio.currentTime / audio.duration));
+          let targetIndex = Math.floor(ratio * cleanText.length);
+          // Redondear al corte natural de la palabra más cercana
+          if (targetIndex < cleanText.length) {
+            const nextSpace = cleanText.indexOf(' ', targetIndex);
+            if (nextSpace !== -1 && nextSpace - targetIndex < 6) {
+              targetIndex = nextSpace;
+            }
           }
-        }, Math.max(intervalStep, 25));
+          if (onBoundary) {
+            onBoundary(targetIndex, 0);
+          }
+        };
+
+        syncTimer = setInterval(updateWordProgress, 40);
+        audio.addEventListener('timeupdate', updateWordProgress);
 
         audio.onended = () => {
-          clearInterval(progressTimer);
+          if (syncTimer) clearInterval(syncTimer);
+          audio.removeEventListener('timeupdate', updateWordProgress);
           this.currentAudio = null;
+          if (onBoundary) onBoundary(cleanText.length, 0);
           if (onEnd) onEnd();
         };
 
         audio.onerror = () => {
-          clearInterval(progressTimer);
+          if (syncTimer) clearInterval(syncTimer);
+          audio.removeEventListener('timeupdate', updateWordProgress);
           this.currentAudio = null;
           this.fallbackBrowserSpeech(cleanText, onEnd, onBoundary);
         };
