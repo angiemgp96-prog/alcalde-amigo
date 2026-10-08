@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { CitizenNeed, CitizenLead } from '../types';
 import { processRamitosConversationAsync } from '../services/ramitosBrain';
 import { voteCitizenNeed, getVotedNeedIds, getCitizenNeeds, fetchCitizenNeedsFromSupabase } from '../services/api';
 import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { 
   ThumbsUp, TrendingUp, Sparkles, MapPin, 
-  ShieldCheck, CheckCircle2, Clock, Check, MessageSquare, AlertCircle
+  ShieldCheck, CheckCircle2, Clock, Check, MessageSquare, AlertCircle, RotateCw
 } from 'lucide-react';
 
 interface CitizenVoiceViewProps {
@@ -33,6 +33,18 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
   const [sortBy, setSortBy] = useState<'votes' | 'recent'>('votes');
   const [filterVereda, setFilterVereda] = useState<string>('all');
   const [votingFeedbackId, setVotingFeedbackId] = useState<string | null>(null);
+  const [isRefreshing, setIsRefreshing] = useState<boolean>(false);
+
+  const syncFromSupabase = useCallback(async () => {
+    try {
+      const fromCloud = await fetchCitizenNeedsFromSupabase(municipioId);
+      if (fromCloud && fromCloud.length > 0) {
+        setLocalNeeds(fromCloud);
+      }
+    } catch (e) {
+      console.warn('Sync error:', e);
+    }
+  }, [municipioId]);
 
   useEffect(() => {
     const fresh = getCitizenNeeds(municipioId);
@@ -42,13 +54,19 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
       setLocalNeeds(needs);
     }
 
-    // Consulta en tiempo real a Supabase para sincronizar instantáneamente entre todos los celulares y PCs
-    fetchCitizenNeedsFromSupabase(municipioId).then((fromCloud) => {
-      if (fromCloud && fromCloud.length > 0) {
-        setLocalNeeds(fromCloud);
-      }
-    });
-  }, [needs, municipioId]);
+    // Consulta inmediata a Supabase
+    syncFromSupabase();
+
+    // Sincronización continua cada 6 segundos para que cualquier propuesta hecha en un celular aparezca en los PCs sin recargar
+    const interval = setInterval(syncFromSupabase, 6000);
+    return () => clearInterval(interval);
+  }, [needs, municipioId, syncFromSupabase]);
+
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    await syncFromSupabase();
+    setTimeout(() => setIsRefreshing(false), 500);
+  };
 
   useEffect(() => {
     setVotedIds(getVotedNeedIds());
@@ -344,6 +362,16 @@ export const CitizenVoiceView: React.FC<CitizenVoiceViewProps> = ({ needs, onSav
                 <option key={i} value={v.nombre}>{v.nombre}</option>
               ))}
             </select>
+
+            {/* Botón de Sincronización Manual */}
+            <button
+              onClick={handleManualRefresh}
+              title="Sincronizar en vivo con la nube de Supabase"
+              className="px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-800 hover:border-emerald-500/50 text-slate-300 hover:text-emerald-400 text-xs font-semibold flex items-center gap-1.5 transition-all cursor-pointer shadow-sm active:scale-95"
+            >
+              <RotateCw className={`w-3.5 h-3.5 text-emerald-400 ${isRefreshing ? 'animate-spin' : ''}`} />
+              <span className="hidden sm:inline">Actualizar</span>
+            </button>
           </div>
         </div>
 

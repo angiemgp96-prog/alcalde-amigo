@@ -902,9 +902,10 @@ export async function fetchCitizenNeedsFromSupabase(municipioId: 'guaduas' | 'ca
   const mun = (municipioId || 'caparrapi').toLowerCase();
   const key = getStorageKeyForNeeds(mun);
 
-  if (supabaseClient) {
+  const client = supabaseClient || getSupabaseClient();
+  if (client) {
     try {
-      const { data, error } = await supabaseClient
+      const { data, error } = await client
         .from('problematicas_ciudadanas')
         .select(`
           id,
@@ -925,7 +926,7 @@ export async function fetchCitizenNeedsFromSupabase(municipioId: 'guaduas' | 'ca
         .eq('municipio_id', mun)
         .order('fecha_reporte', { ascending: false });
 
-      if (!error && data && data.length > 0) {
+      if (!error && data) {
         const mapped: CitizenNeed[] = data.map((item: any) => {
           const propIa = Array.isArray(item.propuestas_estructuradas_ia) && item.propuestas_estructuradas_ia.length > 0
             ? item.propuestas_estructuradas_ia[0]
@@ -951,11 +952,49 @@ export async function fetchCitizenNeedsFromSupabase(municipioId: 'guaduas' | 'ca
 
         const localList = getCitizenNeeds(mun);
         const merged = [...mapped];
-        localList.forEach(l => {
-          if (!merged.some(m => m.id === l.id || (m.veredaBarrio === l.veredaBarrio && m.problematicaSintetizada === l.problematicaSintetizada))) {
-            merged.push(l);
+
+        // AUTO-SUBIDA A SUPABASE: si este dispositivo tiene propuestas locales que aún no llegaron a la nube, subirlas de inmediato
+        for (const l of localList) {
+          if (l && l.id && !l.id.startsWith('seed-')) {
+            const alreadyInCloud = mapped.some(m => 
+              m.id === l.id || 
+              (m.veredaBarrio?.trim().toLowerCase() === l.veredaBarrio?.trim().toLowerCase() && 
+               m.problematicaSintetizada?.trim().toLowerCase() === l.problematicaSintetizada?.trim().toLowerCase())
+            );
+            if (!alreadyInCloud) {
+              try {
+                const { data: inserted } = await client.from('problematicas_ciudadanas').insert({
+                  municipio_id: mun,
+                  ciudadano_nombre: l.ciudadanoNombre,
+                  vereda_barrio: l.veredaBarrio,
+                  transcripcion_audio: l.audioTranscripcion,
+                  descripcion_problema: l.problematicaSintetizada,
+                  sector: l.sector,
+                  urgencia: l.urgencia,
+                  votos_comunitarios: l.votosApoyo || 1
+                }).select().single();
+
+                if (inserted) {
+                  l.id = inserted.id;
+                  merged.unshift(l);
+                  // Registrar también en propuestas_estructuradas_ia
+                  try {
+                    await client.from('propuestas_estructuradas_ia').insert({
+                      municipio_id: mun,
+                      problematica_id: inserted.id,
+                      intencion_sintetizada: l.problematicaSintetizada,
+                      necesidad_clave: l.insumosClave ? l.insumosClave.join(', ') : 'Revisión técnica',
+                      propuesta_redactada_ramitos: l.propuestaRamitos,
+                      estado_evaluacion: 'Pendiente Revision Humana'
+                    });
+                  } catch (e2) {}
+                }
+              } catch (insertErr) {
+                console.warn('Error subiendo propuesta pendiente a Supabase:', insertErr);
+              }
+            }
           }
-        });
+        }
 
         localStorage.setItem(key, JSON.stringify(merged));
         return merged;
