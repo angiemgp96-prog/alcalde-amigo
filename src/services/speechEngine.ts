@@ -1,4 +1,4 @@
-// Servicio Web Speech API (Microfono Abierto + Voz Hablada de Ramitos)
+// Servicio Web Speech API & TTS Neural Colombiano (Micrófono + Voz Hablada Realista)
 
 export interface SpeechListenerCallbacks {
   onStart?: () => void;
@@ -13,6 +13,7 @@ class SpeechEngine {
   private supported: boolean = false;
   private voiceEnabled: boolean = true;
   private voicesLoaded: boolean = false;
+  private currentAudio: HTMLAudioElement | null = null;
 
   constructor() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
@@ -115,102 +116,171 @@ class SpeechEngine {
     }
   }
 
-  // VOZ HABLADA DE RAMITOS (SpeechSynthesis confiable con sincronización palabra a palabra)
-  public speakRamitos(
+  public stopSpeaking(): void {
+    if (this.currentAudio) {
+      try {
+        this.currentAudio.pause();
+        this.currentAudio.currentTime = 0;
+      } catch (e) {}
+      this.currentAudio = null;
+    }
+    if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
+      window.speechSynthesis.cancel();
+    }
+  }
+
+  // VOZ HABLADA REALISTA DE RAMITOS / COPILOTO (NEURAL COLOMBIANA SIN APIS O ELEVENLABS JUAN F)
+  public async speakRamitos(
     text: string,
     onEnd?: () => void,
     onBoundary?: (charIndex: number, charLength?: number) => void
-  ): void {
-    if (!this.voiceEnabled || typeof window === 'undefined' || !('speechSynthesis' in window)) return;
+  ): Promise<void> {
+    if (!this.voiceEnabled || typeof window === 'undefined') return;
 
+    this.stopSpeaking();
+
+    const cleanText = text
+      .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
+      .replace(/[\u{2600}-\u{27BF}]/gu, '')
+      .replace(/[\u{2300}-\u{23FF}]/gu, '')
+      .replace(/[\u{2B00}-\u{2BFF}]/gu, '')
+      .replace(/[🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️💡🤝🏛️📊📢🇨🇴🛡️🐎🐴🎙️🤖]/gu, '')
+      .replace(/[*_#~`]/g, '')
+      .replace(/https?:\/\/\S+/gi, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    if (!cleanText) {
+      if (onEnd) onEnd();
+      return;
+    }
+
+    // 1. REVISAR SI EL USUARIO TIENE GUARDADA UNA API KEY DE ELEVENLABS (VOZ JUAN F)
+    let elevenKey = '';
     try {
-      window.speechSynthesis.cancel(); // Cancela voces en cola
-      
-      const cleanText = text
-        .replace(/[\u{1F000}-\u{1FFFF}]/gu, '')
-        .replace(/[\u{2600}-\u{27BF}]/gu, '')
-        .replace(/[\u{2300}-\u{23FF}]/gu, '')
-        .replace(/[\u{2B00}-\u{2BFF}]/gu, '')
-        .replace(/[🌿🌱🍃🌾🌴🌳🌲✨⚡📌💰👤🚨❌➔⏱️📍🔥🗳️💡🤝🏛️📊📢🇨🇴🛡️🐎🐴]/gu, '')
-        .replace(/[*_#~`]/g, '') // Elimina caracteres markdown
-        .replace(/https?:\/\/\S+/gi, '') // Elimina links
-        .replace(/\s+/g, ' ')
-        .trim();
+      elevenKey = localStorage.getItem('elevenlabs_api_key') || '';
+    } catch (e) {}
 
-      if (!cleanText) {
-        if (onEnd) onEnd();
+    // 2. INTENTO 1: ELEVENLABS (SI HAY LLAVE) O EDGE NEURAL COLOMBIA GRATUITA (DEFAULT)
+    try {
+      let audioUrl = '';
+      if (elevenKey.trim()) {
+        const elRes = await fetch('/api/tts-elevenlabs', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            text: cleanText,
+            apiKey: elevenKey.trim(),
+            voiceId: 'xWKjCHKgvEuUUiyfjRX1' // Juan F Colombian Voice
+          })
+        });
+        if (elRes.ok) {
+          const blob = await elRes.blob();
+          audioUrl = URL.createObjectURL(blob);
+        }
+      }
+
+      // Si no hay llave de ElevenLabs o falló, usar Edge Neural Colombia Gratuito
+      if (!audioUrl) {
+        const edgeRes = await fetch(`/api/tts?text=${encodeURIComponent(cleanText)}&voice=es-CO-GonzaloNeural`);
+        if (edgeRes.ok) {
+          const blob = await edgeRes.blob();
+          audioUrl = URL.createObjectURL(blob);
+        }
+      }
+
+      if (audioUrl) {
+        const audio = new Audio(audioUrl);
+        this.currentAudio = audio;
+
+        // Simular eventos de límite de palabras con el tiempo del audio
+        const totalDurationEstimate = cleanText.length * 60; // ms estimados
+        const intervalStep = totalDurationEstimate / Math.max(cleanText.length, 1);
+        let charIndex = 0;
+        const progressTimer = setInterval(() => {
+          if (charIndex < cleanText.length && onBoundary) {
+            onBoundary(charIndex, 5);
+            charIndex += 4;
+          } else {
+            clearInterval(progressTimer);
+          }
+        }, Math.max(intervalStep, 25));
+
+        audio.onended = () => {
+          clearInterval(progressTimer);
+          this.currentAudio = null;
+          if (onEnd) onEnd();
+        };
+
+        audio.onerror = () => {
+          clearInterval(progressTimer);
+          this.currentAudio = null;
+          this.fallbackBrowserSpeech(cleanText, onEnd, onBoundary);
+        };
+
+        await audio.play();
         return;
       }
+    } catch (netErr) {
+      console.warn('Neural TTS Server unreachable, using browser speech fallback:', netErr);
+    }
 
-      const doSpeak = () => {
-        try {
-          window.speechSynthesis.cancel();
-          const utterance = new SpeechSynthesisUtterance(cleanText);
-          utterance.lang = 'es-CO';
-          utterance.rate = 1.0;
-          utterance.pitch = 1.05;
+    // 3. RESPALDO LOCAL: WEB SPEECH API DEL NAVEGADOR
+    this.fallbackBrowserSpeech(cleanText, onEnd, onBoundary);
+  }
 
-          const voices = window.speechSynthesis.getVoices();
-          const esVoice = voices.find(v => 
-            v.lang.toLowerCase().includes('es-co') || 
-            v.lang.toLowerCase().includes('es-mx') || 
-            v.lang.toLowerCase().includes('es-es') || 
-            v.lang.toLowerCase().startsWith('es')
-          );
-          if (esVoice) {
-            utterance.voice = esVoice;
-          }
+  private fallbackBrowserSpeech(
+    cleanText: string,
+    onEnd?: () => void,
+    onBoundary?: (charIndex: number, charLength?: number) => void
+  ) {
+    if (!('speechSynthesis' in window)) {
+      if (onEnd) onEnd();
+      return;
+    }
 
-          if (onBoundary) {
-            utterance.onboundary = (e: any) => {
-              if (e.name === 'word' || typeof e.charIndex === 'number') {
-                onBoundary(e.charIndex, e.charLength || 0);
-              }
-            };
-          }
-
-          if (onEnd) {
-            utterance.onend = onEnd;
-            utterance.onerror = onEnd;
-          }
-
-          window.speechSynthesis.speak(utterance);
-        } catch (e) {
-          console.warn('Speech error:', e);
-          if (onEnd) onEnd();
-        }
-      };
+    try {
+      window.speechSynthesis.cancel();
+      const utterance = new SpeechSynthesisUtterance(cleanText);
+      utterance.lang = 'es-CO';
+      utterance.rate = 1.0;
+      utterance.pitch = 1.02;
 
       const voices = window.speechSynthesis.getVoices();
-      if (voices.length === 0) {
-        let handled = false;
-        const timer = setTimeout(() => {
-          if (!handled) {
-            handled = true;
-            doSpeak();
-          }
-        }, 150);
+      // Priorizar voces naturales o colombianas del dispositivo
+      const esVoice = voices.find(v => 
+        (v.name.includes('Neural') || v.name.includes('Natural') || v.name.includes('Google') || v.name.includes('Gonzalo')) && 
+        v.lang.toLowerCase().startsWith('es')
+      ) || voices.find(v => v.lang.toLowerCase().includes('es-co') || v.lang.toLowerCase().startsWith('es'));
 
-        window.speechSynthesis.onvoiceschanged = () => {
-          if (!handled) {
-            handled = true;
-            clearTimeout(timer);
-            doSpeak();
+      if (esVoice) {
+        utterance.voice = esVoice;
+      }
+
+      if (onBoundary) {
+        utterance.onboundary = (e: any) => {
+          if (e.name === 'word' || typeof e.charIndex === 'number') {
+            onBoundary(e.charIndex, e.charLength || 0);
           }
         };
-      } else {
-        doSpeak();
       }
-    } catch (err) {
-      console.warn('Error al reproducir voz de Ramitos:', err);
+
+      if (onEnd) {
+        utterance.onend = () => onEnd();
+        utterance.onerror = () => onEnd();
+      }
+
+      window.speechSynthesis.speak(utterance);
+    } catch (e) {
+      console.warn('Browser Speech error:', e);
       if (onEnd) onEnd();
     }
   }
 
   public setVoiceEnabled(enabled: boolean): void {
     this.voiceEnabled = enabled;
-    if (!enabled && typeof window !== 'undefined' && 'speechSynthesis' in window) {
-      window.speechSynthesis.cancel();
+    if (!enabled) {
+      this.stopSpeaking();
     }
   }
 

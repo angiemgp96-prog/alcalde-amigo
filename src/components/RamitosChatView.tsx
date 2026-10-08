@@ -59,6 +59,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   const [showKeySettings, setShowKeySettings] = useState(false);
   const [geminiKeyInput, setGeminiKeyInput] = useState(getGeminiApiKey());
   const [groqKeyInput, setGroqKeyInput] = useState(getGroqApiKey());
+  const [elevenLabsKeyInput, setElevenLabsKeyInput] = useState(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('ELEVENLABS_API_KEY') || '';
+    }
+    return '';
+  });
   const [savedKeySuccess, setSavedKeySuccess] = useState(false);
 
   // Actualizar saludo e historial dinámicamente al cambiar de municipio
@@ -484,6 +490,9 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     e.preventDefault();
     setGeminiApiKey(geminiKeyInput.trim());
     setGroqApiKey(groqKeyInput.trim());
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('ELEVENLABS_API_KEY', elevenLabsKeyInput.trim());
+    }
     setSavedKeySuccess(true);
     setTimeout(() => {
       setSavedKeySuccess(false);
@@ -629,8 +638,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   return (
     <div className="min-h-screen bg-gradient-to-b from-[#eef2f6] via-[#e2e8f0] to-[#cbd5e1] flex flex-col items-center justify-center p-2 sm:p-4 select-none">
       
-      {/* BOTÓN DIRECTO PARA INGRESAR AL CENTRO DE MANDO (ADENTRO) */}
-      <div className="mb-3 flex justify-center animate-fadeIn">
+      {/* BOTÓN DIRECTO PARA INGRESAR AL CENTRO DE MANDO (ADENTRO) - Solo en desktop/tablet */}
+      <div className="mb-2 hidden sm:flex justify-center animate-fadeIn">
         <button
           onClick={onOpenFullPlan}
           className="px-5 py-2.5 rounded-2xl bg-slate-900 hover:bg-slate-800 text-cyan-300 hover:text-white border border-cyan-500/40 text-xs font-black shadow-2xl flex items-center gap-2 transition-all cursor-pointer hover:scale-105"
@@ -640,8 +649,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         </button>
       </div>
 
-      {/* FRAME MÓVIL VERTICAL (MATCHING IMAGE 2 EXACTAMENTE) */}
-      <div className="relative w-full max-w-[440px] h-[860px] bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[44px] mobile-frame-glow border-[6px] border-white/80 overflow-hidden flex flex-col justify-between p-6 shadow-2xl">
+      {/* FRAME MÓVIL VERTICAL ADAPTABLE */}
+      <div className="relative w-full max-w-[440px] h-[calc(100dvh-125px)] sm:h-[840px] max-h-[860px] min-h-[550px] bg-gradient-to-b from-[#eef2f6] via-[#e6ebf2] to-[#dbe2eb] rounded-[32px] sm:rounded-[44px] mobile-frame-glow border-[4px] sm:border-[6px] border-white/80 overflow-hidden flex flex-col justify-between p-3.5 sm:p-6 shadow-2xl">
         
         {/* LINEAS DE CIRCUITO Y DESTELLOS DE FONDO */}
         <div className="absolute inset-0 pointer-events-none opacity-40">
@@ -813,6 +822,20 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               />
             </div>
 
+            <div className="space-y-1">
+              <label className="text-[11px] font-bold text-slate-700 flex items-center justify-between">
+                <span>ElevenLabs API Key (Opcional - Juan F):</span>
+                <span className="text-[9px] text-emerald-600 font-semibold bg-emerald-50 px-1.5 py-0.5 rounded">Voz Neural Gratis Activa</span>
+              </label>
+              <input
+                type="password"
+                value={elevenLabsKeyInput}
+                onChange={(e) => setElevenLabsKeyInput(e.target.value)}
+                placeholder="sk_... (opcional)"
+                className="w-full bg-slate-100 border border-slate-300 rounded-xl p-2.5 text-xs font-mono"
+              />
+            </div>
+
             <button type="submit" className="w-full py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs rounded-xl flex items-center justify-center space-x-1">
               {savedKeySuccess ? <Check className="w-4 h-4" /> : <span>Guardar Llaves de IA</span>}
             </button>
@@ -820,7 +843,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         )}
 
         {/* CENTERPIECE: RAMITOS CHARACTER (ZONA MEJORADA DE PULSAR PARA HABLAR CON MIC BADGE) */}
-        <div className="relative z-10 flex flex-col items-center justify-center my-auto space-y-2">
+        <div className="relative z-10 flex flex-col items-center justify-center my-auto space-y-1 sm:space-y-2">
           
           <div
             onMouseDown={handleStartHoldMic}
@@ -837,33 +860,33 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             title="Mantén presionado a Ramitos para dictar tu propuesta"
           >
             {/* BADGE FLOTANTE DE MICRÓFONO PARA MEJORAR LA PERCEPCIÓN DE ZONA INTERACTIVA */}
-            <div className={`absolute top-3 right-3 z-30 p-2.5 rounded-full border border-white/90 shadow-lg transition-all duration-300 flex items-center justify-center ${
+            <div className={`absolute top-2 right-2 sm:top-3 sm:right-3 z-30 p-2 sm:p-2.5 rounded-full border border-white/90 shadow-lg transition-all duration-300 flex items-center justify-center ${
               isHoldingMic
                 ? 'bg-emerald-500 text-white scale-110 animate-bounce ring-2 ring-emerald-300'
                 : 'bg-white/90 text-emerald-600 group-hover:bg-emerald-500 group-hover:text-white'
             }`}>
-              <Mic className="w-4 h-4" />
+              <Mic className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
             </div>
 
-            <div className="absolute inset-0 -m-10 rounded-full bg-radial from-slate-900/80 via-slate-800/40 to-transparent blur-xl pointer-events-none"></div>
+            <div className="absolute inset-0 -m-6 sm:-m-10 rounded-full bg-radial from-slate-900/80 via-slate-800/40 to-transparent blur-xl pointer-events-none"></div>
 
-            <div className="relative w-72 h-72 flex items-center justify-center">
+            <div className="relative w-48 h-48 sm:w-72 sm:h-72 flex items-center justify-center">
               
               {isCaparrapi ? (
                 /* EMBLEMA CÍVICO E INTELIGENCIA TERRITORIAL DE CAPARRAPÍ */
-                <div className="relative w-64 h-64 flex flex-col items-center justify-center animate-fadeIn select-none">
+                <div className="relative w-44 h-44 sm:w-64 sm:h-64 flex flex-col items-center justify-center animate-fadeIn select-none">
                   {/* Anillos concéntricos de audio y tecnología */}
                   <div className="absolute inset-0 rounded-full border-2 border-blue-400/30 animate-ping pointer-events-none opacity-20"></div>
                   <div className="absolute inset-2 rounded-full border border-sky-400/40 pointer-events-none"></div>
-                  <div className="absolute inset-6 rounded-full border-2 border-dashed border-indigo-400/30 animate-spin" style={{ animationDuration: '25s' }}></div>
+                  <div className="absolute inset-4 sm:inset-6 rounded-full border-2 border-dashed border-indigo-400/30 animate-spin" style={{ animationDuration: '25s' }}></div>
                   
                   {/* Medallón Central */}
-                  <div className="relative w-48 h-48 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-4 border-blue-500/80 p-4 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.6)] transform hover:scale-105 transition-transform">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-xl border border-blue-300/40 mb-2">
-                      <span className="text-4xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
+                  <div className="relative w-36 h-36 sm:w-48 sm:h-48 rounded-full bg-gradient-to-tr from-slate-950 via-blue-950 to-indigo-950 border-3 sm:border-4 border-blue-500/80 p-2 sm:p-4 flex flex-col items-center justify-center shadow-[0_0_50px_rgba(59,130,246,0.6)] transform hover:scale-105 transition-transform">
+                    <div className="w-14 h-14 sm:w-20 sm:h-20 rounded-2xl bg-gradient-to-br from-blue-600 via-indigo-600 to-blue-800 flex items-center justify-center shadow-xl border border-blue-300/40 mb-1 sm:mb-2">
+                      <span className="text-2xl sm:text-4xl drop-shadow-md select-none transform hover:scale-110 transition-transform">🐎</span>
                     </div>
-                    <p className="text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
-                    <span className="text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-2.5 py-0.5 rounded-full mt-1 border border-blue-400/40 shadow-xs">
+                    <p className="text-[11px] sm:text-xs font-black text-white uppercase tracking-wider">Caparrapí</p>
+                    <span className="text-[8px] sm:text-[9px] font-extrabold text-sky-300 bg-blue-900/80 px-2 sm:px-2.5 py-0.5 rounded-full mt-0.5 sm:mt-1 border border-blue-400/40 shadow-xs">
                       Copiloto Ciudadano
                     </span>
                   </div>
@@ -873,7 +896,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   src={`/assets/ramitos/ramitos_${currentExpresion}.png`}
                   alt={`Ramitos ${currentExpresion}`}
                   onError={() => setUseCustomAssetFailed(true)}
-                  className="w-64 h-64 object-contain z-10 drop-shadow-2xl animate-fadeIn pointer-events-none"
+                  className="w-44 h-44 sm:w-64 sm:h-64 object-contain z-10 drop-shadow-2xl animate-fadeIn pointer-events-none"
                 />
               ) : (
                 <>
@@ -889,7 +912,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   </svg>
 
                   {/* CLOUD SHAPED HEAD CON EXPRESIONES DINÁMICAS */}
-                  <div className="relative w-44 h-40 flex items-center justify-center z-10">
+                  <div className="relative w-36 h-32 sm:w-44 sm:h-40 flex items-center justify-center z-10">
                     <svg className="absolute inset-0 w-full h-full drop-shadow-2xl" viewBox="0 0 160 140" fill="none">
                       <path d="M45 110 C25 110 10 92 20 72 C8 55 24 35 44 42 C54 22 86 20 100 35 C116 22 144 32 142 52 C158 66 150 94 132 104 C120 114 90 115 80 110 Z" fill={currentExpresion === 'enojado' ? '#2d141e' : '#1b2434'} stroke="#ffffff" strokeWidth="4.5" strokeLinejoin="round" />
                     </svg>
@@ -900,12 +923,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
                   </div>
 
                   {/* WHITE TRUNK WITH 2 GREEN LEAF HANDS */}
-                  <div className="absolute bottom-5 flex flex-col items-center z-10">
-                    <svg className="absolute -top-3 w-32 h-16 pointer-events-none" viewBox="0 0 120 60" fill="none">
+                  <div className="absolute bottom-3 sm:bottom-5 flex flex-col items-center z-10">
+                    <svg className="absolute -top-3 w-24 sm:w-32 h-12 sm:h-16 pointer-events-none" viewBox="0 0 120 60" fill="none">
                       <path d="M45 35 Q15 15 10 35 Q30 55 45 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
                       <path d="M75 35 Q105 15 110 35 Q90 55 75 35 Z" stroke="#4ade80" strokeWidth="3.5" fill="#4ade8033" />
                     </svg>
-                    <div className="w-10 h-16 border-l-4 border-r-4 border-b-4 border-white rounded-b-2xl"></div>
+                    <div className="w-8 sm:w-10 h-12 sm:h-16 border-l-3 sm:border-l-4 border-r-3 sm:border-r-4 border-b-3 sm:border-b-4 border-white rounded-b-2xl"></div>
                   </div>
                 </>
               )}
@@ -915,8 +938,8 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           </div>
 
           {/* TITLE & ESTADO DINÁMICO */}
-          <div className="text-center min-h-[44px] flex flex-col items-center justify-center">
-            <h1 className="text-4xl font-extrabold text-white tracking-wide shadow-sm">
+          <div className="text-center min-h-[36px] sm:min-h-[44px] flex flex-col items-center justify-center">
+            <h1 className="text-2xl sm:text-4xl font-extrabold text-white tracking-wide shadow-sm">
               {isCaparrapi ? 'Caparrapí' : 'Ramitos'}
             </h1>
             {isThinking || currentExpresion === 'pensativo' ? (
@@ -935,7 +958,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
         </div>
 
         {/* BOTTOM INPUT & ACTION BAR */}
-        <div className="relative z-20 space-y-2 pt-2">
+        <div className="relative z-20 space-y-2 pt-1 pb-1 sm:pb-0">
           
           <form
             onSubmit={(e) => {
