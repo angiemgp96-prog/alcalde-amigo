@@ -185,6 +185,26 @@ export interface CadenaValorItem {
   costo_estimado_cop?: number;
 }
 
+export interface ItemAlternativaPractica {
+  id: string;
+  item: string;
+  descripcion?: string;
+  proveedor: string;
+  enlace_compra?: string;
+  precio_unitario_cop: number;
+  cantidad: number;
+  unidad: string;
+}
+
+export interface AlternativaPracticaProyecto {
+  titulo: string;
+  enfoque: string;
+  tiempo_ejecucion_dias: number;
+  ahorro_pct_estimado: number;
+  resumen_ejecucion: string;
+  items: ItemAlternativaPractica[];
+}
+
 export interface ProyectoMgaEstructurado {
   id: string;
   municipio_id: 'caparrapi' | 'guaduas';
@@ -210,6 +230,7 @@ export interface ProyectoMgaEstructurado {
   apu_clave?: string;
   capitulos_presupuesto_apu?: { capitulo: string; valor: number | string; apu_clave?: string }[];
   checklist_tareas?: { tarea: string; estado: string; responsable: string }[];
+  alternativa_practica?: AlternativaPracticaProyecto;
 }
 
 export type CategoriaRequisito = 'legal' | 'tecnico' | 'ambiental' | 'socioeconomico' | 'censo';

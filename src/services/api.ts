@@ -1578,7 +1578,56 @@ const PROYECTOS_TIPO_CAPARRAPI: ProyectoMgaEstructurado[] = [
       { capitulo: 'Capítulo 4: Estructura de Placa Huella (Concreto 3000 PSI + Piedra Pegada)', valor: 3120000000, apu_clave: 'Metro lineal placa huella tipo INVIAS (ancho 4.5m): $520.000 / m' },
       { capitulo: 'Capítulo 5: Plan de Manejo Ambiental y Señalización', valor: 195000000, apu_clave: 'Disposición final de sobrantes y revegetalización: $32.000 / m²' },
       { capitulo: 'Capítulo 6: Interventoría Técnica Integral', valor: 320000000, apu_clave: 'Interventoría técnica y de laboratorio: 5% valor directo' }
-    ]
+    ],
+    alternativa_practica: {
+      titulo: 'Intervención Rápida por Módulos Prefabricados & Convenio Solidario JAC (Ley 2166)',
+      enfoque: 'Convenio Solidario con Juntas de Acción Comunal + Maquinaria Propia',
+      tiempo_ejecucion_dias: 45,
+      ahorro_pct_estimado: 62,
+      resumen_ejecucion: 'La Alcaldía suministra los módulos de placa huella curados en fábrica, alcantarillas de PEAD corrugado y horas de volqueta/motoniveladora municipal. La Junta de Acción Comunal ejecuta la instalación mediante mano de obra local.',
+      items: [
+        {
+          id: 'vias-alt-1',
+          item: 'Módulos de Placa Huella Prefabricada en Concreto 4000 PSI',
+          descripcion: 'Módulos autotrabantes curados en planta para 2.0 km de tramos más críticos',
+          proveedor: 'Concreteras Regionales (Argos / Cemex / Prefabricados del Valle)',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 380000,
+          cantidad: 2000,
+          unidad: 'Metro lineal'
+        },
+        {
+          id: 'vias-alt-2',
+          item: 'Tubería Corrugada PEAD Doble Pared 36" para Alcantarillas',
+          descripcion: 'Tubería de drenaje de alta resistencia al impacto y corrosión (120 metros)',
+          proveedor: 'PAVCO Wavin / Homecenter / Distribuidores Mayoristas',
+          enlace_compra: 'https://www.pavco.com.co',
+          precio_unitario_cop: 420000,
+          cantidad: 120,
+          unidad: 'Metro'
+        },
+        {
+          id: 'vias-alt-3',
+          item: 'Subbase Granular y Balastro de Cantera Local Certificada',
+          descripcion: 'Acarreo con volquetas propias de la Alcaldía de Caparrapí para reducir fletes',
+          proveedor: 'Canteras de la Región (Caparrapí - Guaduas)',
+          enlace_compra: 'https://www.mercadolibre.com.co',
+          precio_unitario_cop: 35000,
+          cantidad: 1500,
+          unidad: 'Metro cúbico (m³)'
+        },
+        {
+          id: 'vias-alt-4',
+          item: 'Mano de Obra Comunitaria Calificada y Seguros JAC',
+          descripcion: 'Cuadrillas comunitarias veredales bajo Convenio Solidario Ley 2166',
+          proveedor: 'Asojuntas Caparrapí / JAC San Carlos y Terán',
+          enlace_compra: 'https://www.alcaldiacaparrapi.gov.co',
+          precio_unitario_cop: 180000000,
+          cantidad: 1,
+          unidad: 'Convenio global'
+        }
+      ]
+    }
   },
   {
     id: 'mga-cap-agua-02',
@@ -1615,7 +1664,66 @@ const PROYECTOS_TIPO_CAPARRAPI: ProyectoMgaEstructurado[] = [
       ]
     },
     justificacion_presidencia: 'Garantiza el derecho fundamental al agua potable en el marco del pilar de Convergencia Regional del Plan Nacional de Desarrollo, eliminando el racionamiento histórico en las escuelas rurales de Caparrapí.',
-    creado_por: 'Equipo de Trabajo RR'
+    creado_por: 'Equipo de Trabajo RR',
+    alternativa_practica: {
+      titulo: 'Agua Potable Inmediata: Ultrafiltración Modular & Tanques Tricapa por Vereda',
+      enfoque: 'Potabilización Modular por Gravedad sin Químicos + Red Rápida PEAD',
+      tiempo_ejecucion_dias: 20,
+      ahorro_pct_estimado: 78,
+      resumen_ejecucion: 'Instalación de tanques de polietileno de alta densidad tricapa UV con filtros de membrana de ultrafiltración por gravedad (SkyHydrant / Lifestraw Community) y cloración en línea.',
+      items: [
+        {
+          id: 'agua-alt-1',
+          item: 'Tanques Plásticos de Almacenamiento Tricapa 10.000 Litros',
+          descripcion: 'Polietileno grado alimenticio con protección UV para intemperie',
+          proveedor: 'Eternit / Pavco (Homecenter Colombia)',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 6200000,
+          cantidad: 4,
+          unidad: 'Tanque 10.000L'
+        },
+        {
+          id: 'agua-alt-2',
+          item: 'Módulo de Ultrafiltración por Gravedad (0.02 micras)',
+          descripcion: 'Filtra bacterias, virus y turbiedad sin necesidad de energía eléctrica ni coagulantes',
+          proveedor: 'SkyHydrant / Distribuidor Nacional de Membranas',
+          enlace_compra: 'https://www.mercadolibre.com.co',
+          precio_unitario_cop: 18500000,
+          cantidad: 2,
+          unidad: 'Unidad'
+        },
+        {
+          id: 'agua-alt-3',
+          item: 'Tubería PEAD 2" RDE 17 para Red Veredal Rápida',
+          descripcion: 'Rollos de 100m para tendido rápido en ladera y acometidas seguras',
+          proveedor: 'Pavco / TuboPlast (Homecenter / MercadoLibre)',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 8400,
+          cantidad: 3000,
+          unidad: 'Metro'
+        },
+        {
+          id: 'agua-alt-4',
+          item: 'Dosificador Automático de Cloro en Línea y Pastillas DPD',
+          descripcion: 'Garantiza desinfección residual según norma RAS y medición de cloro libre',
+          proveedor: 'Ferreterías Industriales / MercadoLibre Oficial',
+          enlace_compra: 'https://www.mercadolibre.com.co',
+          precio_unitario_cop: 1800000,
+          cantidad: 4,
+          unidad: 'Kit dosificador'
+        },
+        {
+          id: 'agua-alt-5',
+          item: 'Fontanería Comunitaria y Casetas de Protección',
+          descripcion: 'Instalación en 15 días con fontaneros locales de las JAC veredales',
+          proveedor: 'Comité de Acueducto Veredal San Carlos',
+          enlace_compra: 'https://www.alcaldiacaparrapi.gov.co',
+          precio_unitario_cop: 18000000,
+          cantidad: 1,
+          unidad: 'Global'
+        }
+      ]
+    }
   },
   {
     id: 'mga-cap-tic-03',
@@ -1652,7 +1760,56 @@ const PROYECTOS_TIPO_CAPARRAPI: ProyectoMgaEstructurado[] = [
       ]
     },
     justificacion_presidencia: 'Responde de manera directa a la petición comunitaria de San Carlos registrada en Voz Ciudadana. Permite conectar las aulas escolares y habilitar telemedicina y trámites en línea para la ruralidad dispersa de Caparrapí.',
-    creado_por: 'Equipo de Trabajo RR'
+    creado_por: 'Equipo de Trabajo RR',
+    alternativa_practica: {
+      titulo: 'Conectividad Escolar Rápida: Starlink Satelital Directo + Generador Solar EcoFlow',
+      enfoque: 'Compra Directa en Starlink Colombia y Homecenter con Despliegue en 15 Días',
+      tiempo_ejecucion_dias: 15,
+      ahorro_pct_estimado: 91,
+      resumen_ejecucion: 'Instalación directa de 14 antenas Starlink de baja órbita con respaldo autónomo de energía solar EcoFlow Delta 2 para las escuelas rurales. Despliegue inmediato financiado con recursos propios o regalías directas.',
+      items: [
+        {
+          id: 'tic-alt-1',
+          item: 'Kit de Antena Satelital Starlink Estándar (Baja Órbita)',
+          descripcion: 'Velocidad 150-250 Mbps con módem Wi-Fi de alta cobertura para 14 escuelas',
+          proveedor: 'Starlink Colombia Oficial / MercadoLibre Tienda Oficial',
+          enlace_compra: 'https://www.starlink.com',
+          precio_unitario_cop: 1350000,
+          cantidad: 14,
+          unidad: 'Kit de antena'
+        },
+        {
+          id: 'tic-alt-2',
+          item: 'Estación de Energía Solar EcoFlow Delta 2 + Panel 400W',
+          descripcion: 'Batería LFP 1024Wh para alimentar módem, antena y 15 computadores en corte de luz',
+          proveedor: 'Homecenter Colombia / Tienda EcoFlow Oficial',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 4850000,
+          cantidad: 14,
+          unidad: 'Kit solar + batería'
+        },
+        {
+          id: 'tic-alt-3',
+          item: 'Mástil Galvanizado 3m, Pararrayos y Cableado Blindado Exterior',
+          descripcion: 'Protección contra tormentas eléctricas en cumbre de escuela rural',
+          proveedor: 'Homecenter / Ferretería Regional Mayorista',
+          enlace_compra: 'https://www.homecenter.com.co',
+          precio_unitario_cop: 480000,
+          cantidad: 14,
+          unidad: 'Punto de montaje'
+        },
+        {
+          id: 'tic-alt-4',
+          item: 'Plan de Internet Satelital Rural Starlink (1 Año Anticipado)',
+          descripcion: 'Suscripción mensual ilimitada sin tope de consumo para 14 sedes',
+          proveedor: 'Starlink Inc. Colombia',
+          enlace_compra: 'https://www.starlink.com',
+          precio_unitario_cop: 2520000,
+          cantidad: 14,
+          unidad: 'Año de servicio'
+        }
+      ]
+    }
   }
 ];
 

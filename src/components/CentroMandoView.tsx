@@ -96,7 +96,16 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
   // Estación de Formulación MGA & Suplir Requisitos (Dinámico en Supabase)
   const [proyectosList, setProyectosList] = useState<ProyectoMgaEstructurado[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProyectoMgaEstructurado | null>(null);
-  const [projectWorkTab, setProjectWorkTab] = useState<'mga' | 'requisitos' | 'censo' | 'apu' | 'dossier'>('mga');
+  const [projectWorkTab, setProjectWorkTab] = useState<'mga' | 'requisitos' | 'censo' | 'apu' | 'alternativas' | 'dossier'>('mga');
+  const [cardViewModes, setCardViewModes] = useState<Record<string, 'oficial' | 'practica'>>({});
+  const [nuevoItemPractico, setNuevoItemPractico] = useState({
+    item: '',
+    proveedor: 'Homecenter / MercadoLibre',
+    enlace_compra: '',
+    precio_unitario_cop: 0,
+    cantidad: 1,
+    unidad: 'Unidad'
+  });
   const [requisitosList, setRequisitosList] = useState<RequisitoViabilidad[]>([]);
   const [filtroCategoriaReq, setFiltroCategoriaReq] = useState<string>('todos');
   const [censoList, setCensoList] = useState<CensoBeneficiario[]>([]);
@@ -483,7 +492,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
   // HANDLERS DEL SISTEMA DE FORMULACIÓN MGA & SUPLIR REQUISITOS
   // -------------------------------------------------------------------
 
-  const handleOpenProjectWorkstation = async (p: any) => {
+  const handleOpenProjectWorkstation = async (p: any, tabToOpen: any = 'mga') => {
     const fullProj: ProyectoMgaEstructurado = {
       id: p.id || `mga-${municipioId}-${Date.now()}`,
       municipio_id: municipioId,
@@ -523,11 +532,12 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
       justificacion_presidencia: p.justificacion_presidencia || p.objetivo || 'Proyecto prioritario articulado con las metas del Plan Nacional de Desarrollo.',
       creado_por: p.creado_por || 'Equipo de Trabajo RR',
       capitulos_presupuesto_apu: p.capitulos_presupuesto_apu,
-      checklist_tareas: p.checklist_tareas
+      checklist_tareas: p.checklist_tareas,
+      alternativa_practica: p.alternativa_practica
     };
 
     setSelectedProject(fullProj);
-    setProjectWorkTab('mga');
+    setProjectWorkTab(tabToOpen);
 
     try {
       const [reqs, censo] = await Promise.all([
@@ -932,7 +942,8 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
       Array.isArray(p.capitulos_presupuesto_apu) ? p.capitulos_presupuesto_apu.map((c: any) => `${c.capitulo}: ${c.apu_clave || (typeof c.valor === 'number' ? formatCOP(c.valor) : c.valor)}`).join(' | ') : 'Precios Unitarios Regionalizados Cundinamarca 2026'
     ),
     capitulos_presupuesto_apu: p.capitulos_presupuesto_apu,
-    checklist_tareas: p.checklist_tareas
+    checklist_tareas: p.checklist_tareas,
+    alternativa_practica: p.alternativa_practica
   }));
 
   const m = intelData?.municipio || {
@@ -2362,75 +2373,191 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
 
               {/* Cuadrícula de Proyectos MGA Fase 3 */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {bancoProyectosMga.map((p: any, idx: number) => (
-                  <div key={idx} className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-3xl p-6 shadow-xl space-y-4 flex flex-col justify-between transition-all">
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
-                        <div className="flex items-center gap-1.5">
-                          <span className="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
-                            BPIN: {p.codigo_bpin}
+                {bancoProyectosMga.map((p: any, idx: number) => {
+                  const cardMode = cardViewModes[p.id] || 'oficial';
+                  const alt = p.alternativa_practica;
+                  const totalAltCop = alt?.items?.reduce((sum: number, it: any) => sum + (it.precio_unitario_cop * it.cantidad), 0) || 0;
+
+                  return (
+                    <div key={idx} className="bg-slate-900/90 border border-slate-800 hover:border-slate-700 rounded-3xl p-6 shadow-xl space-y-4 flex flex-col justify-between transition-all">
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between border-b border-slate-800 pb-2.5">
+                          <div className="flex items-center gap-1.5">
+                            <span className="px-2.5 py-1 rounded text-[9px] font-black uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-mono">
+                              BPIN: {p.codigo_bpin}
+                            </span>
+                            <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
+                              p.estado_tramite === 'listo_presidencia' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
+                              p.estado_tramite === 'radicado' ? 'bg-blue-950 text-blue-300 border border-blue-800' :
+                              'bg-amber-950 text-amber-300 border border-amber-800'
+                            }`}>
+                              {p.estado_tramite === 'listo_presidencia' ? 'Listo Presidencia' :
+                               p.estado_tramite === 'radicado' ? 'Radicado Oficial' : 'Requisitos en Gestión'}
+                            </span>
+                          </div>
+                          <div className="text-right">
+                            <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">
+                              {cardMode === 'oficial' ? 'PRESUPUESTO BPIN DNP' : 'COSTO PRÁCTICO MERCADO'}
+                            </span>
+                            <span className="text-lg sm:text-xl font-black font-mono text-emerald-400 tracking-tight">
+                              {cardMode === 'oficial' ? p.presupuesto_total : formatCOP(totalAltCop)}
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* SELECTOR DUAL: VÍA OFICIAL DNP vs. ALTERNATIVA PRÁCTICA */}
+                        {alt && (
+                          <div className="flex rounded-xl bg-slate-950 p-1 border border-slate-800 text-xs font-bold">
+                            <button
+                              onClick={() => setCardViewModes({ ...cardViewModes, [p.id]: 'oficial' })}
+                              className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all cursor-pointer ${
+                                cardMode === 'oficial'
+                                  ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow'
+                                  : 'text-slate-400 hover:text-white'
+                              }`}
+                            >
+                              🏛️ Ficha BPIN Oficial (Nación)
+                            </button>
+                            <button
+                              onClick={() => setCardViewModes({ ...cardViewModes, [p.id]: 'practica' })}
+                              className={`flex-1 py-1.5 px-2 rounded-lg text-center transition-all cursor-pointer flex items-center justify-center gap-1.5 ${
+                                cardMode === 'practica'
+                                  ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow'
+                                  : 'text-purple-300 hover:text-white'
+                              }`}
+                            >
+                              <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                              <span>⚡ Alternativa Práctica ({alt.ahorro_pct_estimado}% Menos)</span>
+                            </button>
+                          </div>
+                        )}
+
+                        <h4 className="text-base font-black text-white leading-snug">
+                          {cardMode === 'oficial' ? p.nombre : alt?.titulo || p.nombre}
+                        </h4>
+
+                        <div className="flex flex-wrap items-center gap-2 text-xs">
+                          <span className="text-cyan-400 font-bold">{p.sector}</span>
+                          <span className="text-slate-600">•</span>
+                          <span className="text-slate-400 font-mono">
+                            {cardMode === 'oficial' ? p.fase : `Ejecución estimada: ~${alt?.tiempo_ejecucion_dias || 30} Días`}
                           </span>
-                          <span className={`px-2 py-0.5 rounded text-[9px] font-bold uppercase tracking-wider ${
-                            p.estado_tramite === 'listo_presidencia' ? 'bg-emerald-950 text-emerald-300 border border-emerald-800' :
-                            p.estado_tramite === 'radicado' ? 'bg-blue-950 text-blue-300 border border-blue-800' :
-                            'bg-amber-950 text-amber-300 border border-amber-800'
-                          }`}>
-                            {p.estado_tramite === 'listo_presidencia' ? 'Listo Presidencia' :
-                             p.estado_tramite === 'radicado' ? 'Radicado Oficial' : 'Requisitos en Gestión'}
-                          </span>
                         </div>
-                        <div className="text-right">
-                          <span className="text-[9px] uppercase font-bold tracking-widest text-slate-400 block">PRESUPUESTO ESTIMADO</span>
-                          <span className="text-lg sm:text-xl font-black font-mono text-emerald-400 tracking-tight">{p.presupuesto_total}</span>
-                        </div>
-                      </div>
 
-                      <h4 className="text-base font-black text-white leading-snug">{p.nombre}</h4>
-                      <div className="flex flex-wrap items-center gap-2 text-xs">
-                        <span className="text-cyan-400 font-bold">{p.sector}</span>
-                        <span className="text-slate-600">•</span>
-                        <span className="text-slate-400 font-mono">{p.fase}</span>
-                      </div>
-                      <p className="text-xs text-slate-300 leading-relaxed font-medium">{p.objetivo}</p>
+                        {cardMode === 'oficial' ? (
+                          <>
+                            <p className="text-xs text-slate-300 leading-relaxed font-medium">{p.objetivo}</p>
 
-                      {/* Mini Resumen 4 Componentes MGA */}
-                      <div className="grid grid-cols-2 gap-1.5 py-1">
-                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
-                          <span className="text-slate-400 block">🏛️ Jurídico & Predial:</span>
-                          <span className="font-bold text-emerald-400">Verificado / En regla</span>
-                        </div>
-                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
-                          <span className="text-slate-400 block">📐 Técnico Fase 3:</span>
-                          <span className="font-bold text-cyan-400">APU y Planos Ok</span>
-                        </div>
-                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
-                          <span className="text-slate-400 block">💰 Contrapartida Mpal:</span>
-                          <span className="font-bold text-amber-400">15% ($375M - $500M)</span>
-                        </div>
-                        <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
-                          <span className="text-slate-400 block">📑 Posterior SECOP II:</span>
-                          <span className="font-bold text-purple-400">Licitación Obra Pública</span>
-                        </div>
-                      </div>
+                            {/* Mini Resumen 4 Componentes MGA con Contrapartida Dinámica y Legal */}
+                            <div className="grid grid-cols-2 gap-1.5 py-1">
+                              <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                                <span className="text-slate-400 block">🏛️ Jurídico & Predial:</span>
+                                <span className="font-bold text-emerald-400">Verificado / En regla</span>
+                              </div>
+                              <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                                <span className="text-slate-400 block">📐 Técnico Fase 3:</span>
+                                <span className="font-bold text-cyan-400">APU y Planos Ok</span>
+                              </div>
+                              <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                                <span className="text-slate-400 block">💰 Contrapartida Mpal:</span>
+                                {p.codigo_bpin?.includes('TIC') ? (
+                                  <span className="font-bold text-emerald-400">0% ($0 • 100% MinTIC)</span>
+                                ) : p.codigo_bpin?.includes('AGUA') ? (
+                                  <span className="font-bold text-cyan-400">10% ({formatCOP(p.presupuesto_total_cop * 0.10)}) • SGP</span>
+                                ) : (
+                                  <span className="font-bold text-amber-400">0%-5% ({formatCOP(p.presupuesto_total_cop * 0.05)}) • OCAD</span>
+                                )}
+                              </div>
+                              <div className="bg-slate-950/70 p-2 rounded-lg border border-slate-800 text-[10px]">
+                                <span className="text-slate-400 block">📑 Posterior SECOP II:</span>
+                                <span className="font-bold text-purple-400">Licitación Obra Pública</span>
+                              </div>
+                            </div>
 
-                      <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
-                        <p><strong className="text-slate-400">Beneficiarios:</strong> <span className="text-slate-200">{p.beneficiarios}</span></p>
-                        <p><strong className="text-slate-400">Fuente:</strong> <span className="text-cyan-300">{p.fuente_primaria}</span></p>
-                        {p.veredas_impactadas && p.veredas_impactadas.length > 0 && (
-                          <p><strong className="text-slate-400">Veredas:</strong> <span className="text-slate-300">{p.veredas_impactadas.join(', ')}</span></p>
+                            <div className="bg-slate-950/60 p-3 rounded-xl border border-slate-800 text-xs space-y-1">
+                              <p><strong className="text-slate-400">Beneficiarios:</strong> <span className="text-slate-200">{p.beneficiarios}</span></p>
+                              <p><strong className="text-slate-400">Fuente:</strong> <span className="text-cyan-300">{p.fuente_primaria}</span></p>
+                              {p.veredas_impactadas && p.veredas_impactadas.length > 0 && (
+                                <p><strong className="text-slate-400">Veredas:</strong> <span className="text-slate-300">{p.veredas_impactadas.join(', ')}</span></p>
+                              )}
+                            </div>
+                          </>
+                        ) : (
+                          /* VISTA DE ALTERNATIVA PRÁCTICA CON PRECIOS Y LINKS REALES */
+                          <div className="space-y-3 pt-1">
+                            <div className="bg-purple-950/30 p-3 rounded-xl border border-purple-500/30 text-xs space-y-1.5">
+                              <div className="flex items-center justify-between text-[11px]">
+                                <span className="text-purple-300 font-bold">Mecanismo Práctico:</span>
+                                <span className="text-amber-300 font-mono font-bold">Ahorro del {alt?.ahorro_pct_estimado}%</span>
+                              </div>
+                              <p className="text-slate-300 leading-snug">{alt?.resumen_ejecucion}</p>
+                            </div>
+
+                            {/* Desglose de ítems cotizados con links */}
+                            <div className="space-y-1.5">
+                              <span className="text-[10px] uppercase font-bold text-slate-400 block tracking-wider">
+                                Soluciones Cotizadas en Línea ({alt?.items?.length || 0} ítems):
+                              </span>
+                              <div className="space-y-1 max-h-36 overflow-y-auto pr-1">
+                                {alt?.items?.map((it: any, itIdx: number) => (
+                                  <div key={itIdx} className="bg-slate-950/80 p-2 rounded-lg border border-slate-800 flex items-center justify-between text-[11px] gap-2">
+                                    <div className="flex-1 min-w-0">
+                                      <p className="font-bold text-white truncate">{it.item}</p>
+                                      <div className="flex items-center gap-1.5 text-[10px] text-slate-400">
+                                        <span className="text-cyan-300">{it.proveedor}</span>
+                                        <span>•</span>
+                                        <span>{it.cantidad} {it.unidad}</span>
+                                      </div>
+                                    </div>
+                                    <div className="text-right shrink-0">
+                                      <span className="font-mono font-bold text-emerald-400 block">
+                                        {formatCOP(it.precio_unitario_cop * it.cantidad)}
+                                      </span>
+                                      {it.enlace_compra && (
+                                        <a
+                                          href={it.enlace_compra}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-[9px] text-purple-300 hover:text-purple-200 underline inline-flex items-center gap-0.5"
+                                        >
+                                          <span>Ver Tienda</span>
+                                          <ExternalLink className="w-2.5 h-2.5" />
+                                        </a>
+                                      )}
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          </div>
                         )}
                       </div>
-                    </div>
 
-                    <button
-                      onClick={() => handleOpenProjectWorkstation(p)}
-                      className="w-full py-3 bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg shadow-emerald-950/50 transition-all cursor-pointer group"
-                    >
-                      <FileText className="w-4 h-4 text-emerald-200 group-hover:scale-110 transition-transform" />
-                      <span>Abrir Expediente MGA & Suplir Requisitos 📄</span>
-                    </button>
-                  </div>
-                ))}
+                      <div className="pt-2 flex flex-col sm:flex-row gap-2">
+                        <button
+                          onClick={() => handleOpenProjectWorkstation(p, cardMode === 'practica' ? 'alternativas' : 'mga')}
+                          className={`w-full py-2.5 font-black text-xs rounded-xl flex items-center justify-center gap-2 shadow-lg transition-all cursor-pointer ${
+                            cardMode === 'practica'
+                              ? 'bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white shadow-purple-950/50'
+                              : 'bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 hover:from-emerald-500 hover:to-cyan-500 text-white shadow-emerald-950/50'
+                          }`}
+                        >
+                          {cardMode === 'practica' ? (
+                            <>
+                              <Sparkles className="w-4 h-4 text-amber-300" />
+                              <span>Cotizador de Precios & Links en Vivo 🛒</span>
+                            </>
+                          ) : (
+                            <>
+                              <FileText className="w-4 h-4 text-emerald-200" />
+                              <span>Abrir Expediente MGA & Suplir Requisitos 📄</span>
+                            </>
+                          )}
+                        </button>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
 
               {/* ========================================================================= */}
@@ -2923,6 +3050,7 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                 { id: 'requisitos', label: `Suplir Requisitos (${requisitosList.filter(r => r.estado !== 'pendiente').length}/12)`, icon: CheckSquare },
                 { id: 'censo', label: `Censo & Respaldos (${censoList.length})`, icon: Users },
                 { id: 'apu', label: 'Presupuesto APU', icon: Layers },
+                { id: 'alternativas', label: '⚡ Cotizador Práctico (Starlink / Homecenter / JAC)', icon: Sparkles },
                 { id: 'dossier', label: 'Dossier Presidencia (Imprimir / PDF)', icon: Printer }
               ].map(tab => {
                 const IconComponent = tab.icon;
@@ -3369,6 +3497,318 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                   </div>
                 </div>
               )}
+
+              {/* PESTAÑA: ALTERNATIVAS PRÁCTICAS & COTIZADOR EN LÍNEA (STARLINK / HOMECENTER / JAC) */}
+              {projectWorkTab === 'alternativas' && (() => {
+                const alt = selectedProject.alternativa_practica || {
+                  titulo: 'Alternativa Rápida de Compra Directa & Convenio Solidario',
+                  enfoque: 'Solución ágil con precios comerciales de mercado',
+                  tiempo_ejecucion_dias: 30,
+                  ahorro_pct_estimado: 75,
+                  resumen_ejecucion: 'Adquisición directa de materiales y tecnología con ejecución comunitaria o compra en tiendas oficiales.',
+                  items: []
+                };
+
+                const totalCalculadoCop = alt.items?.reduce((sum: number, it: any) => sum + (Number(it.precio_unitario_cop || 0) * Number(it.cantidad || 0)), 0) || 0;
+                const ahorroDineroCop = Math.max(0, selectedProject.presupuesto_total_cop - totalCalculadoCop);
+                const ahorroPctReal = selectedProject.presupuesto_total_cop > 0 
+                  ? Math.round((ahorroDineroCop / selectedProject.presupuesto_total_cop) * 100) 
+                  : 0;
+
+                const handleAgregarItemManual = (e: React.FormEvent) => {
+                  e.preventDefault();
+                  if (!nuevoItemPractico.item.trim() || nuevoItemPractico.precio_unitario_cop <= 0) {
+                    alert('Por favor ingresa un nombre y un precio unitario válido.');
+                    return;
+                  }
+
+                  const nuevoItem = {
+                    id: `item-${Date.now()}`,
+                    item: nuevoItemPractico.item.trim(),
+                    proveedor: nuevoItemPractico.proveedor.trim() || 'Comercio Local',
+                    enlace_compra: nuevoItemPractico.enlace_compra.trim(),
+                    precio_unitario_cop: Number(nuevoItemPractico.precio_unitario_cop),
+                    cantidad: Number(nuevoItemPractico.cantidad) || 1,
+                    unidad: nuevoItemPractico.unidad.trim() || 'Unidad'
+                  };
+
+                  const updatedItems = [...(alt.items || []), nuevoItem];
+                  const updatedAlt = {
+                    ...alt,
+                    items: updatedItems,
+                    ahorro_pct_estimado: ahorroPctReal
+                  };
+
+                  setSelectedProject({
+                    ...selectedProject,
+                    alternativa_practica: updatedAlt
+                  });
+
+                  setNuevoItemPractico({
+                    item: '',
+                    proveedor: 'Homecenter / MercadoLibre',
+                    enlace_compra: '',
+                    precio_unitario_cop: 0,
+                    cantidad: 1,
+                    unidad: 'Unidad'
+                  });
+                };
+
+                const handleEliminarItem = (itemId: string) => {
+                  const updatedItems = (alt.items || []).filter((it: any) => it.id !== itemId);
+                  setSelectedProject({
+                    ...selectedProject,
+                    alternativa_practica: {
+                      ...alt,
+                      items: updatedItems
+                    }
+                  });
+                };
+
+                return (
+                  <div className="space-y-5 animate-fadeIn">
+                    
+                    {/* Tarjeta de Métricas Comparativas Lado a Lado */}
+                    <div className="bg-gradient-to-r from-slate-950 via-purple-950/40 to-slate-950 border-2 border-purple-500/40 p-5 sm:p-6 rounded-3xl shadow-xl space-y-4">
+                      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-purple-800/40 pb-3">
+                        <div>
+                          <span className="px-2.5 py-0.5 rounded text-[10px] font-black uppercase bg-purple-500/20 text-purple-300 border border-purple-400/30">
+                            INNOVACIÓN & PRAGMATISMO MUNICIPAL 2026
+                          </span>
+                          <h4 className="text-base sm:text-lg font-black text-white mt-1 flex items-center gap-2">
+                            <Sparkles className="w-5 h-5 text-amber-300" /> Comparador: Mega-Proyecto BPIN vs. Alternativa Práctica Inmediata
+                          </h4>
+                        </div>
+                        <span className="text-xs text-purple-300 font-bold bg-purple-900/50 px-3 py-1 rounded-full border border-purple-500/30">
+                          {alt.tiempo_ejecucion_dias} Días de Ejecución vs. ~2 Años Burocráticos
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                        <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-slate-800">
+                          <span className="text-[10px] uppercase font-bold text-slate-400 block">VÍA OFICIAL DNP / BPIN</span>
+                          <span className="text-lg font-black font-mono text-slate-300 mt-1 block">
+                            {formatCOP(selectedProject.presupuesto_total_cop)}
+                          </span>
+                          <span className="text-[10px] text-slate-500">Licitación tradicional • 18 a 24 meses</span>
+                        </div>
+
+                        <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-purple-500/40">
+                          <span className="text-[10px] uppercase font-bold text-purple-300 block">ALTERNATIVA COTIZADA</span>
+                          <span className="text-lg font-black font-mono text-emerald-400 mt-1 block">
+                            {formatCOP(totalCalculadoCop)}
+                          </span>
+                          <span className="text-[10px] text-emerald-400">Precios comerciales reales verificables</span>
+                        </div>
+
+                        <div className="bg-slate-950/80 p-3.5 rounded-2xl border border-amber-500/40">
+                          <span className="text-[10px] uppercase font-bold text-amber-300 block">AHORRO ESTIMADO</span>
+                          <span className="text-lg font-black font-mono text-amber-400 mt-1 block">
+                            {formatCOP(ahorroDineroCop)} ({ahorroPctReal}%)
+                          </span>
+                          <span className="text-[10px] text-amber-300">Menor costo • Ejecución inmediata</span>
+                        </div>
+                      </div>
+
+                      <p className="text-xs text-slate-300 leading-relaxed bg-black/40 p-3 rounded-xl border border-purple-900/40">
+                        <strong className="text-purple-300">Enfoque:</strong> {alt.resumen_ejecucion}
+                      </p>
+                    </div>
+
+                    {/* Tabla de Ítems Cotizados en Tiempo Real */}
+                    <div className="bg-slate-950/70 rounded-2xl border border-slate-800 p-4 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <h5 className="text-xs font-black uppercase tracking-wider text-slate-300 flex items-center gap-1.5">
+                          <span>📦 Desglose de Productos y Precios Unitarios ({alt.items?.length || 0} ítems)</span>
+                        </h5>
+                        <span className="text-[11px] font-mono font-bold text-emerald-400">
+                          Total: {formatCOP(totalCalculadoCop)}
+                        </span>
+                      </div>
+
+                      {(!alt.items || alt.items.length === 0) ? (
+                        <p className="text-xs text-slate-400 p-4 text-center italic">
+                          Aún no has agregado ítems cotizados. Utiliza el formulario abajo para ingresar productos con links de Homecenter, MercadoLibre, Starlink, etc.
+                        </p>
+                      ) : (
+                        <div className="overflow-x-auto">
+                          <table className="w-full text-left text-xs text-slate-300">
+                            <thead className="bg-slate-900 text-[10px] uppercase text-slate-400 font-extrabold tracking-wider">
+                              <tr>
+                                <th className="py-2 px-3 rounded-l-lg">Producto / Solución</th>
+                                <th className="py-2 px-2">Proveedor / Tienda</th>
+                                <th className="py-2 px-2 text-center">Cant.</th>
+                                <th className="py-2 px-2 text-right">Precio Unitario</th>
+                                <th className="py-2 px-2 text-right">Subtotal</th>
+                                <th className="py-2 px-2 text-center rounded-r-lg">Acción</th>
+                              </tr>
+                            </thead>
+                            <tbody className="divide-y divide-slate-800/60">
+                              {alt.items.map((it: any, itIdx: number) => {
+                                const subtotal = it.precio_unitario_cop * it.cantidad;
+                                return (
+                                  <tr key={it.id || itIdx} className="hover:bg-slate-900/60 transition-colors">
+                                    <td className="py-2.5 px-3">
+                                      <p className="font-bold text-white">{it.item}</p>
+                                      {it.descripcion && (
+                                        <p className="text-[10px] text-slate-400 truncate max-w-xs">{it.descripcion}</p>
+                                      )}
+                                    </td>
+                                    <td className="py-2.5 px-2">
+                                      <span className="text-cyan-300 font-semibold block">{it.proveedor}</span>
+                                      {it.enlace_compra && (
+                                        <a
+                                          href={it.enlace_compra}
+                                          target="_blank"
+                                          rel="noreferrer"
+                                          className="text-[10px] text-purple-300 hover:text-purple-200 underline inline-flex items-center gap-0.5"
+                                        >
+                                          <span>Ver Producto</span>
+                                          <ExternalLink className="w-2.5 h-2.5" />
+                                        </a>
+                                      )}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-center font-mono">
+                                      {it.cantidad} {it.unidad}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-right font-mono text-slate-300">
+                                      {formatCOP(it.precio_unitario_cop)}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-right font-mono font-bold text-emerald-400">
+                                      {formatCOP(subtotal)}
+                                    </td>
+                                    <td className="py-2.5 px-2 text-center">
+                                      <button
+                                        type="button"
+                                        onClick={() => handleEliminarItem(it.id)}
+                                        className="text-slate-500 hover:text-rose-400 transition-colors p-1 cursor-pointer"
+                                        title="Eliminar ítem"
+                                      >
+                                        <Trash2 className="w-3.5 h-3.5" />
+                                      </button>
+                                    </td>
+                                  </tr>
+                                );
+                              })}
+                            </tbody>
+                          </table>
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Formulario Interactivo para Agregar Ítems / Cotizaciones */}
+                    <form onSubmit={handleAgregarItemManual} className="bg-slate-950/90 rounded-2xl border border-purple-500/30 p-4 sm:p-5 space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-800 pb-2">
+                        <span className="text-xs font-black uppercase text-purple-300 flex items-center gap-1.5">
+                          <PlusCircle className="w-4 h-4 text-purple-400" /> Agregar Nuevo Ítem o Cotización Comercial
+                        </span>
+                        <span className="text-[10px] text-slate-400">
+                          Ingresa enlaces de MercadoLibre, Homecenter, Starlink o proveedores locales
+                        </span>
+                      </div>
+
+                      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                        <div className="sm:col-span-2">
+                          <label className="text-[10px] font-bold text-slate-400 block mb-1">Nombre del Producto / Solución</label>
+                          <input
+                            type="text"
+                            value={nuevoItemPractico.item}
+                            onChange={(e) => setNuevoItemPractico({ ...nuevoItemPractico, item: e.target.value })}
+                            placeholder="Ej: Generador Solar EcoFlow Delta 2, Antena Starlink, Módulos Placa Huella..."
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                            required
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400 block mb-1">Tienda / Proveedor</label>
+                          <input
+                            type="text"
+                            value={nuevoItemPractico.proveedor}
+                            onChange={(e) => setNuevoItemPractico({ ...nuevoItemPractico, proveedor: e.target.value })}
+                            placeholder="Ej: Homecenter Colombia, MercadoLibre, Starlink.com..."
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                            required
+                          />
+                        </div>
+
+                        <div className="sm:col-span-2">
+                          <label className="text-[10px] font-bold text-slate-400 block mb-1">Enlace Web del Producto (URL)</label>
+                          <input
+                            type="url"
+                            value={nuevoItemPractico.enlace_compra}
+                            onChange={(e) => setNuevoItemPractico({ ...nuevoItemPractico, enlace_compra: e.target.value })}
+                            placeholder="https://www.homecenter.com.co/... o https://articulo.mercadolibre.com.co/..."
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white placeholder-slate-500 focus:outline-none focus:border-purple-500"
+                          />
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400 block mb-1">Cantidad & Unidad</label>
+                          <div className="flex gap-2">
+                            <input
+                              type="number"
+                              min="1"
+                              value={nuevoItemPractico.cantidad}
+                              onChange={(e) => setNuevoItemPractico({ ...nuevoItemPractico, cantidad: Math.max(1, parseInt(e.target.value) || 1) })}
+                              className="w-20 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white text-center focus:outline-none focus:border-purple-500"
+                              required
+                            />
+                            <input
+                              type="text"
+                              value={nuevoItemPractico.unidad}
+                              onChange={(e) => setNuevoItemPractico({ ...nuevoItemPractico, unidad: e.target.value })}
+                              placeholder="Ej: Kits, Metros..."
+                              className="flex-1 bg-slate-900 border border-slate-700 rounded-xl px-2.5 py-2 text-xs text-white focus:outline-none focus:border-purple-500"
+                            />
+                          </div>
+                        </div>
+
+                        <div>
+                          <label className="text-[10px] font-bold text-slate-400 block mb-1">Precio Unitario (COP)</label>
+                          <input
+                            type="number"
+                            min="0"
+                            step="1000"
+                            value={nuevoItemPractico.precio_unitario_cop || ''}
+                            onChange={(e) => setNuevoItemPractico({ ...nuevoItemPractico, precio_unitario_cop: parseFloat(e.target.value) || 0 })}
+                            placeholder="Ej: 1350000"
+                            className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white font-mono focus:outline-none focus:border-purple-500"
+                            required
+                          />
+                        </div>
+
+                        <div className="flex items-end sm:col-span-2 lg:col-span-2">
+                          <button
+                            type="submit"
+                            className="w-full py-2.5 bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-black text-xs rounded-xl shadow-lg shadow-purple-950/50 flex items-center justify-center gap-2 cursor-pointer transition-all"
+                          >
+                            <PlusCircle className="w-4 h-4" />
+                            <span>+ Agregar Ítem a la Alternativa Práctica</span>
+                          </button>
+                        </div>
+                      </div>
+                    </form>
+
+                    {/* Botón para Guardar Cambios en la Base de Datos */}
+                    <div className="flex items-center justify-between pt-2 border-t border-slate-800">
+                      <span className="text-[11px] text-slate-400">
+                        Los ítems y cotizaciones agregadas se sincronizan automáticamente con el expediente del proyecto.
+                      </span>
+                      <button
+                        type="button"
+                        onClick={handleSaveProjectChanges}
+                        disabled={isSavingProject}
+                        className="px-5 py-2.5 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-black text-xs rounded-xl flex items-center gap-2 shadow-md cursor-pointer transition-all"
+                      >
+                        <Save className="w-4 h-4" />
+                        <span>{isSavingProject ? 'Guardando en Supabase...' : 'Guardar Cotizaciones 💾'}</span>
+                      </button>
+                    </div>
+
+                  </div>
+                );
+              })()}
 
               {/* PESTAÑA 5: DOSSIER EJECUTIVO PARA PRESIDENCIA (IMPRIMIBLE / PDF) */}
               {projectWorkTab === 'dossier' && (
