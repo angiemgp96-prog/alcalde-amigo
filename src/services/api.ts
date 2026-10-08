@@ -15,6 +15,9 @@ const LOCAL_STORAGE_PLAN = 'alcalde_amigo_plan';
 const LOCAL_STORAGE_MESSAGES = 'alcalde_amigo_messages';
 const LOCAL_STORAGE_SUPABASE_CONFIG = 'alcalde_amigo_supabase_cfg';
 
+const DEFAULT_SUPABASE_URL = 'https://nfisbtgeuwfvorlwjcyb.supabase.co';
+const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5maXNidGdldXdmdm9ybHdqY3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMjIzNjIsImV4cCI6MjEwNjc5ODM2Mn0.pbHoVQhO5Gp0YXgCck8qNDGt43gMK_EbhFZxnbd_pxQ';
+
 let supabaseClient: SupabaseClient | null = null;
 
 // Inicializa Supabase si existen credenciales
@@ -36,8 +39,8 @@ export function initSupabase(url: string, anonKey: string): boolean {
 
 export function getSupabaseClient(): SupabaseClient | null {
   if (!supabaseClient) {
-    const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
-    const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
+    const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+    const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
     if (envUrl && envKey) {
       initSupabase(envUrl, envKey);
     }
@@ -45,10 +48,9 @@ export function getSupabaseClient(): SupabaseClient | null {
   return supabaseClient;
 }
 
-// PURGA AUTOMÁTICA DE DATOS FANTASMA EN LOCALSTORAGE
+// PURGA AUTOMÁTICA DE DATOS FANTASMA EN LOCALSTORAGE (Preserva la identidad del ciudadano)
 export function purgePhantomLocalStorageCache(): void {
   try {
-    localStorage.removeItem(LOCAL_STORAGE_LEADS);
     localStorage.removeItem(LOCAL_STORAGE_NEEDS);
     localStorage.removeItem('alcalde_amigo_ramitos_memory');
     localStorage.removeItem(LOCAL_STORAGE_MESSAGES);
@@ -60,12 +62,9 @@ export function purgePhantomLocalStorageCache(): void {
 
 // Carga configuración previa de Supabase desde variables de entorno o LocalStorage
 export function getSavedSupabaseConfig(): { url: string; anonKey: string; isConnected: boolean } {
-  // Purga automática de caché fantasma local en cada inicio
-  purgePhantomLocalStorageCache();
-
-  // 1. Intentar desde variables de entorno VITE_
-  const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL;
-  const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY;
+  // 1. Intentar desde variables de entorno VITE_ o credenciales oficiales por defecto
+  const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
+  const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
   if (envUrl && envKey) {
     const ok = initSupabase(envUrl, envKey);
     if (ok) return { url: envUrl, anonKey: envKey, isConnected: true };
@@ -84,7 +83,7 @@ export function getSavedSupabaseConfig(): { url: string; anonKey: string; isConn
   } catch (e) {
     console.warn('No hay configuración guardada de Supabase.');
   }
-  return { url: '', anonKey: '', isConnected: false };
+  return { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY, isConnected: true };
 }
 
 // -------------------------------------------------------------
