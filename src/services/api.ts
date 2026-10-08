@@ -413,6 +413,24 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
         }
       }
 
+      // 3. Si aún no hay datos y el lead registrado es Iván Alvarado (o lead de este municipio), consultar sus interacciones por nombre
+      if (!data || data.length === 0) {
+        const leadCheck = await checkUserLeadRegistrationInSupabase(targetDeviceId);
+        if (leadCheck.isRegistered && leadCheck.nombre) {
+          let leadQuery = client
+            .from('interacciones_conversaciones_ramitos')
+            .select('mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion')
+            .ilike('nombre_ciudadano', `%${leadCheck.nombre}%`);
+          if (munId) {
+            leadQuery = leadQuery.eq('municipio_id', munId);
+          }
+          const leadRes = await leadQuery.order('fecha_interaccion', { ascending: true }).limit(40);
+          if (leadRes.data && leadRes.data.length > 0) {
+            data = leadRes.data;
+          }
+        }
+      }
+
       if (data && data.length > 0) {
         const parsed = data.map((item: any) => ({
           userText: item.mensaje_textual_ciudadano,
