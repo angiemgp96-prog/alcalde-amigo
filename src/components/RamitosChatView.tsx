@@ -67,15 +67,35 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   });
   const [savedKeySuccess, setSavedKeySuccess] = useState(false);
 
-  // Actualizar saludo e historial dinámicamente al cambiar de municipio
+  // Actualizar saludo e historial dinámicamente al cambiar de municipio (Carga instantánea de prioridad)
   useEffect(() => {
     const greeting = munData.saludoInicial;
+    setSelectedVereda('');
+
+    // Prioridad 1: Carga instantánea desde caché local para este municipio (0ms)
+    try {
+      const localKey = `ialcaldia_chat_history_v2_${municipioId}`;
+      const raw = localStorage.getItem(localKey);
+      if (raw) {
+        const cached = JSON.parse(raw);
+        if (Array.isArray(cached) && cached.length > 0) {
+          setHistory(cached);
+          const lastRamitos = [...cached].reverse().find(c => c.sender === 'ramitos');
+          if (lastRamitos) {
+            setCurrentResponse(lastRamitos.text);
+            setDisplayedResponse(lastRamitos.text);
+          }
+          return;
+        }
+      }
+    } catch (e) {}
+
+    // Si es un nuevo usuario o no hay historial para este municipio:
     setCurrentResponse(greeting);
     setDisplayedResponse(greeting);
     setHistory([
       { sender: 'ramitos', text: greeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
     ]);
-    setSelectedVereda('');
   }, [municipioId]);
 
   // PERMISOS DE AUDIO Y MICRÓFONO CON INTERACCIÓN GESTUAL
@@ -304,9 +324,6 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   };
 
   useEffect(() => {
-    // Purga automática de caché local fantasma en cada inicio
-    purgePhantomLocalStorageCache();
-
     // CARGA AUTOMÁTICA EN TIEMPO REAL DEL HISTORIAL COMPLETO DE SUPABASE AISLADO POR MUNICIPIO
     const loadPastHistoryFromSupabase = async () => {
       isHistoryLoadedRef.current = false;

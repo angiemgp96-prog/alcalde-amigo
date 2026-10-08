@@ -368,6 +368,25 @@ export async function saveRamitosMemory(memory: Omit<RamitosMemoryConclusion, 'i
 // -------------------------------------------------------------
 // RECUPERACIÓN DE HISTORIAL COMPLETO DE DIÁLOGOS POR DISPOSITIVO E IP
 // -------------------------------------------------------------
+// CACHÉ EN MEMORIA PARA ACCESO INSTANTÁNEO ULTRA-RÁPIDO (0ms)
+// -------------------------------------------------------------
+const memoryHistoryCache: Record<string, PastUserInteraction[]> = {};
+let memoryLeadCache: { isRegistered: boolean; nombre?: string; whatsapp?: string } | null = null;
+
+export function getCachedLeadInfo(): { isRegistered: boolean; nombre?: string; whatsapp?: string } | null {
+  if (memoryLeadCache) return memoryLeadCache;
+  const local = getUserLeadInfo();
+  if (local && local.nombre && local.whatsapp) {
+    memoryLeadCache = { isRegistered: true, nombre: local.nombre, whatsapp: local.whatsapp };
+    return memoryLeadCache;
+  }
+  return null;
+}
+
+export function setCachedLeadInfo(info: { isRegistered: boolean; nombre?: string; whatsapp?: string }) {
+  memoryLeadCache = info;
+}
+
 export interface PastUserInteraction {
   userText: string;
   ramitosResponse: string;
@@ -376,54 +395,37 @@ export interface PastUserInteraction {
 
 export async function getPastInteractionsHistory(deviceId?: string, municipioId?: 'guaduas' | 'caparrapi' | string): Promise<PastUserInteraction[]> {
   const munId = municipioId || 'caparrapi';
-  const targetDeviceId = deviceId || getDeviceId();
   const client = supabaseClient || getSupabaseClient();
+
+  // Si ya tenemos en memoria RAM para este municipio, devolverlo de inmediato (0ms)
+  if (memoryHistoryCache[munId] && memoryHistoryCache[munId].length > 0) {
+    return memoryHistoryCache[munId];
+  }
 
   if (client) {
     try {
-      // 1. Consultar por device_id en este municipio
-      let { data, error } = await client
+      // Consultar estrictamente las interacciones reales del municipio (nunca mezclar municipios)
+      const { data, error } = await client
         .from('interacciones_conversaciones_ramitos')
-        .select('mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion')
+        .select('id, mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion, device_id')
         .eq('municipio_id', munId)
-        .eq('device_id', targetDeviceId)
         .neq('mensaje_textual_ciudadano', 'Prueba de guardado')
         .order('fecha_interaccion', { ascending: true })
-        .limit(40);
+        .limit(50);
 
-      // 2. Si no hay por device_id (nuevo dispositivo o borró caché), consultar directamente las interacciones del municipio
-      if (!data || data.length === 0) {
-        const { data: allMunData } = await client
-          .from('interacciones_conversaciones_ramitos')
-          .select('id, mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion')
-          .eq('municipio_id', munId)
-          .neq('mensaje_textual_ciudadano', 'Prueba de guardado')
-          .order('fecha_interaccion', { ascending: true })
-          .limit(40);
-
-        if (allMunData && allMunData.length > 0) {
-          data = allMunData;
-          // Vincular de inmediato el device_id actual para que las siguientes consultas sean directas
-          client
-            .from('interacciones_conversaciones_ramitos')
-            .update({ device_id: targetDeviceId })
-            .eq('municipio_id', munId)
-            .is('device_id', null)
-            .then(() => {});
-        }
-      }
-
-      if (data && data.length > 0) {
-        const parsed = data.map((item: any) => ({
+      if (!error && data && data.length > 0) {
+        const parsed: PastUserInteraction[] = data.map((item: any) => ({
           userText: item.mensaje_textual_ciudadano,
           ramitosResponse: item.respuesta_limpia_ramitos,
           timestamp: item.fecha_interaccion
         }));
 
+        memoryHistoryCache[munId] = parsed;
+
         // Actualizar el caché local con los datos reales de Supabase
         try {
           const key = `ialcaldia_chat_history_v2_${munId}`;
-          const formattedForLocal = [];
+          const formattedForLocal: Array<{ sender: 'user' | 'ramitos'; text: string; time: string; timestamp?: string }> = [];
           for (const item of parsed) {
             const timeStr = item.timestamp
               ? new Date(item.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -437,7 +439,7 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
         return parsed;
       }
     } catch (err) {
-      console.warn('Error obteniendo historial completo de interacciones:', err);
+      console.warn('Error obteniendo historial de interacciones:', err);
     }
   }
 
@@ -634,6 +636,12 @@ export async function purgeAndReplaceTermInSupabaseHistory(
 // VERIFICACIÓN DIRECTA DE REGISTRO DE LEAD EN SUPABASE POR IP/DISPOSITIVO
 // -------------------------------------------------------------
 export async function checkUserLeadRegistrationInSupabase(deviceId?: string, ipAddress?: string): Promise<{ isRegistered: boolean; nombre?: string; whatsapp?: string }> {
+  // 0. Si ya tenemos en memoria o local, devolverlo al instante (0ms) sin bloquear la red
+  const fastCached = getCachedLeadInfo();
+  if (fastCached && fastCached.isRegistered && fastCached.nombre) {
+    return fastCached;
+  }
+
   const targetDeviceId = deviceId || getDeviceId();
   const targetIp = ipAddress || await getClientIpAddress();
   const client = supabaseClient || getSupabaseClient();
@@ -712,7 +720,9 @@ export async function checkUserLeadRegistrationInSupabase(deviceId?: string, ipA
           }
         } catch (e) {}
 
-        return { isRegistered: true, nombre: cleanedName, whatsapp: data.whatsapp };
+        const result = { isRegistered: true, nombre: cleanedName, whatsapp: data.whatsapp };
+        setCachedLeadInfo(result);
+        return result;
       }
     } catch (err) {
       console.warn('Error consultando registro de lead en Supabase:', err);

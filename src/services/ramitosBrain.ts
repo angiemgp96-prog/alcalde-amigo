@@ -6,6 +6,7 @@ import {
   getBaseProposals, 
   checkUserLeadRegistrationInSupabase, 
   getUserLeadInfo,
+  getCachedLeadInfo,
   saveCitizenLead, 
   updateUserLeadInSupabase, 
   purgeAndReplaceTermInSupabaseHistory,
@@ -368,12 +369,24 @@ export async function processRamitosConversationAsync(
     };
   }
 
-  // 1. CONSULTA EN TIEMPO REAL A SUPABASE EN PARALELO (BAJA LATENCIA, CONCURRENTE)
-  const [leadCheck, pastInteractions, savedMemory] = await Promise.all([
-    checkUserLeadRegistrationInSupabase().catch(() => ({ isRegistered: false, nombre: undefined, whatsapp: undefined })),
-    getPastInteractionsHistory(undefined, municipioId).catch(() => []),
-    getRamitosMemory().catch(() => null)
-  ]);
+  // 1. DETECCIÓN INSTANTÁNEA (0ms) DE USUARIO NUEVO VS USUARIO RECURRENTE
+  // Si ya tenemos en memoria que el usuario está registrado, usarlo directamente sin esperar a la red
+  let leadCheck = getCachedLeadInfo() || { isRegistered: false, nombre: undefined, whatsapp: undefined };
+  let pastInteractions: any[] = [];
+  let savedMemory: any = null;
+
+  if (!leadCheck.isRegistered && !isUserRegistered) {
+    // Si es un usuario nuevo (sin historial previo), pasar directo a la IA sin latencia de red
+    const isBrandNewSession = (!history || history.length <= 1);
+    if (!isBrandNewSession) {
+      leadCheck = await checkUserLeadRegistrationInSupabase().catch(() => ({ isRegistered: false, nombre: undefined, whatsapp: undefined }));
+    }
+  } else if (!leadCheck.nombre) {
+    leadCheck = await checkUserLeadRegistrationInSupabase().catch(() => ({ isRegistered: false, nombre: undefined, whatsapp: undefined }));
+  }
+
+  // Interacciones previas desde caché de memoria o Supabase
+  pastInteractions = await getPastInteractionsHistory(undefined, municipioId).catch(() => []);
 
   // EXTRACCIÓN DE INFORMACIÓN DE CONTACTO DEL MENSAJE ACTUAL DE ESTA INTERACCIÓN
   const newlyExtractedInInput = extractLeadInfoFromText(userInput);
@@ -632,16 +645,19 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
 
   const effectiveVereda = detectedLocation || currentVereda || 'Por definir';
 
-  // 1. PRIORIDAD 1: GROQ CLOUD
+  // 1. PRIORIDAD 1: GROQ CLOUD ULTRA-RÁPIDO (< 400ms)
   const groqKey = activeGroqKey || DEFAULT_GROQ_KEY;
   if (groqKey.trim()) {
     const groqModels = [
-      'qwen/qwen3.8-27b', // Ultra rápida (~296ms) y altamente precisa
+      'qwen/qwen3.8-27b', // Ultra rápida (~300ms) y altamente precisa
       'openai/gpt-oss-120b',
       'openai/gpt-oss-20b'
     ];
     for (const model of groqModels) {
       try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 4000);
+
         const groqRes = await fetch('https://api.groq.com/openai/v1/chat/completions', {
           method: 'POST',
           headers: {
@@ -657,8 +673,10 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
             ],
             temperature: 0.6,
             max_tokens: 300
-          })
+          }),
+          signal: controller.signal
         });
+        clearTimeout(timeoutId);
 
         if (groqRes.ok) {
           const data = await groqRes.json();
@@ -667,24 +685,24 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
             finalResponse = buildResponseObject(groqText, textLower, effectiveVereda, userInput, effectiveIsRegistered);
             break;
           }
-        } else {
-          const errData = await groqRes.json().catch(() => null);
-          console.warn(`Groq ${model} falló (${groqRes.status}):`, errData);
         }
       } catch (e) {
-        console.warn(`Error en Groq ${model}:`, e);
+        // Fallback inmediato al siguiente modelo sin bloquear
       }
     }
   }
 
-  // 2. PRIORIDAD 2: GOOGLE GEMINI
+  // 2. PRIORIDAD 2: GOOGLE GEMINI (SI GROQ NO RESPONDIÓ)
   if (!finalResponse) {
     const geminiKey = activeGeminiKey || DEFAULT_GEMINI_KEY;
     if (geminiKey.trim()) {
-      const geminiModels = ['gemini-1.5-flash', 'gemini-1.5-pro', 'gemini-2.0-flash'];
+      const geminiModels = ['gemini-1.5-flash', 'gemini-2.0-flash', 'gemini-1.5-pro'];
 
       for (const model of geminiModels) {
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 3500);
+
           const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${geminiKey.trim()}`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -696,8 +714,10 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
                   parts: [{ text: `${systemPromptWithContext}\n\nMensaje actual del ciudadano: "${userInput}"` }]
                 }
               ]
-            })
+            }),
+            signal: controller.signal
           });
+          clearTimeout(timeoutId);
 
           if (response.ok) {
             const data = await response.json();
@@ -707,9 +727,7 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
               break;
             }
           }
-        } catch (err) {
-          console.warn(`Error en Gemini ${model}:`, err);
-        }
+        } catch (err) {}
       }
     }
   }
@@ -719,14 +737,16 @@ SI EL CIUDADANO PIDE UN RESUMEN O RETOMA EL TEMA: Cita la última conclusión al
     finalResponse = buildLocalFallbackResponse(textLower, effectiveVereda, userInput, savedMemory, municipioId);
   }
 
-  // GUARDAR / ACTUALIZAR MEMORIA HISTÓRICA EN SUPABASE DE FORMA ASÍNCRONA
+  // GUARDAR / ACTUALIZAR MEMORIA HISTÓRICA EN SEGUNDO PLANO (NO BLOQUEA LA RESPUESTA EN PANTALLA)
   const sector = finalResponse.sector || detectSector(textLower) || 'Co-creación Cívica';
-  saveRamitosMemory({
-    deviceId: getDeviceId(),
-    temaPrincipal: sector,
-    resumenContexto: `Diálogo sobre ${sector} en la vereda/zona ${effectiveVereda}. Inquietud expresada: "${userInput.substring(0, 100)}"`,
-    ultimaConclusion: finalResponse.textoRespuesta.substring(0, 180)
-  });
+  try {
+    saveRamitosMemory({
+      deviceId: getDeviceId(),
+      temaPrincipal: sector,
+      resumenContexto: `Diálogo sobre ${sector} en la vereda/zona ${effectiveVereda}. Inquietud expresada: "${userInput.substring(0, 100)}"`,
+      ultimaConclusion: finalResponse.textoRespuesta.substring(0, 180)
+    }).catch(() => {});
+  } catch (e) {}
 
   return finalResponse;
 }
