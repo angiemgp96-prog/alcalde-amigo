@@ -212,8 +212,8 @@ export async function saveRamitosInteractionLog(log: RamitosInteractionLog): Pro
 
   // Buscar información de lead previa si no viene dada
   const savedLead = getUserLeadInfo();
-  const nombreFinal = log.nombreCiudadano || savedLead?.nombre || 'Iván Alvarado';
-  const whatsappFinal = log.whatsappCiudadano || savedLead?.whatsapp || '3225822027';
+  const nombreFinal = log.nombreCiudadano || savedLead?.nombre || null;
+  const whatsappFinal = log.whatsappCiudadano || savedLead?.whatsapp || null;
 
   // 1. Guardar de inmediato en LocalStorage
   try {
@@ -387,8 +387,10 @@ export interface PastUserInteraction {
 export async function getPastInteractionsHistory(deviceId?: string, municipioId?: 'guaduas' | 'caparrapi' | string): Promise<PastUserInteraction[]> {
   const munId = municipioId || 'caparrapi';
   const client = supabaseClient || getSupabaseClient();
-  const category = getDeviceCategory(); // 'mobile' | 'desktop'
-  const memKey = `${munId}_${category}`;
+  const currentDeviceId = deviceId || getDeviceId();
+  const memKey = `${munId}_${currentDeviceId}`;
+  const localHistoryKey = `ialcaldia_chat_history_v2_${munId}`;
+  const hasLocalInteractions = typeof localStorage !== 'undefined' && Boolean(localStorage.getItem(localHistoryKey));
 
   // Si ya tenemos en memoria RAM para este municipio y dispositivo, devolverlo de inmediato (0ms)
   if (memoryHistoryCache[memKey] && memoryHistoryCache[memKey].length > 0) {
@@ -404,15 +406,16 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
         .eq('municipio_id', munId)
         .neq('mensaje_textual_ciudadano', 'Prueba de guardado');
 
-      // Separación estricta por huella de dispositivo para que Celular y Portátil tengan sus propios hilos
-      if (munId === 'caparrapi') {
-        if (category === 'mobile') {
-          // En Celular: la conversación de San Pablo (placa huella después del puente)
-          query = query.or('device_id.eq.device-mobile-caparrapi,mensaje_textual_ciudadano.ilike.%san pablo%,mensaje_textual_ciudadano.ilike.%placa huella%');
-        } else {
-          // En Portátil: la conversación de San Carlos (conectividad Starlink e identificación)
-          query = query.or('device_id.eq.device-desktop-caparrapi,mensaje_textual_ciudadano.ilike.%san carlos%,mensaje_textual_ciudadano.ilike.%conectividad%,mensaje_textual_ciudadano.ilike.%alvarado%');
-        }
+      // Si este dispositivo ya tenía sesión previa de Iván en este navegador:
+      if (currentDeviceId === 'device-desktop-caparrapi' || currentDeviceId === 'device-mobile-caparrapi') {
+        query = query.eq('device_id', currentDeviceId);
+      } else if (hasLocalInteractions) {
+        const category = getDeviceCategory();
+        const legacyId = category === 'mobile' ? 'device-mobile-caparrapi' : 'device-desktop-caparrapi';
+        query = query.or('device_id.eq.' + currentDeviceId + ',device_id.eq.' + legacyId);
+      } else {
+        // DISPOSITIVO TOTALMENTE NUEVO: buscar estrictamente por su propio ID nuevo (devuelve 0 filas)
+        query = query.eq('device_id', currentDeviceId);
       }
 
       const { data, error } = await query
@@ -430,7 +433,6 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
 
         // Actualizar el caché local con los datos reales de Supabase para este dispositivo
         try {
-          const key = `ialcaldia_chat_history_v2_${munId}`;
           const formattedForLocal: Array<{ sender: 'user' | 'ramitos'; text: string; time: string; timestamp?: string }> = [];
           for (const item of parsed) {
             const timeStr = item.timestamp
@@ -439,7 +441,7 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
             formattedForLocal.push({ sender: 'user', text: item.userText, time: timeStr, timestamp: item.timestamp });
             formattedForLocal.push({ sender: 'ramitos', text: item.ramitosResponse, time: timeStr, timestamp: item.timestamp });
           }
-          localStorage.setItem(key, JSON.stringify(formattedForLocal));
+          localStorage.setItem(localHistoryKey, JSON.stringify(formattedForLocal));
         } catch (e) {}
 
         return parsed;
@@ -449,26 +451,28 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
     }
   }
 
-  // Fallback garantizado desde LocalStorage si Supabase está cargando o offline
-  try {
-    const raw = localStorage.getItem(`ialcaldia_chat_history_v2_${munId}`);
-    if (raw) {
-      const list = JSON.parse(raw);
-      const res: PastUserInteraction[] = [];
-      for (let i = 0; i < list.length; i += 2) {
-        const u = list[i];
-        const r = list[i + 1];
-        if (u && r) {
-          res.push({
-            userText: u.text,
-            ramitosResponse: r.text,
-            timestamp: u.timestamp || new Date().toISOString()
-          });
+  // Fallback desde LocalStorage SOLO si este navegador tiene historial previo
+  if (hasLocalInteractions) {
+    try {
+      const raw = localStorage.getItem(localHistoryKey);
+      if (raw) {
+        const list = JSON.parse(raw);
+        const res: PastUserInteraction[] = [];
+        for (let i = 0; i < list.length; i += 2) {
+          const u = list[i];
+          const r = list[i + 1];
+          if (u && r) {
+            res.push({
+              userText: u.text,
+              ramitosResponse: r.text,
+              timestamp: u.timestamp || new Date().toISOString()
+            });
+          }
         }
+        return res;
       }
-      return res;
-    }
-  } catch (e) {}
+    } catch (e) {}
+  }
 
   return [];
 }
@@ -641,7 +645,7 @@ export async function purgeAndReplaceTermInSupabaseHistory(
 // -------------------------------------------------------------
 // VERIFICACIÓN DIRECTA DE REGISTRO DE LEAD EN SUPABASE POR IP/DISPOSITIVO
 // -------------------------------------------------------------
-export async function checkUserLeadRegistrationInSupabase(deviceId?: string, ipAddress?: string): Promise<{ isRegistered: boolean; nombre?: string; whatsapp?: string }> {
+export async function checkUserLeadRegistrationInSupabase(deviceId?: string): Promise<{ isRegistered: boolean; nombre?: string; whatsapp?: string }> {
   // 0. Si ya tenemos en memoria o local, devolverlo al instante (0ms) sin bloquear la red
   const fastCached = getCachedLeadInfo();
   if (fastCached && fastCached.isRegistered && fastCached.nombre) {
@@ -649,86 +653,80 @@ export async function checkUserLeadRegistrationInSupabase(deviceId?: string, ipA
   }
 
   const targetDeviceId = deviceId || getDeviceId();
-  const targetIp = ipAddress || await getClientIpAddress();
   const client = supabaseClient || getSupabaseClient();
+  const munId = 'caparrapi';
+  const hasLocalInteractions = typeof localStorage !== 'undefined' && Boolean(localStorage.getItem(`ialcaldia_chat_history_v2_${munId}`));
 
   if (client) {
     try {
-      // 1. Consultar por device_id en ciudadanos_leads
+      // 1. Consultar estrictamente por device_id en ciudadanos_leads
       let { data } = await client
         .from('ciudadanos_leads')
         .select('nombre, whatsapp, vereda_barrio')
         .eq('device_id', targetDeviceId)
         .maybeSingle();
 
-      // 2. Consultar por ip_address si no se encuentra por device_id
-      if (!data && targetIp) {
-        const resIp = await client
-          .from('ciudadanos_leads')
-          .select('nombre, whatsapp, vereda_barrio')
-          .eq('ip_address', targetIp)
-          .limit(1);
-        if (resIp.data && resIp.data.length > 0) data = resIp.data[0];
-      }
-
-      // 3. Fallback en interacciones_conversaciones_ramitos
-      if (!data) {
-        let intQuery = client
+      // 2. Si este dispositivo físico ya tenía sesión previa de Iván en este navegador:
+      if (!data && hasLocalInteractions) {
+        const category = getDeviceCategory();
+        const legacyId = category === 'mobile' ? 'device-mobile-caparrapi' : 'device-desktop-caparrapi';
+        const resInt = await client
           .from('interacciones_conversaciones_ramitos')
           .select('nombre_ciudadano, whatsapp_ciudadano')
-          .not('whatsapp_ciudadano', 'is', null);
+          .or(`device_id.eq.${targetDeviceId},device_id.eq.${legacyId}`)
+          .not('nombre_ciudadano', 'is', null)
+          .order('fecha_interaccion', { ascending: false })
+          .limit(1);
 
-        if (targetIp) {
-          intQuery = intQuery.eq('ip_address', targetIp);
-        }
-
-        const resInt = await intQuery.order('fecha_interaccion', { ascending: false }).limit(1);
-        if (resInt.data && resInt.data.length > 0) {
+        if (resInt.data && resInt.data.length > 0 && resInt.data[0].nombre_ciudadano) {
           data = {
-            nombre: resInt.data[0].nombre_ciudadano || 'Iván Alvarado',
-            whatsapp: resInt.data[0].whatsapp_ciudadano,
-            vereda_barrio: 'San Carlos'
+            nombre: resInt.data[0].nombre_ciudadano,
+            whatsapp: resInt.data[0].whatsapp_ciudadano || '',
+            vereda_barrio: ''
+          };
+        }
+      } else if (!data) {
+        // Dispositivo nuevo sin historial: buscar estrictamente por su propio device_id
+        const resInt = await client
+          .from('interacciones_conversaciones_ramitos')
+          .select('nombre_ciudadano, whatsapp_ciudadano')
+          .eq('device_id', targetDeviceId)
+          .not('nombre_ciudadano', 'is', null)
+          .order('fecha_interaccion', { ascending: false })
+          .limit(1);
+
+        if (resInt.data && resInt.data.length > 0 && resInt.data[0].nombre_ciudadano) {
+          data = {
+            nombre: resInt.data[0].nombre_ciudadano,
+            whatsapp: resInt.data[0].whatsapp_ciudadano || '',
+            vereda_barrio: ''
           };
         }
       }
 
-      // 4. Fallback directo a ciudadanos_leads para garantizar reconocimiento de Iván Alvarado
-      if (!data) {
-        const resLead = await client
-          .from('ciudadanos_leads')
-          .select('nombre, whatsapp, vereda_barrio')
-          .order('fecha_registro', { ascending: false })
-          .limit(1);
-        if (resLead.data && resLead.data.length > 0) {
-          data = resLead.data[0];
-        }
-      }
-
-      if (data && data.whatsapp && data.whatsapp.length > 5) {
+      if (data && data.nombre) {
         let cleanedName = cleanHumanName(data.nombre);
-        if (!cleanedName || cleanedName === 'Yo Mi' || cleanedName.startsWith('herramientas')) {
-          cleanedName = 'Iván Alvarado';
+        if (cleanedName && cleanedName.length > 1 && !['estas', 'estás', 'hola', 'buenas', 'yo', 'mi', 'ciudadano'].includes(cleanedName.toLowerCase())) {
+          // Sincronizar en memoria local para acceso sincrónico instantáneo
+          try {
+            const cachedLeads: CitizenLead[] = getCitizenLeads();
+            if (data.whatsapp && !cachedLeads.some(l => l.whatsapp === data.whatsapp)) {
+              cachedLeads.unshift({
+                id: 'lead-synced',
+                nombre: cleanedName,
+                whatsapp: data.whatsapp,
+                veredaBarrio: data.vereda_barrio || '',
+                fechaRegistro: new Date().toISOString(),
+                estadoNotificacion: 'activo'
+              });
+              localStorage.setItem(LOCAL_STORAGE_LEADS, JSON.stringify(cachedLeads));
+            }
+          } catch (e) {}
+
+          const result = { isRegistered: true, nombre: cleanedName, whatsapp: data.whatsapp || undefined };
+          setCachedLeadInfo(result);
+          return result;
         }
-
-        // Sincronizar en memoria local para acceso sincrónico instantáneo
-        try {
-          const cachedLeads: CitizenLead[] = getCitizenLeads();
-          if (!cachedLeads.some(l => l.whatsapp === data.whatsapp)) {
-            cachedLeads.unshift({
-              id: 'lead-synced',
-              nombre: cleanedName,
-              whatsapp: data.whatsapp,
-              veredaBarrio: data.vereda_barrio || 'San Carlos',
-              fechaRegistro: new Date().toISOString(),
-              estadoNotificacion: 'activo'
-            });
-            localStorage.setItem(LOCAL_STORAGE_LEADS, JSON.stringify(cachedLeads));
-          }
-        } catch (e) {}
-
-        const result = { isRegistered: true, nombre: cleanedName, whatsapp: data.whatsapp };
-        setCachedLeadInfo(result);
-        return result;
       }
     } catch (err) {
       console.warn('Error consultando registro de lead en Supabase:', err);

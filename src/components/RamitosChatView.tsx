@@ -35,7 +35,13 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   const [currentSynthesis, setCurrentSynthesis] = useState<any>(null);
   const [currentExpresion, setCurrentExpresion] = useState<RamitosChatResponse['expresion']>('feliz');
   const [useCustomAssetFailed, setUseCustomAssetFailed] = useState(false);
-  const [displayedResponse, setDisplayedResponse] = useState(FIRST_INTERACTION_GREETING);
+  const currentResponseRef = useRef<string>(FIRST_INTERACTION_GREETING);
+  const [displayedResponse, setDisplayedResponse] = useState<string>(() => {
+    if (typeof window !== 'undefined' && localStorage.getItem('ramitos_audio_activated') === 'true') {
+      return FIRST_INTERACTION_GREETING;
+    }
+    return '';
+  });
   const [copied, setCopied] = useState(false);
   const [copiedHistory, setCopiedHistory] = useState(false);
 
@@ -71,6 +77,9 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
   useEffect(() => {
     const greeting = munData.saludoInicial;
     setSelectedVereda('');
+    currentResponseRef.current = greeting;
+
+    const hasAudioPerm = typeof window !== 'undefined' && localStorage.getItem('ramitos_audio_activated') === 'true';
 
     // Prioridad 1: Carga instantánea desde caché local para este municipio (0ms)
     try {
@@ -83,7 +92,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           const lastRamitos = [...cached].reverse().find(c => c.sender === 'ramitos');
           if (lastRamitos) {
             setCurrentResponse(lastRamitos.text);
-            setDisplayedResponse(lastRamitos.text);
+            currentResponseRef.current = lastRamitos.text;
+            if (hasAudioPerm) {
+              setDisplayedResponse(lastRamitos.text);
+            } else {
+              setDisplayedResponse('');
+            }
           }
           return;
         }
@@ -92,7 +106,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
     // Si es un nuevo usuario o no hay historial para este municipio:
     setCurrentResponse(greeting);
-    setDisplayedResponse(greeting);
+    currentResponseRef.current = greeting;
+    if (hasAudioPerm) {
+      setDisplayedResponse(greeting);
+    } else {
+      setDisplayedResponse('');
+    }
     setHistory([
       { sender: 'ramitos', text: greeting, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
     ]);
@@ -130,13 +149,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     setIsAudioPermissionGranted(true);
     setShowPermissionModal(false);
 
-    // Solo iniciar saludo si el historial ya terminó de cargarse; si todavía está consultando Supabase,
-    // loadPastHistoryFromSupabase lo iniciará directamente evitando saludar genéricamente y luego interrumpirse.
-    if (isHistoryLoadedRef.current) {
-      setTimeout(() => {
-        speakRamitosVoice(currentResponse, true);
-      }, 150);
-    }
+    // Con los permisos concedidos, iniciar de inmediato la bienvenida: voz clara y escritura sincronizada desde 0
+    setTimeout(() => {
+      const textToSpeak = currentResponseRef.current || currentResponse || munData.saludoInicial;
+      setDisplayedResponse('');
+      speakRamitosVoice(textToSpeak, true);
+    }, 200);
   };
 
   // REFS PARA AUDIOS Y NUDGE TIMERS
@@ -248,10 +266,18 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     clearIdleTimer();
     clearTypewriterTimer();
 
+    // SI EL MODAL DE PERMISOS ESTÁ ACTIVO O NO SE HAN CONCEDIDO PERMISOS:
+    // Esperar a que el usuario presione 'Dar Permiso y Comenzar'.
+    // NO reproducir audio ni iniciar escritura prematura.
+    if (!isAudioPermissionGranted || showPermissionModal) {
+      setDisplayedResponse('');
+      return;
+    }
+
     const currentRunId = ++currentVoiceRunIdRef.current;
 
-    // Caso 1: En silencio o sin permisos concedidos (efecto mecanografía visual ágil)
-    if (isMuted || !isAudioPermissionGranted || showPermissionModal) {
+    // Caso 1: En silencio (efecto mecanografía visual ágil)
+    if (isMuted) {
       setIsRamitosSpeaking(false);
       let charIdx = 0;
       setDisplayedResponse('');
@@ -356,7 +382,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           const lastUserText = lastUserItem?.userText?.trim() || '';
 
           const leadInfo = await checkUserLeadRegistrationInSupabase();
-          let sanitizedName = 'Iván';
+          let sanitizedName = '';
           if (leadInfo?.nombre) {
             const candidate = cleanHumanName(leadInfo.nombre);
             const lower = (candidate || leadInfo.nombre).toLowerCase();
@@ -364,7 +390,7 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
               sanitizedName = candidate;
             }
           }
-          const userName = ` ${sanitizedName}`;
+          const userName = sanitizedName ? ` ${sanitizedName}` : '';
 
           let reconnectGreeting = '';
           if (lastUserText) {
@@ -379,10 +405,15 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
           setHistory(loadedHistory);
           setCurrentResponse(reconnectGreeting);
+          currentResponseRef.current = reconnectGreeting;
           setCurrentExpresion('entusiasmado');
-          setDisplayedResponse(reconnectGreeting);
           if (!isMuted && isAudioPermissionGranted && !showPermissionModal) {
+            setDisplayedResponse(reconnectGreeting);
             speakRamitosVoice(reconnectGreeting, true);
+          } else if (showPermissionModal || !isAudioPermissionGranted) {
+            setDisplayedResponse('');
+          } else {
+            setDisplayedResponse(reconnectGreeting);
           }
         } else {
           // Si no hay historial previo para este municipio, consultar si el ciudadano ya está registrado por IP/dispositivo
@@ -392,11 +423,14 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
             : initialGreeting;
 
           setCurrentResponse(greetingText);
+          currentResponseRef.current = greetingText;
           setHistory([
             { sender: 'ramitos', text: greetingText, time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }) }
           ]);
           if (!isMuted && isAudioPermissionGranted && !showPermissionModal) {
             speakRamitosVoice(greetingText, true);
+          } else if (showPermissionModal || !isAudioPermissionGranted) {
+            setDisplayedResponse('');
           } else {
             setDisplayedResponse(greetingText);
           }
@@ -799,7 +833,11 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
 
               {/* TEXTO CON EFECTO MÁQUINA DE ESCRIBIR (NUNCA DESAPARECE AL TERMINAR DE HABLAR) */}
               <p className="text-[11px] sm:text-sm font-semibold text-slate-800 leading-snug">
-                {displayedResponse || currentResponse}
+                {showPermissionModal && !isAudioPermissionGranted ? (
+                  <span className="text-slate-500 italic">Listo para escucharte... Activa los permisos para comenzar.</span>
+                ) : (
+                  displayedResponse || (isRamitosSpeaking ? '' : currentResponse)
+                )}
                 {isRamitosSpeaking && (displayedResponse || '').length < currentResponse.length && (
                   <span className="inline-block w-1.5 h-3.5 bg-emerald-600 ml-0.5 animate-pulse"></span>
                 )}

@@ -1,34 +1,9 @@
-// Servicio de Memoria por Dispositivo e IP con Huella Determinística
+// Servicio de Memoria por Dispositivo e IP con Huella Aislada por Dispositivo
 const LOCAL_STORAGE_DEVICE_ID = 'alcalde_amigo_device_id';
 const LOCAL_STORAGE_CLIENT_IP = 'alcalde_amigo_cached_ip';
 
 let cachedDeviceId: string | null = null;
 let cachedIpAddress: string | null = null;
-
-// Genera una huella digital determinística basada en el hardware y entorno del dispositivo
-// (Permanece EXACTAMENTE IGUAL aunque el usuario borre toda la caché y el LocalStorage)
-export function getStableDeviceFingerprint(): string {
-  if (typeof window === 'undefined') return 'server-env';
-  
-  try {
-    const screenInfo = `${window.screen?.width || 0}x${window.screen?.height || 0}x${window.screen?.colorDepth || 0}`;
-    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || 'America/Bogota';
-    const lang = navigator.language || 'es';
-    const cores = navigator.hardwareConcurrency || 4;
-    const ua = navigator.userAgent || '';
-    
-    // Hash determinístico rápido (djb2)
-    const raw = `${screenInfo}_${tz}_${lang}_${cores}_${ua}`;
-    let hash = 5381;
-    for (let i = 0; i < raw.length; i++) {
-      hash = ((hash << 5) + hash) + raw.charCodeAt(i);
-      hash = hash & hash;
-    }
-    return `fp-${Math.abs(hash).toString(36)}`;
-  } catch (e) {
-    return 'fp-standard';
-  }
-}
 
 // Detección estricta del entorno del dispositivo (Celular vs Portátil/PC)
 export function isMobileDeviceEnvironment(): boolean {
@@ -41,22 +16,23 @@ export function getDeviceCategory(): 'mobile' | 'desktop' {
 }
 
 // Obtiene o genera un ID único persistente para este navegador/dispositivo
+// Garantiza que CADA dispositivo físico tenga su propio identificador único independiente
 export function getDeviceId(): string {
   if (cachedDeviceId) return cachedDeviceId;
-  
-  const category = getDeviceCategory();
-  const stableFingerprint = getStableDeviceFingerprint();
 
   try {
     let id = localStorage.getItem(LOCAL_STORAGE_DEVICE_ID);
     if (!id) {
-      id = `device-${category}-${stableFingerprint}`;
+      const category = getDeviceCategory();
+      const uniqueSuffix = `${Date.now().toString(36)}-${Math.random().toString(36).substring(2, 9)}`;
+      id = `device-${category}-${uniqueSuffix}`;
       localStorage.setItem(LOCAL_STORAGE_DEVICE_ID, id);
     }
     cachedDeviceId = id;
     return id;
   } catch (e) {
-    return `device-${category}-${stableFingerprint}`;
+    const category = getDeviceCategory();
+    return `device-${category}-temp-${Date.now().toString(36)}`;
   }
 }
 
@@ -75,7 +51,7 @@ export async function getClientIpAddress(): Promise<string> {
   // Respaldo inmediato por defecto (0ms) para no congelar la interfaz jamás
   cachedIpAddress = '190.158.204.16';
 
-  // En segundo plano y sin bloquear, actualizar la IP para futuras consultas
+  // En segundo plano y sin bloquear, actualizar la IP para auditoría de red
   if (typeof window !== 'undefined') {
     fetch('https://api.ipify.org?format=json')
       .then(r => r.json())
