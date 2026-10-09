@@ -1,5 +1,14 @@
 import React, { useState } from 'react';
 import { 
+  generateBidDocumentWithAI, 
+  generateHumanChecklist, 
+  buildMasterAuditPackage, 
+  GeneratedDocResult, 
+  HumanActionItem, 
+  MasterAuditPackage 
+} from '../services/licitacionAiService';
+
+import { 
   Building2, Coins, Calendar, FileText, CheckCircle2, AlertTriangle, 
   XCircle, ArrowUpRight, Search, Filter, Plus, Users, MapPin, Scale, 
   Clock, Sparkles, FolderPlus, ArrowLeft, ShieldCheck, DollarSign,
@@ -778,7 +787,83 @@ export const LicitaProView: React.FC = () => {
   const [oppTab, setOppTab] = useState<'all' | 'new' | 'closing_soon' | 'in_bidroom'>('all');
 
   // Pestaña en Ficha de Oportunidad
-  const [oppDetailTab, setOppDetailTab] = useState<'secop_sobres' | 'antirechazo' | 'matriz_pliegos'>('secop_sobres');
+  const [oppDetailTab, setOppDetailTab] = useState<'secop_sobres' | 'antirechazo' | 'matriz_pliegos' | 'redactor_ia' | 'guia_humana' | 'auditoria_dual'>('secop_sobres');
+
+  // Estados del Agente Redactor de Documentos con IA
+  const [generatedDocs, setGeneratedDocs] = useState<GeneratedDocResult[]>([]);
+  const [selectedDocType, setSelectedDocType] = useState<'carta_presentacion' | 'propuesta_tecnica' | 'matriz_riesgos' | 'observaciones_pliego'>('carta_presentacion');
+  const [customDocPrompt, setCustomDocPrompt] = useState<string>('');
+  const [isGeneratingDoc, setIsGeneratingDoc] = useState<boolean>(false);
+  const [activeGeneratedDoc, setActiveGeneratedDoc] = useState<GeneratedDocResult | null>(null);
+
+  // Estados de la Guía Semáforo Humana
+  const [humanChecklistState, setHumanChecklistState] = useState<HumanActionItem[]>(() => generateHumanChecklist(selectedOpp, activeOrg));
+
+  // Estados de la Auditoría Máster (Dual AI)
+  const [copyToast, setCopyToast] = useState<string | null>(null);
+  const [masterPackage, setMasterPackage] = useState<MasterAuditPackage | null>(null);
+
+  const handleCopyText = (text: string, label: string) => {
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      navigator.clipboard.writeText(text);
+      setCopyToast(`¡${label} copiado al portapapeles!`);
+      setTimeout(() => setCopyToast(null), 3000);
+    }
+  };
+
+  const handleGenerateDocWithAI = async () => {
+    setIsGeneratingDoc(true);
+    try {
+      const doc = await generateBidDocumentWithAI(selectedDocType, selectedOpp, activeOrg, customDocPrompt);
+      setGeneratedDocs(prev => [doc, ...prev.filter(d => d.tipo !== doc.tipo)]);
+      setActiveGeneratedDoc(doc);
+    } catch (e) {
+      console.error('Error generando documento:', e);
+    } finally {
+      setIsGeneratingDoc(false);
+    }
+  };
+
+  const handleDownloadDoc = (doc: GeneratedDocResult) => {
+    const element = document.createElement('a');
+    const file = new Blob([doc.contenido], { type: 'text/plain;charset=utf-8' });
+    element.href = URL.createObjectURL(file);
+    element.download = `${doc.tipo}_${selectedOpp.id}_${activeOrg.nombre.replace(/\s+/g, '_')}.txt`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleToggleHumanCheckItem = (id: string) => {
+    setHumanChecklistState(prev => prev.map(item => item.id === id ? { ...item, completado: !item.completado } : item));
+  };
+
+  const handleExportMasterPackage = () => {
+    const pkg = buildMasterAuditPackage(selectedOpp, activeOrg, generatedDocs, humanChecklistState);
+    setMasterPackage(pkg);
+    const jsonStr = JSON.stringify(pkg, null, 2);
+    
+    // Descargar archivo JSON del paquete
+    const element = document.createElement('a');
+    const file = new Blob([jsonStr], { type: 'application/json' });
+    element.href = URL.createObjectURL(file);
+    element.download = `EXPEDIENTE_LICITACION_AUDITORIA_MASTER_${selectedOpp.id}.json`;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+
+    // Copiar resumen ejecutivo al portapapeles para pasar al Copiloto Senior
+    const resumenSenior = `EXPEDIENTE PARA AUDITORÍA MÁSTER (DUAL AI)
+Proceso: ${pkg.procesoSecop.id} - ${pkg.procesoSecop.titulo}
+Entidad: ${pkg.procesoSecop.entidad} | Presupuesto: formatCOP(${pkg.procesoSecop.presupuestoCop})
+Proponente: ${pkg.empresaProponente.nombre} (NIT: ${pkg.empresaProponente.nit})
+Documentos Redactados por la IA: ${pkg.documentosGenerados.length}
+Checklist Humano: ${pkg.checklistHumano.filter(c => c.completado).length}/${pkg.checklistHumano.length} tareas completadas.
+Alertas Jurídicas: ${pkg.auditoriaSeniorPuntosClave.alertasJuridicas.join(' | ')}`;
+
+    handleCopyText(resumenSenior, 'Resumen para Auditoría Máster');
+  };
+
 
   // Estado dinámico del Presupuesto vinculado al proceso seleccionado
   const [budgetItems, setBudgetItems] = useState<BudgetItem[]>(() => {
@@ -804,6 +889,8 @@ export const LicitaProView: React.FC = () => {
       meses: b.meses,
       total: b.costo_mensual * b.meses
     })));
+    setHumanChecklistState(generateHumanChecklist(opp, activeOrg));
+    setActiveGeneratedDoc(null);
   };
 
   // Porcentajes de AIU
@@ -947,6 +1034,13 @@ export const LicitaProView: React.FC = () => {
 
   return (
     <div className="min-h-screen bg-[#090d16] text-[#f8fafc] flex flex-col font-sans selection:bg-indigo-500 selection:text-white">
+      {/* TOAST DE COPIADO */}
+      {copyToast && (
+        <div className="fixed bottom-6 right-6 z-50 bg-slate-900 text-emerald-300 border-2 border-emerald-500/60 shadow-2xl px-5 py-3 rounded-2xl flex items-center space-x-2 animate-bounce backdrop-blur-xl">
+          <Check className="w-4 h-4 text-emerald-400" />
+          <span className="text-xs font-bold text-white">{copyToast}</span>
+        </div>
+      )}
       {/* Toast Notification */}
       {toastMessage && (
         <div className="fixed bottom-6 right-6 z-50 bg-indigo-600 text-white px-5 py-3 rounded-xl shadow-2xl flex items-center gap-3 border border-indigo-400 animate-bounce">
@@ -1020,6 +1114,22 @@ export const LicitaProView: React.FC = () => {
           </button>
         </div>
       </header>
+
+      {/* BANNER DISTINCIÓN DE ROLES: LICITACIONES EMPRESARIALES PRIVADAS vs PROYECTOS MUNICIPALES */}
+      <div className="bg-gradient-to-r from-purple-950/60 via-slate-900 to-indigo-950/60 border-b border-purple-500/20 px-4 sm:px-6 py-2.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+        <div className="flex items-center gap-2 flex-wrap">
+          <span className="px-2.5 py-0.5 rounded-full bg-purple-500/20 text-purple-300 font-bold text-[10px] uppercase border border-purple-400/30">
+            🏢 Sector Privado & Contratistas
+          </span>
+          <span className="text-slate-200">
+            Licitaciones SECOP II para: <strong className="text-white underline">{activeOrg.nombre}</strong> (NIT {activeOrg.nit}).
+          </span>
+        </div>
+        <div className="flex items-center gap-2 text-slate-300 text-[11px] bg-slate-950/60 px-3 py-1 rounded-xl border border-slate-800">
+          <span>🏛️ ¿Formular proyectos de inversión pública municipal (MGA / BPIN)?</span>
+          <span className="text-cyan-300 font-bold">Usa Centro de Mando & MGA</span>
+        </div>
+      </div>
 
       {/* CONTENEDOR PRINCIPAL: SIDEBAR + VISTA DE CONTENIDO */}
       <div className="flex-1 flex flex-col md:flex-row">
@@ -1706,7 +1816,31 @@ export const LicitaProView: React.FC = () => {
                     oppDetailTab === 'matriz_pliegos' ? 'bg-indigo-600 text-white shadow-md' : 'text-slate-400 hover:text-white'
                   }`}
                 >
-                  <FileCode className="w-3.5 h-3.5 text-cyan-400" /> 3. Matriz de Requisitos del Pliego ({selectedOpp.requirements.length} Requisitos)
+                  <FileCode className="w-3.5 h-3.5 text-cyan-400" /> 3. Matriz de Requisitos ({selectedOpp.requirements.length})
+                </button>
+                <button 
+                  onClick={() => setOppDetailTab('redactor_ia')}
+                  className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                    oppDetailTab === 'redactor_ia' ? 'bg-gradient-to-r from-emerald-600 to-teal-600 text-white shadow-md' : 'text-emerald-400 hover:text-white'
+                  }`}
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-emerald-300" /> 4. Redactor de Documentos IA {generatedDocs.length > 0 ? `(${generatedDocs.length})` : ''}
+                </button>
+                <button 
+                  onClick={() => setOppDetailTab('guia_humana')}
+                  className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                    oppDetailTab === 'guia_humana' ? 'bg-gradient-to-r from-amber-600 to-orange-600 text-white shadow-md' : 'text-amber-400 hover:text-white'
+                  }`}
+                >
+                  <AlertCircle className="w-3.5 h-3.5 text-amber-300" /> 5. Guía Semáforo Humana
+                </button>
+                <button 
+                  onClick={() => setOppDetailTab('auditoria_dual')}
+                  className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
+                    oppDetailTab === 'auditoria_dual' ? 'bg-gradient-to-r from-purple-600 to-indigo-600 text-white shadow-md' : 'text-purple-300 hover:text-white'
+                  }`}
+                >
+                  <ShieldCheck className="w-3.5 h-3.5 text-purple-300" /> 6. Auditoría Máster (Dual AI)
                 </button>
               </div>
 
@@ -1843,6 +1977,269 @@ export const LicitaProView: React.FC = () => {
                         ))}
                       </tbody>
                     </table>
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 4: REDACTOR DE DOCUMENTOS OFICIALES CON IA */}
+              {oppDetailTab === 'redactor_ia' && (
+                <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-6 animate-fadeIn">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-emerald-400" /> Agente Redactor Inteligente de Documentos de Licitación
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Genera documentos formales ajustados a la Ley 80 de 1993, Pliegos Tipo de Colombia Compra Eficiente y la plataforma SECOP II para <strong>{activeOrg.nombre}</strong>.
+                      </p>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-[11px] bg-emerald-500/10 text-emerald-300 border border-emerald-500/30 px-3 py-1 rounded-full font-bold">
+                        Motor: Groq Llama 3.3 70B
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* SELECTOR DE TIPO DE DOCUMENTO */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3">
+                    {[
+                      { id: 'carta_presentacion', label: 'Carta Oficial de Oferta', desc: 'Formato 1 Pliego Tipo Ley 80 / 1150' },
+                      { id: 'propuesta_tecnica', label: 'Propuesta Técnica', desc: 'Metodología, Hitos, Calidad y SG-SST' },
+                      { id: 'matriz_riesgos', label: 'Matriz de Riesgos', desc: 'Asignación Previsible Conpes 3714' },
+                      { id: 'observaciones_pliego', label: 'Observaciones al Pliego', desc: 'Reclamación jurídica anti-pliego sastre' },
+                    ].map(d => (
+                      <button
+                        key={d.id}
+                        type="button"
+                        onClick={() => setSelectedDocType(d.id as any)}
+                        className={`text-left p-3.5 rounded-2xl border transition-all cursor-pointer ${
+                          selectedDocType === d.id
+                            ? 'bg-emerald-950/40 border-emerald-500 text-white shadow-lg shadow-emerald-950/40'
+                            : 'bg-slate-950/60 border-slate-800 text-slate-400 hover:border-slate-700 hover:text-white'
+                        }`}
+                      >
+                        <p className="text-xs font-bold text-white">{d.label}</p>
+                        <p className="text-[10px] text-slate-400 mt-0.5">{d.desc}</p>
+                      </button>
+                    ))}
+                  </div>
+
+                  {/* INSTRUCCIONES EXTRA Y BOTÓN DE REDACTAR */}
+                  <div className="bg-slate-950/70 border border-slate-800/80 p-4 rounded-2xl space-y-3">
+                    <label className="text-xs font-bold text-slate-300 block">
+                      Instrucciones Adicionales o Enfoque Personalizado (Opcional):
+                    </label>
+                    <textarea
+                      value={customDocPrompt}
+                      onChange={(e) => setCustomDocPrompt(e.target.value)}
+                      placeholder="Ej: Destacar que Nueva Vida cuenta con 14 sedes en Cundinamarca, experiencia con ICBF y entrega en 90 días..."
+                      className="w-full bg-slate-900 border border-slate-800 rounded-xl p-3 text-xs text-white focus:outline-none focus:border-emerald-500 transition-colors"
+                      rows={2}
+                    />
+                    <div className="flex items-center justify-between">
+                      <p className="text-[11px] text-slate-500 font-mono">
+                        Proponente: {activeOrg.nombre} | NIT: {activeOrg.nit}
+                      </p>
+                      <button
+                        type="button"
+                        onClick={handleGenerateDocWithAI}
+                        disabled={isGeneratingDoc}
+                        className="bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-emerald-950/50 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                      >
+                        {isGeneratingDoc ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" /> Redactando con IA de Groq...
+                          </>
+                        ) : (
+                          <>
+                            <Sparkles className="w-4 h-4" /> Generar Documento Oficial Ahora
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* DOCUMENTO ACTIVO VISOR */}
+                  {(activeGeneratedDoc || generatedDocs.length > 0) && (
+                    <div className="bg-slate-950/90 border border-slate-800 rounded-2xl p-5 space-y-4">
+                      {(() => {
+                        const currentDoc = activeGeneratedDoc || generatedDocs[0];
+                        return (
+                          <>
+                            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-800 pb-3">
+                              <div>
+                                <h4 className="text-sm font-bold text-emerald-400">{currentDoc.titulo}</h4>
+                                <p className="text-[10px] text-slate-400 font-mono">
+                                  {currentDoc.palabrasAprox} palabras | {currentDoc.modeloUsado}
+                                </p>
+                              </div>
+                              <div className="flex items-center gap-2">
+                                <button
+                                  type="button"
+                                  onClick={() => handleCopyText(currentDoc.contenido, 'Documento')}
+                                  className="bg-slate-800 hover:bg-slate-700 text-slate-200 border border-slate-700 px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+                                >
+                                  <Check className="w-3.5 h-3.5 text-cyan-400" /> Copiar Texto
+                                </button>
+                                <button
+                                  type="button"
+                                  onClick={() => handleDownloadDoc(currentDoc)}
+                                  className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md"
+                                >
+                                  <Download className="w-3.5 h-3.5" /> Descargar (.txt)
+                                </button>
+                              </div>
+                            </div>
+                            <div className="bg-slate-900/90 border border-slate-800/80 rounded-xl p-4 max-h-96 overflow-y-auto text-xs text-slate-200 font-mono whitespace-pre-wrap leading-relaxed select-text">
+                              {currentDoc.contenido}
+                            </div>
+                          </>
+                        );
+                      })()}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* TAB 5: GUÍA SEMÁFORO HUMANA */}
+              {oppDetailTab === 'guia_humana' && (
+                <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-6 animate-fadeIn">
+                  <div className="border-b border-slate-800 pb-4">
+                    <h3 className="text-base font-bold text-white flex items-center gap-2">
+                      <AlertCircle className="w-5 h-5 text-amber-400" /> Guía Semáforo de Acción Humana (Paso a Paso Offline)
+                    </h3>
+                    <p className="text-xs text-slate-400 mt-0.5">
+                      Distinción clara entre lo que la IA resolvió digitalmente al 100% y los trámites físicos, notariales o bancarios que tu equipo debe realizar.
+                    </p>
+                  </div>
+
+                  <div className="space-y-3">
+                    {humanChecklistState.map(item => {
+                      const isVerde = item.nivel === 'verde_ia';
+                      const isAmarillo = item.nivel === 'amarillo_humano';
+                      const isRojo = item.nivel === 'rojo_critico';
+
+                      const badgeStyle = isVerde 
+                        ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/30'
+                        : isAmarillo 
+                          ? 'bg-amber-500/10 text-amber-400 border-amber-500/30'
+                          : 'bg-rose-500/10 text-rose-400 border-rose-500/30';
+
+                      const badgeText = isVerde 
+                        ? '🟢 RESUELTO POR IA (DIGITAL)'
+                        : isAmarillo 
+                          ? '🟡 TRÁMITE HUMANO FÍSICO'
+                          : '🔴 PUNTO CRÍTICO FINAL (SECOP II)';
+
+                      return (
+                        <div
+                          key={item.id}
+                          className={`bg-slate-950/70 border p-4 rounded-2xl transition-all flex flex-col md:flex-row md:items-center justify-between gap-4 ${
+                            item.completado ? 'border-emerald-500/40 bg-emerald-950/10' : 'border-slate-800'
+                          }`}
+                        >
+                          <div className="space-y-1.5 flex-1">
+                            <div className="flex items-center gap-2 flex-wrap">
+                              <span className={`text-[10px] font-extrabold uppercase px-2.5 py-0.5 rounded-full border ${badgeStyle}`}>
+                                {badgeText}
+                              </span>
+                              <span className="text-xs text-slate-400 font-bold">
+                                Responsable: {item.responsableSugerido}
+                              </span>
+                              <span className="text-[11px] text-slate-500 font-mono">
+                                • {item.tiempoEstimado}
+                              </span>
+                            </div>
+                            <h4 className="text-sm font-bold text-white">{item.titulo}</h4>
+                            <p className="text-xs text-slate-300 leading-relaxed">{item.descripcion}</p>
+                            {item.documentoSoporte && (
+                              <p className="text-[11px] text-cyan-400 font-mono">
+                                📎 Soporte: {item.documentoSoporte}
+                              </p>
+                            )}
+                          </div>
+
+                          <div className="shrink-0 flex items-center gap-2">
+                            <button
+                              type="button"
+                              onClick={() => handleToggleHumanCheckItem(item.id)}
+                              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer flex items-center gap-1.5 ${
+                                item.completado
+                                  ? 'bg-emerald-600 text-white shadow-md shadow-emerald-950/50'
+                                  : 'bg-slate-800 text-slate-300 hover:text-white hover:bg-slate-700 border border-slate-700'
+                              }`}
+                            >
+                              <Check className="w-3.5 h-3.5" />
+                              {item.completado ? 'Completado' : 'Marcar Hecho'}
+                            </button>
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+
+              {/* TAB 6: AUDITORÍA MÁSTER (DUAL AI) */}
+              {oppDetailTab === 'auditoria_dual' && (
+                <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-6 animate-fadeIn">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
+                    <div>
+                      <h3 className="text-base font-bold text-white flex items-center gap-2">
+                        <ShieldCheck className="w-5 h-5 text-purple-400" /> Auditoría Máster (Dual AI: Operativa + Senior)
+                      </h3>
+                      <p className="text-xs text-slate-400 mt-0.5">
+                        Colaboración de doble inteligencia: la IA de tu plataforma recopila los requisitos y tu Copiloto Senior (Antigravity) audita y blinda la propuesta contra causales de rechazo.
+                      </p>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={handleExportMasterPackage}
+                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-purple-950/50 flex items-center gap-2 cursor-pointer transition-all shrink-0"
+                    >
+                      <Download className="w-4 h-4" /> Exportar Expediente Completo
+                    </button>
+                  </div>
+
+                  {/* TARJETAS DE BLINDAJE DE LA AUDITORÍA SENIOR */}
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div className="bg-slate-950/80 border border-purple-500/30 p-5 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-purple-400 text-xs font-bold">
+                        <Scale className="w-4 h-4" /> Alertas Jurídicas Blindadas
+                      </div>
+                      <p className="text-xs text-slate-300">
+                        Verificación de inhabilidades Ley 80, aportes a seguridad social Ley 789 y vigencia RUP de 30 días para evitar causales de eliminación en SECOP II.
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950/80 border border-cyan-500/30 p-5 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-cyan-400 text-xs font-bold">
+                        <Calculator className="w-4 h-4" /> Auditoría Financiera y A.I.U.
+                      </div>
+                      <p className="text-xs text-slate-300">
+                        Comprobación matemática de redondeo de centavos en la plataforma oficial y cálculo de márgenes óptimos de Administración (18%), Imprevistos (3%) y Utilidad (7%).
+                      </p>
+                    </div>
+
+                    <div className="bg-slate-950/80 border border-emerald-500/30 p-5 rounded-2xl space-y-2">
+                      <div className="flex items-center gap-2 text-emerald-400 text-xs font-bold">
+                        <Award className="w-4 h-4" /> Estrategia de Puntaje Máximo
+                      </div>
+                      <p className="text-xs text-slate-300">
+                        Selección de los mejores contratos de experiencia específica de {activeOrg.nombre} para obtener 100/100 en el factor técnico y oferta económica.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* INSTRUCCIÓN DE USO EN CONVERSACIÓN */}
+                  <div className="bg-purple-950/30 border border-purple-500/40 p-4 rounded-2xl flex items-start gap-3">
+                    <Sparkles className="w-5 h-5 text-purple-300 shrink-0 mt-0.5" />
+                    <div className="text-xs text-slate-300 space-y-1">
+                      <p className="font-bold text-white">¿Cómo interactuar con tu Copiloto Senior?</p>
+                      <p>
+                        Al presionar <strong>"Exportar Expediente Completo"</strong>, se descarga el archivo JSON estructurado y se copia el resumen ejecutivo en tu portapapeles. Solo debes pegarlo en este chat y pedirme: <em>"Audita esta propuesta de licitación para {activeOrg.nombre}"</em> para que yo verifique cada detalle antes de tu radicación en SECOP II.
+                      </p>
+                    </div>
                   </div>
                 </div>
               )}
