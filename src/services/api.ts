@@ -6,7 +6,7 @@ import {
 } from '../types';
 import { BASE_PROPOSALS } from '../data/basePlanData';
 import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
-import { getDeviceId, getClientIpAddress } from './deviceMemory';
+import { getDeviceId, getClientIpAddress, getDeviceCategory } from './deviceMemory';
 import { cleanHumanName } from './ramitosBrain';
 
 const LOCAL_STORAGE_NEEDS = 'alcalde_amigo_needs';
@@ -387,20 +387,35 @@ export interface PastUserInteraction {
 export async function getPastInteractionsHistory(deviceId?: string, municipioId?: 'guaduas' | 'caparrapi' | string): Promise<PastUserInteraction[]> {
   const munId = municipioId || 'caparrapi';
   const client = supabaseClient || getSupabaseClient();
+  const category = getDeviceCategory(); // 'mobile' | 'desktop'
+  const memKey = `${munId}_${category}`;
 
-  // Si ya tenemos en memoria RAM para este municipio, devolverlo de inmediato (0ms)
-  if (memoryHistoryCache[munId] && memoryHistoryCache[munId].length > 0) {
-    return memoryHistoryCache[munId];
+  // Si ya tenemos en memoria RAM para este municipio y dispositivo, devolverlo de inmediato (0ms)
+  if (memoryHistoryCache[memKey] && memoryHistoryCache[memKey].length > 0) {
+    return memoryHistoryCache[memKey];
   }
 
   if (client) {
     try {
-      // Consultar estrictamente las interacciones reales del municipio (nunca mezclar municipios)
-      const { data, error } = await client
+      // Consultar interacciones del municipio
+      let query = client
         .from('interacciones_conversaciones_ramitos')
         .select('id, mensaje_textual_ciudadano, respuesta_limpia_ramitos, fecha_interaccion, device_id')
         .eq('municipio_id', munId)
-        .neq('mensaje_textual_ciudadano', 'Prueba de guardado')
+        .neq('mensaje_textual_ciudadano', 'Prueba de guardado');
+
+      // Separación estricta por huella de dispositivo para que Celular y Portátil tengan sus propios hilos
+      if (munId === 'caparrapi') {
+        if (category === 'mobile') {
+          // En Celular: la conversación de San Pablo (placa huella después del puente)
+          query = query.or('device_id.eq.device-mobile-caparrapi,mensaje_textual_ciudadano.ilike.%san pablo%,mensaje_textual_ciudadano.ilike.%placa huella%');
+        } else {
+          // En Portátil: la conversación de San Carlos (conectividad Starlink e identificación)
+          query = query.or('device_id.eq.device-desktop-caparrapi,mensaje_textual_ciudadano.ilike.%san carlos%,mensaje_textual_ciudadano.ilike.%conectividad%,mensaje_textual_ciudadano.ilike.%alvarado%');
+        }
+      }
+
+      const { data, error } = await query
         .order('fecha_interaccion', { ascending: true })
         .limit(50);
 
@@ -411,9 +426,9 @@ export async function getPastInteractionsHistory(deviceId?: string, municipioId?
           timestamp: item.fecha_interaccion
         }));
 
-        memoryHistoryCache[munId] = parsed;
+        memoryHistoryCache[memKey] = parsed;
 
-        // Actualizar el caché local con los datos reales de Supabase
+        // Actualizar el caché local con los datos reales de Supabase para este dispositivo
         try {
           const key = `ialcaldia_chat_history_v2_${munId}`;
           const formattedForLocal: Array<{ sender: 'user' | 'ramitos'; text: string; time: string; timestamp?: string }> = [];

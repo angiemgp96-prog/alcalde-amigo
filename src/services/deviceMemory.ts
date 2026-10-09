@@ -30,23 +30,33 @@ export function getStableDeviceFingerprint(): string {
   }
 }
 
+// Detección estricta del entorno del dispositivo (Celular vs Portátil/PC)
+export function isMobileDeviceEnvironment(): boolean {
+  if (typeof window === 'undefined') return false;
+  return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini|Mobile/i.test(navigator.userAgent) || window.innerWidth < 768;
+}
+
+export function getDeviceCategory(): 'mobile' | 'desktop' {
+  return isMobileDeviceEnvironment() ? 'mobile' : 'desktop';
+}
+
 // Obtiene o genera un ID único persistente para este navegador/dispositivo
 export function getDeviceId(): string {
   if (cachedDeviceId) return cachedDeviceId;
   
+  const category = getDeviceCategory();
   const stableFingerprint = getStableDeviceFingerprint();
 
   try {
     let id = localStorage.getItem(LOCAL_STORAGE_DEVICE_ID);
     if (!id) {
-      // Usar la huella determinística para que nunca se pierda aunque borren caché
-      id = `dev-${stableFingerprint}`;
+      id = `device-${category}-${stableFingerprint}`;
       localStorage.setItem(LOCAL_STORAGE_DEVICE_ID, id);
     }
     cachedDeviceId = id;
     return id;
   } catch (e) {
-    return `dev-${stableFingerprint}`;
+    return `device-${category}-${stableFingerprint}`;
   }
 }
 

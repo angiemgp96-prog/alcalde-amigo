@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { CitizenNeed, CitizenLead, ActiveTab } from '../types';
 import { speechEngine, SUGGESTED_PROMPTS } from '../services/speechEngine';
-import { processRamitosConversationAsync, getGeminiApiKey, setGeminiApiKey, getGroqApiKey, setGroqApiKey, RamitosChatResponse, detectVeredaOrBarrioFromText, extractLeadInfoFromText, extractAudioCorrectionFromText } from '../services/ramitosBrain';
+import { processRamitosConversationAsync, getGeminiApiKey, setGeminiApiKey, getGroqApiKey, setGroqApiKey, RamitosChatResponse, detectVeredaOrBarrioFromText, extractLeadInfoFromText, extractAudioCorrectionFromText, cleanHumanName } from '../services/ramitosBrain';
 import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { formatCOP } from '../utils/formatters';
 import { sendWhatsAppMessage } from '../services/greenApi';
@@ -356,7 +356,15 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           const lastUserText = lastUserItem?.userText?.trim() || '';
 
           const leadInfo = await checkUserLeadRegistrationInSupabase();
-          const userName = leadInfo?.nombre ? ` ${leadInfo.nombre}` : '';
+          let sanitizedName = 'Iván';
+          if (leadInfo?.nombre) {
+            const candidate = cleanHumanName(leadInfo.nombre);
+            const lower = (candidate || leadInfo.nombre).toLowerCase();
+            if (candidate && !['estas', 'estás', 'hola', 'buenas', 'yo', 'mi', 'ciudadano'].includes(lower)) {
+              sanitizedName = candidate;
+            }
+          }
+          const userName = ` ${sanitizedName}`;
 
           let reconnectGreeting = '';
           if (lastUserText) {
