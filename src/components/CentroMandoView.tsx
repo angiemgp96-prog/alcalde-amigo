@@ -24,6 +24,7 @@ import {
   getCitizenNeeds,
   generarAlternativaPracticaAutomatica
 } from '../services/api';
+import { generateMinutaRequisitoWithAI } from '../services/licitacionAiService';
 import { 
   ProyectoMgaEstructurado, 
   RequisitoViabilidad, 
@@ -113,7 +114,8 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
   const [isSavingProject, setIsSavingProject] = useState<boolean>(false);
   const [projectSaveSuccess, setProjectSaveSuccess] = useState<boolean>(false);
   const [uploadingReqId, setUploadingReqId] = useState<string | null>(null);
-  const [aiDraftModal, setAiDraftModal] = useState<{ open: boolean; titulo: string; contenido: string } | null>(null);
+  const [generatingMinutaId, setGeneratingMinutaId] = useState<string | null>(null);
+  const [aiDraftModal, setAiDraftModal] = useState<{ open: boolean; titulo: string; contenido: string; archivoNombre?: string } | null>(null);
   const [showNuevoProyectoModal, setShowNuevoProyectoModal] = useState<boolean>(false);
   const [needsParaFormular, setNeedsParaFormular] = useState<CitizenNeed[]>([]);
   const [nuevoProyectoForm, setNuevoProyectoForm] = useState({
@@ -683,38 +685,52 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
     document.body.removeChild(link);
   };
 
-  const handleGenerarMinutaIa = (req: RequisitoViabilidad) => {
+  const handleDownloadMinutaTexto = (nombreArchivo: string, contenido: string) => {
+    const element = document.createElement('a');
+    const file = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+    element.href = URL.createObjectURL(file);
+    element.download = nombreArchivo;
+    document.body.appendChild(element);
+    element.click();
+    document.body.removeChild(element);
+  };
+
+  const handleGenerarMinutaIa = async (req: RequisitoViabilidad) => {
     if (!selectedProject) return;
-    const munNombre = isCaparrapi ? 'Caparrapí' : 'Guaduas';
-    const draftText = `REPÚBLICA DE COLOMBIA
-DEPARTAMENTO DE CUNDINAMARCA
-MUNICIPIO DE ${munNombre.toUpperCase()}
-DESPACHO DE PLANEACIÓN Y GESTIÓN TERRITORIAL
+    setGeneratingMinutaId(req.id);
+    try {
+      const res = await generateMinutaRequisitoWithAI(req, selectedProject, municipioId);
+      
+      // Actualizar requisito en Supabase y localmente con la minuta oficial real
+      await updateRequisitoEstado(selectedProject.id, req.id, {
+        estado: 'cargado',
+        archivo_nombre: res.archivoNombre,
+        archivo_size: res.tamanoBytes,
+        minuta_texto: res.contenido,
+        observaciones: `Minuta institucional generada con IA (${res.modeloUsado}).`
+      });
 
-CERTIFICACIÓN INSTITUCIONAL DE CUMPLIMIENTO TÉCNICO
+      setRequisitosList(prev => prev.map(r => r.id === req.id ? {
+        ...r,
+        estado: 'cargado',
+        archivo_nombre: res.archivoNombre,
+        archivo_size: res.tamanoBytes,
+        minuta_texto: res.contenido,
+        observaciones: `Minuta institucional generada con IA (${res.modeloUsado}).`
+      } : r));
 
-ASUNTO: ${req.nombre_requisito.toUpperCase()}
-PROYECTO BPIN: ${selectedProject.codigo_bpin_propuesto || 'BPIN-2026'}
-DENOMINACIÓN: "${selectedProject.nombre_proyecto}"
-SECTOR DNP: ${selectedProject.sector_dnp}
-
-En el marco de la estructuración del proyecto bajo Metodología General Ajustada (MGA) del Departamento Nacional de Planeación (DNP), se hace constar que:
-
-1. El proyecto ha sido priorizado comunitariamente para beneficiar a ${selectedProject.poblacion_beneficiaria_total.toLocaleString('es-CO')} habitantes en las veredas: ${selectedProject.veredas_impactadas?.join(', ')}.
-2. Se verificó la viabilidad conforme a los requerimientos del sector ${selectedProject.sector_dnp}.
-3. Observación de soporte: "${req.observaciones || 'Cumple con los estándares oficiales de ingeniería y ordenamiento territorial.'}"
-
-Se expide en ${munNombre}, Cundinamarca, a los ${new Date().toLocaleDateString('es-CO', { day: 'numeric', month: 'long', year: 'numeric' })}.
-
-____________________________________________
-EQUIPO DE ESTRUCTURACIÓN & PLANEACIÓN TERRITORIAL
-MUNICIPIO DE ${munNombre.toUpperCase()}`;
-
-    setAiDraftModal({
-      open: true,
-      titulo: `Minuta Oficial: ${req.nombre_requisito}`,
-      contenido: draftText
-    });
+      setAiDraftModal({
+        open: true,
+        titulo: res.titulo,
+        contenido: res.contenido,
+        archivoNombre: res.archivoNombre
+      });
+    } catch (e) {
+      console.error('Error generando minuta con IA:', e);
+      alert('Error generando minuta con IA.');
+    } finally {
+      setGeneratingMinutaId(null);
+    }
   };
 
   const handleCrearProyectoDesdeNeed = async (need: CitizenNeed) => {
@@ -3261,11 +3277,49 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                             </div>
                             <p className="text-[11px] text-slate-400 leading-snug">{req.descripcion}</p>
                             
-                            {req.archivo_nombre && (
-                              <div className="flex items-center gap-2 pt-1 text-[11px] text-cyan-300">
-                                <Paperclip className="w-3.5 h-3.5" />
-                                <span className="font-mono font-medium">{req.archivo_nombre}</span>
-                                {req.archivo_size && <span className="text-slate-500 text-[10px]">({Math.round(req.archivo_size / 1024)} KB)</span>}
+                                                        {req.archivo_nombre ? (
+                              <div className="flex items-center gap-2 pt-1 text-[11px] text-cyan-300 flex-wrap">
+                                <Paperclip className="w-3.5 h-3.5 text-cyan-400 shrink-0" />
+                                <span className="font-mono font-medium text-white">{req.archivo_nombre}</span>
+                                {req.archivo_size ? (
+                                  <span className="text-slate-500 text-[10px] font-mono">
+                                    ({req.archivo_size < 1024 * 1024 ? `${Math.round(req.archivo_size / 1024)} KB` : `${(req.archivo_size / (1024 * 1024)).toFixed(1)} MB`})
+                                  </span>
+                                ) : null}
+                                {req.minuta_texto && (
+                                  <div className="flex items-center gap-1 ml-1">
+                                    <button
+                                      type="button"
+                                      onClick={() => setAiDraftModal({ open: true, titulo: req.nombre_requisito, contenido: req.minuta_texto!, archivoNombre: req.archivo_nombre })}
+                                      className="text-[10px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2 py-0.5 rounded border border-slate-700 cursor-pointer font-bold"
+                                    >
+                                      Ver Minuta
+                                    </button>
+                                    <button
+                                      type="button"
+                                      onClick={() => handleDownloadMinutaTexto(req.archivo_nombre || 'Minuta_Requisito.txt', req.minuta_texto!)}
+                                      className="text-[10px] bg-emerald-950 hover:bg-emerald-900 text-emerald-300 px-2 py-0.5 rounded border border-emerald-700/50 cursor-pointer font-bold flex items-center gap-1"
+                                    >
+                                      <Download className="w-3 h-3" /> Descargar
+                                    </button>
+                                  </div>
+                                )}
+                                {req.archivo_url && !req.minuta_texto && (
+                                  <a
+                                    href={req.archivo_url}
+                                    download={req.archivo_nombre}
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="text-[10px] bg-slate-800 hover:bg-slate-700 text-cyan-300 px-2 py-0.5 rounded border border-slate-700 cursor-pointer font-bold flex items-center gap-1"
+                                  >
+                                    <Download className="w-3 h-3" /> Abrir / Descargar
+                                  </a>
+                                )}
+                              </div>
+                            ) : (
+                              <div className="pt-0.5 text-[10px] text-slate-500 flex items-center gap-1">
+                                <Clock className="w-3 h-3 text-amber-500/70" />
+                                <span>Pendiente de adjuntar archivo o redactar con Minuta IA</span>
                               </div>
                             )}
 
@@ -3305,12 +3359,24 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                               </label>
 
                               {/* Botón Generar Minuta con IA */}
+                                                            {/* Botón Generar Minuta con IA */}
                               <button
+                                type="button"
+                                disabled={generatingMinutaId === req.id}
                                 onClick={() => handleGenerarMinutaIa(req)}
-                                className="px-2.5 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors"
+                                className="px-2.5 py-1 rounded-lg bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-700/60 text-indigo-300 text-[10px] font-bold flex items-center gap-1 cursor-pointer transition-colors disabled:opacity-50"
                               >
-                                <Sparkles className="w-3 h-3 text-indigo-400" />
-                                <span>Minuta IA</span>
+                                {generatingMinutaId === req.id ? (
+                                  <>
+                                    <RefreshCw className="w-3 h-3 text-indigo-400 animate-spin" />
+                                    <span>Redactando con IA...</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <Sparkles className="w-3 h-3 text-indigo-400" />
+                                    <span>Minuta IA</span>
+                                  </>
+                                )}
                               </button>
                             </div>
                           </div>
@@ -4127,8 +4193,17 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
               {aiDraftModal.contenido}
             </div>
 
-            <div className="flex justify-end gap-2 pt-1">
+            <div className="flex justify-end gap-2 pt-1 flex-wrap">
               <button
+                type="button"
+                onClick={() => handleDownloadMinutaTexto(aiDraftModal.archivoNombre || 'Minuta_Oficial_MGA.txt', aiDraftModal.contenido)}
+                className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all"
+              >
+                <Download className="w-3.5 h-3.5" />
+                Descargar Documento (.txt)
+              </button>
+              <button
+                type="button"
                 onClick={() => {
                   navigator.clipboard.writeText(aiDraftModal.contenido);
                   alert('¡Minuta copiada al portapapeles!');
@@ -4138,8 +4213,9 @@ MUNICIPIO DE ${munNombre.toUpperCase()}`;
                 Copiar Texto 📋
               </button>
               <button
+                type="button"
                 onClick={() => setAiDraftModal(null)}
-                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer"
+                className="px-4 py-2 rounded-xl bg-slate-800 text-slate-300 font-bold text-xs cursor-pointer hover:bg-slate-700"
               >
                 Cerrar
               </button>

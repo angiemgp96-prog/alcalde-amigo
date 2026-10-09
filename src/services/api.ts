@@ -2269,6 +2269,138 @@ const PROYECTOS_TIPO_GUADUAS: ProyectoMgaEstructurado[] = [
 
 // Generador de los 12 requisitos canónicos de viabilidad sectorial
 export function generateStandardRequisitos(proyectoId: string, sectorDnp: string = 'Transporte'): RequisitoViabilidad[] {
+  const isTic = sectorDnp.toLowerCase().includes('tic') || 
+                sectorDnp.toLowerCase().includes('tecnolog') || 
+                sectorDnp.toLowerCase().includes('conectividad') ||
+                sectorDnp.toLowerCase().includes('comunicaciones');
+
+  // REQUISITOS DEL SECTOR TIC / CONECTIVIDAD SATELITAL (MINISTERIO TIC / DNP)
+  if (isTic) {
+    return [
+      {
+        id: `req-${proyectoId}-1`,
+        proyecto_id: proyectoId,
+        categoria: 'legal',
+        nombre_requisito: 'Carta de Presentación y Radicación Oficial al Ministerio de las TIC',
+        descripcion: 'Oficio formal firmado por el Alcalde justificando la necesidad de conectividad escolar y comunitaria rural.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Pendiente de generar minuta con IA o adjuntar oficio formal firmado.'
+      },
+      {
+        id: `req-${proyectoId}-2`,
+        proyecto_id: proyectoId,
+        categoria: 'legal',
+        nombre_requisito: 'Autorización de Uso de Espacio en Sedes Escolares Rurales y Plazas',
+        descripcion: 'Actas de autorización de rectores educativos y juntas comunales para instalación de antenas y equipos Wi-Fi.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Requiere firmas de los rectores de las sedes rurales focalizadas.'
+      },
+      {
+        id: `req-${proyectoId}-3`,
+        proyecto_id: proyectoId,
+        categoria: 'legal',
+        nombre_requisito: 'Certificación de Concordancia con el Plan de Desarrollo y PBOT',
+        descripcion: 'Constancia expedida por Planeación Municipal indicando alineación con las metas de conectividad digital.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Generar certificación oficial con la IA del despacho.'
+      },
+      {
+        id: `req-${proyectoId}-4`,
+        proyecto_id: proyectoId,
+        categoria: 'tecnico',
+        nombre_requisito: 'Estudio de Ingeniería y Topología de Enlace Satelital Starlink con Cobertura Wi-Fi 200m',
+        descripcion: 'Especificaciones técnicas de ancho de banda (150-250 Mbps), cálculo de radioenlace y topología de red comunitaria.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Especificación técnica de antenas de órbita baja y puntos de acceso exteriores.'
+      },
+      {
+        id: `req-${proyectoId}-5`,
+        proyecto_id: proyectoId,
+        categoria: 'tecnico',
+        nombre_requisito: 'Presupuesto Detallado APU de Antenas, Mástiles, Paneles Solares y Cableado',
+        descripcion: 'Desglose por ítems de hardware satelital, soporte fotovoltaico EcoFlow/Solar y mano de obra de instalación.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Verificar precios de importación Starlink y respaldo de energía fotovoltaica.'
+      },
+      {
+        id: `req-${proyectoId}-6`,
+        proyecto_id: proyectoId,
+        categoria: 'tecnico',
+        nombre_requisito: 'Cronograma Físico de Despliegue en 15 a 30 Días e Instalación en Escuelas',
+        descripcion: 'Planificación de instalación modular por veredas y puesta en marcha de zonas Wi-Fi.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Ruta de instalación en campo.'
+      },
+      {
+        id: `req-${proyectoId}-7`,
+        proyecto_id: proyectoId,
+        categoria: 'ambiental',
+        nombre_requisito: 'Concepto Ambiental de No Afectación ante CAR para Antenas y Paneles Solares',
+        descripcion: 'Certificación de bajo impacto ambiental al tratarse de equipos de telecomunicaciones limpios sin remoción de masa.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Concepto ambiental simplificado.'
+      },
+      {
+        id: `req-${proyectoId}-8`,
+        proyecto_id: proyectoId,
+        categoria: 'ambiental',
+        nombre_requisito: 'Análisis de Gestión del Riesgo Eléctrico y Pararrayos - Ley 1523',
+        descripcion: 'Protocolo de protección contra tormentas eléctricas, puesta a tierra y protección de equipos satelitales en zonas altas.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Obligatorio por Ley 1523 para instalaciones en cumbres rurales.'
+      },
+      {
+        id: `req-${proyectoId}-9`,
+        proyecto_id: proyectoId,
+        categoria: 'censo',
+        nombre_requisito: 'Censo Georreferenciado de Familias, Niños y Escuelas Rurales Beneficiarias',
+        descripcion: 'Listado georreferenciado de estudiantes y productores rurales que tendrán acceso a internet y telemedicina.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Se alimenta automáticamente con los reportes comunitarios de Voz del Pueblo.'
+      },
+      {
+        id: `req-${proyectoId}-10`,
+        proyecto_id: proyectoId,
+        categoria: 'socioeconomico',
+        nombre_requisito: 'Acta de Socialización y Priorización Comunitaria con la JAC de San Carlos',
+        descripcion: 'Constancia de concertación comunitaria donde la comunidad prioriza el internet satelital.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Adjuntar acta firmada por la directiva de la JAC.'
+      },
+      {
+        id: `req-${proyectoId}-11`,
+        proyecto_id: proyectoId,
+        categoria: 'socioeconomico',
+        nombre_requisito: 'Ficha Resumen MGA Web y Certificado BPIN MinTIC',
+        descripcion: 'Estructura canónica de los 4 módulos de la Metodología General Ajustada del DNP.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Generar resumen canónico del proyecto para radicación.'
+      },
+      {
+        id: `req-${proyectoId}-12`,
+        proyecto_id: proyectoId,
+        categoria: 'legal',
+        nombre_requisito: 'Acta de Compromiso de Pago de Conectividad y Sostenibilidad Operativa',
+        descripcion: 'Compromiso formal suscrito por el municipio garantizando la suscripción del servicio satelital.',
+        es_obligatorio: true,
+        estado: 'pendiente',
+        observaciones: 'Garantía de vigencias presupuestales.'
+      }
+    ];
+  }
+
+  // REQUISITOS DEL SECTOR TRANSPORTE / VÍAS Y PLACA HUELLAS (INVIAS / DNP)
   return [
     {
       id: `req-${proyectoId}-1`,
@@ -2277,10 +2409,8 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Carta de Presentación y Radicación Oficial al Presidente / Ministerio',
       descripcion: 'Documento formal firmado por el Alcalde o Representante Legal justificando la necesidad, valor y población beneficiaria.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Carta_Radicacion_Oficial_MinTransporte.pdf',
-      archivo_size: 245000,
-      observaciones: 'Minuta oficial redactada bajo estándares DNP y lista con firma institucional.'
+      estado: 'pendiente',
+      observaciones: 'Generar minuta formal o adjuntar oficio institucional firmado.'
     },
     {
       id: `req-${proyectoId}-2`,
@@ -2290,7 +2420,7 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       descripcion: 'Documentos que acreditan propiedad pública de la vía o actas de permiso de paso suscritas por los propietarios colindantes.',
       es_obligatorio: true,
       estado: 'pendiente',
-      observaciones: 'Se requiere completar 4 actas de servidumbre en tramos críticos.'
+      observaciones: 'Se requiere adjuntar actas de servidumbre en tramos críticos.'
     },
     {
       id: `req-${proyectoId}-3`,
@@ -2299,10 +2429,8 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Certificación de Concordancia con el Plan de Desarrollo y PBOT/EOT',
       descripcion: 'Constancia expedida por Planeación Municipal indicando alineación con los instrumentos de ordenamiento territorial.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Certificado_Planeacion_PBOT_Caparrapi.pdf',
-      archivo_size: 180000,
-      observaciones: 'Alineado con el Programa de Infraestructura Rural 2024-2027.'
+      estado: 'pendiente',
+      observaciones: 'Generar certificación con la IA de Planeación.'
     },
     {
       id: `req-${proyectoId}-4`,
@@ -2311,9 +2439,7 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Estudio de Ingeniería de Detalle y Diseños Estructurales (Proyecto Tipo DNP)',
       descripcion: 'Planos topográficos, memorias de cálculo hidráulico y estructural conforme a especificaciones INVIAS / DNP.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Memorias_Calculo_PlacaHuella_Estándar_DNP.pdf',
-      archivo_size: 1450000,
+      estado: 'pendiente',
       observaciones: 'Diseño tipo con módulos prefabricados de concreto 3000 PSI.'
     },
     {
@@ -2323,9 +2449,7 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Presupuesto Detallado con Análisis de Precios Unitarios (APU) Regionalizados',
       descripcion: 'Desglose por capítulos, ítems, cantidades de obra y tarifas regionalizadas para Cundinamarca.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Presupuesto_APU_Cundinamarca_2026.xlsx',
-      archivo_size: 520000,
+      estado: 'pendiente',
       observaciones: 'Precios verificados con base de datos de la Gobernación de Cundinamarca e INVIAS.'
     },
     {
@@ -2336,7 +2460,7 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       descripcion: 'Planificación de ejecución física por meses y flujo de desembolsos requerido.',
       es_obligatorio: true,
       estado: 'pendiente',
-      observaciones: 'Estimado a 8 meses de ejecución.'
+      observaciones: 'Estimado de cronograma de obra.'
     },
     {
       id: `req-${proyectoId}-7`,
@@ -2345,10 +2469,8 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Plan de Manejo Ambiental Específico (PMA) o Certificado de No Afectación',
       descripcion: 'Evaluación de impacto ambiental, manejo de escombros, fuentes de materiales y permisos ante CAR Cundinamarca.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Certificado_No_Afectacion_Reserva_CAR.pdf',
-      archivo_size: 310000,
-      observaciones: 'Sin afectación de reservas forestales de orden nacional.'
+      estado: 'pendiente',
+      observaciones: 'Trámite o certificación ambiental ante la CAR.'
     },
     {
       id: `req-${proyectoId}-8`,
@@ -2358,7 +2480,7 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       descripcion: 'Identificación de amenazas de remoción en masa, inundación y medidas de mitigación incorporadas en la obra.',
       es_obligatorio: true,
       estado: 'pendiente',
-      observaciones: 'Incluye estabilización de 2 puntos críticos de deslizamiento.'
+      observaciones: 'Gestión del riesgo según Ley 1523.'
     },
     {
       id: `req-${proyectoId}-9`,
@@ -2367,9 +2489,7 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Censo Georreferenciado de Familias y Beneficiarios Directos en Territorio',
       descripcion: 'Listado formal de beneficiarios con nombres, cédulas, veredas, clasificación Sisbén y unidades productivas.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Censo_Familias_Beneficiarias_SanCarlos.xlsx',
-      archivo_size: 190000,
+      estado: 'pendiente',
       observaciones: 'Vinculado directamente con los reportes de campo y Voz del Pueblo.'
     },
     {
@@ -2379,10 +2499,8 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Acta de Socialización y Priorización con la Junta de Acción Comunal (JAC)',
       descripcion: 'Constancia de concertación comunitaria donde la comunidad prioriza la intervención y respalda el proyecto.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Acta_Asamblea_Comunal_SanCarlos_2026.pdf',
-      archivo_size: 410000,
-      observaciones: 'Aprobado en asamblea general con firma del Presidente de la JAC.'
+      estado: 'pendiente',
+      observaciones: 'Adjuntar acta firmada por el Presidente de la JAC.'
     },
     {
       id: `req-${proyectoId}-11`,
@@ -2391,10 +2509,8 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       nombre_requisito: 'Ficha Resumen MGA Web y Certificado BPIN',
       descripcion: 'Estructura canónica de los 4 módulos de la Metodología General Ajustada del DNP.',
       es_obligatorio: true,
-      estado: 'cargado',
-      archivo_nombre: 'Ficha_MGA_BPIN_Oficial_DNP.pdf',
-      archivo_size: 680000,
-      observaciones: 'Completado al 100% en los 4 módulos canónicos.'
+      estado: 'pendiente',
+      observaciones: 'Ficha canónica MGA del DNP.'
     },
     {
       id: `req-${proyectoId}-12`,
@@ -2404,12 +2520,11 @@ export function generateStandardRequisitos(proyectoId: string, sectorDnp: string
       descripcion: 'Compromiso formal suscrito por el municipio garantizando la apropiación presupuestal para mantenimiento rutinario.',
       es_obligatorio: true,
       estado: 'pendiente',
-      observaciones: 'Pendiente de firma del despacho del Alcalde.'
+      observaciones: 'Aprobación del despacho del Alcalde.'
     }
   ];
 }
 
-// 1. OBTENER PROYECTOS MGA ESTRUCTURADOS (SUPABASE + LOCAL CACHE)
 export async function fetchProyectosMgaFromSupabase(municipioId: 'caparrapi' | 'guaduas'): Promise<ProyectoMgaEstructurado[]> {
   const cacheKey = `ialcaldia_proyectos_mga_${municipioId}`;
   const defaultSeeds = municipioId === 'caparrapi' ? PROYECTOS_TIPO_CAPARRAPI : PROYECTOS_TIPO_GUADUAS;
@@ -2638,7 +2753,17 @@ export async function fetchRequisitosProyecto(proyectoId: string, sectorDnp?: st
   // Respaldo en caché local
   try {
     const cached = localStorage.getItem(cacheKey);
-    if (cached) return JSON.parse(cached);
+    if (cached) {
+      const parsed: RequisitoViabilidad[] = JSON.parse(cached);
+      const hasOldMock = Array.isArray(parsed) && parsed.some(r => 
+        r.archivo_nombre === 'Carta_Radicacion_Oficial_MinTransporte.pdf' || 
+        r.archivo_nombre === 'Certificado_No_Afectacion_Reserva_CAR.pdf' ||
+        r.archivo_nombre === 'Memorias_Calculo_PlacaHuella_Estándar_DNP.pdf'
+      );
+      if (!hasOldMock) {
+        return parsed;
+      }
+    }
   } catch (e) {
     console.warn(e);
   }

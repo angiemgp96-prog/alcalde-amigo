@@ -247,6 +247,8 @@ export interface RequisitoViabilidad {
   archivo_url?: string;
   archivo_nombre?: string;
   archivo_size?: number;
+  minuta_texto?: string;
+  fecha_generacion_minuta?: string;
   observaciones?: string;
   updated_at?: string;
 }
