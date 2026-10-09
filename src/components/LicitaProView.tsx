@@ -1,3 +1,6 @@
+import { AgentOrchestratorPanel } from './AgentOrchestratorPanel';
+import { runSecopAgentOrchestration, OrchestrationReport } from '../services/agentOrchestratorService';
+import { generateOfficialDocxBlob, downloadFileBlob } from '../services/docExportService';
 import React, { useState } from 'react';
 import { 
   generateBidDocumentWithAI, 
@@ -11,7 +14,7 @@ import {
 } from '../services/licitacionAiService';
 
 import { 
-  Building2, Coins, Calendar, FileText, CheckCircle2, AlertTriangle, 
+  Bot, Building2, Coins, Calendar, FileText, CheckCircle2, AlertTriangle, 
   XCircle, ArrowUpRight, Search, Filter, Plus, Users, MapPin, Scale, 
   Clock, Sparkles, FolderPlus, ArrowLeft, ShieldCheck, DollarSign,
   TrendingUp, AlertCircle, FileCheck2, Landmark, Check, RefreshCw,
@@ -789,7 +792,30 @@ export const LicitaProView: React.FC = () => {
   const [oppTab, setOppTab] = useState<'all' | 'new' | 'closing_soon' | 'in_bidroom'>('all');
 
   // Pestaña en Ficha de Oportunidad
-  const [oppDetailTab, setOppDetailTab] = useState<'secop_sobres' | 'antirechazo' | 'matriz_pliegos' | 'redactor_ia' | 'guia_humana' | 'auditoria_dual'>('secop_sobres');
+  const [oppDetailTab, setOppDetailTab] = useState<'estado_mayor' | 'secop_sobres' | 'antirechazo' | 'matriz_pliegos' | 'redactor_ia' | 'guia_humana' | 'auditoria_dual'>('estado_mayor');
+
+  // Estado del Orquestador Multi-Agente SECOP II
+  const [secopOrchestrationReport, setSecopOrchestrationReport] = useState<OrchestrationReport | null>(null);
+  const [isRunningSecopAnalysis, setIsRunningSecopAnalysis] = useState<boolean>(false);
+
+  // Inicializar o re-evaluar orquestación de agentes al cambiar licitación
+  React.useEffect(() => {
+    runSecopAgentOrchestration(selectedOpp, activeOrg).then(rep => {
+      setSecopOrchestrationReport(rep);
+    });
+  }, [selectedOpp.id, activeOrg.id]);
+
+  const handleRerunSecopOrchestration = async () => {
+    setIsRunningSecopAnalysis(true);
+    try {
+      const rep = await runSecopAgentOrchestration(selectedOpp, activeOrg);
+      setSecopOrchestrationReport(rep);
+      setCopyToast('¡Auto-análisis de agentes completado con éxito!');
+      setTimeout(() => setCopyToast(null), 3000);
+    } finally {
+      setIsRunningSecopAnalysis(false);
+    }
+  };
 
   // Estados del Agente Redactor de Documentos con IA
   const [generatedDocs, setGeneratedDocs] = useState<GeneratedDocResult[]>([]);
@@ -896,14 +922,35 @@ export const LicitaProView: React.FC = () => {
     }
   };
 
-  const handleDownloadDoc = (doc: GeneratedDocResult) => {
-    const element = document.createElement('a');
-    const file = new Blob([doc.contenido], { type: 'text/plain;charset=utf-8' });
-    element.href = URL.createObjectURL(file);
-    element.download = `${doc.tipo}_${selectedOpp.id}_${activeOrg.nombre.replace(/\s+/g, '_')}.txt`;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+  const handleDownloadDoc = async (doc: GeneratedDocResult) => {
+    try {
+      const blob = await generateOfficialDocxBlob({
+        tituloPrincipal: doc.titulo,
+        subtitulo: `PROPUESTA FORMAL - PROCESO ${selectedOpp.id}`,
+        entidadEmisora: activeOrg.nombre,
+        tipoDocumento: 'licitacion_secop',
+        referenciaProceso: `${selectedOpp.id} - ${selectedOpp.entity_name}`,
+        contenidoTexto: doc.contenido,
+        firmantes: [
+          {
+            cargo: 'REPRESENTANTE LEGAL',
+            entidad: `${activeOrg.nombre} (NIT: ${activeOrg.nit})`,
+            nombre: activeOrg.boardMembers?.[0]?.nombres || 'Representante Legal Autorizado'
+          }
+        ]
+      });
+      downloadFileBlob(blob, `${doc.tipo}_${selectedOpp.id}_${activeOrg.nombre.replace(/\s+/g, '_')}.docx`);
+    } catch (e) {
+      console.error('Error generando Word:', e);
+      // Fallback a texto
+      const element = document.createElement('a');
+      const file = new Blob([doc.contenido], { type: 'text/plain;charset=utf-8' });
+      element.href = URL.createObjectURL(file);
+      element.download = `${doc.tipo}_${selectedOpp.id}_${activeOrg.nombre.replace(/\s+/g, '_')}.txt`;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
   };
 
   const handleToggleHumanCheckItem = (id: string) => {
@@ -1865,7 +1912,15 @@ Alertas Jurídicas: ${pkg.auditoriaSeniorPuntosClave.alertasJuridicas.join(' | '
               </div>
 
               {/* TABS DE LA FICHA DETALLADA */}
-              <div className="flex gap-2 border-b border-slate-800 pb-2 text-xs font-bold">
+              <div className="flex gap-2 border-b border-slate-800 pb-2 text-xs font-bold overflow-x-auto">
+                <button 
+                  onClick={() => setOppDetailTab('estado_mayor')}
+                  className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer ${
+                    oppDetailTab === 'estado_mayor' ? 'bg-gradient-to-r from-purple-600 via-indigo-600 to-cyan-600 text-white shadow-lg shadow-purple-950/60 font-black ring-1 ring-purple-400/40' : 'text-purple-300 hover:text-white bg-purple-950/30 border border-purple-800/50'
+                  }`}
+                >
+                  <Bot className="w-3.5 h-3.5 text-cyan-300" /> 🤖 1. Estado Mayor Multi-Agente (Commander SECOP II)
+                </button>
                 <button 
                   onClick={() => setOppDetailTab('secop_sobres')}
                   className={`px-4 py-2 rounded-xl transition-all flex items-center gap-2 ${
@@ -1915,6 +1970,17 @@ Alertas Jurídicas: ${pkg.auditoriaSeniorPuntosClave.alertasJuridicas.join(' | '
                   <ShieldCheck className="w-3.5 h-3.5 text-purple-300" /> 6. Auditoría Máster (Dual AI)
                 </button>
               </div>
+
+                            {/* TAB 0: ESTADO MAYOR MULTI-AGENTE (COMMANDER SECOP II) */}
+              {oppDetailTab === 'estado_mayor' && secopOrchestrationReport && (
+                <AgentOrchestratorPanel
+                  report={secopOrchestrationReport}
+                  onRerunAnalysis={handleRerunSecopOrchestration}
+                  isRunningAnalysis={isRunningSecopAnalysis}
+                  entidadNombre={activeOrg.nombre}
+                  procesoIdOProyecto={selectedOpp.id}
+                />
+              )}
 
               {/* TAB 1: CUESTIONARIO DE SOBRES SECOP II */}
               {oppDetailTab === 'secop_sobres' && (
@@ -2158,7 +2224,7 @@ Alertas Jurídicas: ${pkg.auditoriaSeniorPuntosClave.alertasJuridicas.join(' | '
                                   onClick={() => handleDownloadDoc(currentDoc)}
                                   className="bg-emerald-600 hover:bg-emerald-500 text-white px-3 py-1.5 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-md"
                                 >
-                                  <Download className="w-3.5 h-3.5" /> Descargar (.txt)
+                                  <Download className="w-3.5 h-3.5" /> Descargar Word Oficial (.docx)
                                 </button>
                               </div>
                             </div>

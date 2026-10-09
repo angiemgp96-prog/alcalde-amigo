@@ -1,6 +1,9 @@
+import { AgentOrchestratorPanel } from './AgentOrchestratorPanel';
+import { runMgaAgentOrchestration, OrchestrationReport } from '../services/agentOrchestratorService';
+import { generateOfficialDocxBlob, downloadFileBlob } from '../services/docExportService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { 
-  ShieldAlert, FileSpreadsheet, Vote, MapPin, ExternalLink, AlertTriangle, 
+  Bot, ShieldAlert, FileSpreadsheet, Vote, MapPin, ExternalLink, AlertTriangle, 
   CheckCircle2, ChevronRight, TrendingUp, Search, Filter, Database, Users, 
   Building, RefreshCw, Send, PlusCircle, Award, Landmark, Check, ArrowRight,
   MessageSquare, Radio, Sparkles, Mic, FileDown, Layers, HelpCircle, X, Download,
@@ -98,7 +101,31 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
   // Estación de Formulación MGA & Suplir Requisitos (Dinámico en Supabase)
   const [proyectosList, setProyectosList] = useState<ProyectoMgaEstructurado[]>([]);
   const [selectedProject, setSelectedProject] = useState<ProyectoMgaEstructurado | null>(null);
-  const [projectWorkTab, setProjectWorkTab] = useState<'mga' | 'requisitos' | 'censo' | 'apu' | 'alternativas' | 'dossier'>('mga');
+  const [projectWorkTab, setProjectWorkTab] = useState<'mga' | 'requisitos' | 'censo' | 'apu' | 'alternativas' | 'dossier' | 'estado_mayor'>('mga');
+
+  // Estado del Orquestador Multi-Agente MGA DNP
+  const [mgaOrchestrationReport, setMgaOrchestrationReport] = useState<OrchestrationReport | null>(null);
+  const [isRunningMgaAnalysis, setIsRunningMgaAnalysis] = useState<boolean>(false);
+
+  // Auto-análisis de agentes al abrir o cambiar proyecto MGA
+  React.useEffect(() => {
+    if (selectedProject) {
+      runMgaAgentOrchestration(selectedProject, municipioId).then(rep => {
+        setMgaOrchestrationReport(rep);
+      });
+    }
+  }, [selectedProject?.id, municipioId]);
+
+  const handleRerunMgaOrchestration = async () => {
+    if (!selectedProject) return;
+    setIsRunningMgaAnalysis(true);
+    try {
+      const rep = await runMgaAgentOrchestration(selectedProject, municipioId);
+      setMgaOrchestrationReport(rep);
+    } finally {
+      setIsRunningMgaAnalysis(false);
+    }
+  };
   const [cardViewModes, setCardViewModes] = useState<Record<string, 'oficial' | 'practica'>>({});
   const [nuevoItemPractico, setNuevoItemPractico] = useState({
     item: '',
@@ -685,14 +712,41 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
     document.body.removeChild(link);
   };
 
-  const handleDownloadMinutaTexto = (nombreArchivo: string, contenido: string) => {
-    const element = document.createElement('a');
-    const file = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
-    element.href = URL.createObjectURL(file);
-    element.download = nombreArchivo;
-    document.body.appendChild(element);
-    element.click();
-    document.body.removeChild(element);
+  const handleDownloadMinutaTexto = async (nombreArchivo: string, contenido: string) => {
+    const munNombre = isCaparrapi ? 'Caparrapí' : 'Guaduas';
+    const cleanName = nombreArchivo.replace(/\.txt$/i, '') + '.docx';
+    try {
+      const blob = await generateOfficialDocxBlob({
+        tituloPrincipal: `CERTIFICACIÓN INSTITUCIONAL MGA: ${selectedProject?.nombre_proyecto || 'PROYECTO MUNICIPAL'}`,
+        subtitulo: `DESPACHO DE PLANEACIÓN Y GESTIÓN TERRITORIAL - ALCALDÍA DE ${munNombre.toUpperCase()}`,
+        entidadEmisora: `Alcaldía Municipal de ${munNombre} - Cundinamarca`,
+        tipoDocumento: 'proyecto_mga',
+        referenciaProceso: selectedProject?.codigo_bpin_propuesto || 'BPIN-2026',
+        contenidoTexto: contenido,
+        firmantes: [
+          {
+            cargo: 'SECRETARIO DE PLANEACIÓN Y DESARROLLO TERRITORIAL',
+            entidad: `Alcaldía Municipal de ${munNombre}`,
+            nombre: 'Despacho de Planeación Municipal'
+          },
+          {
+            cargo: 'ALCALDE MUNICIPAL / ORDENADOR DEL GASTO',
+            entidad: `Municipio de ${munNombre}, Cundinamarca`,
+            nombre: isCaparrapi ? 'Despacho del Alcalde de Caparrapí' : 'Despacho del Alcalde de Guaduas'
+          }
+        ]
+      });
+      downloadFileBlob(blob, cleanName);
+    } catch (e) {
+      console.error('Error generando Word de minuta:', e);
+      const element = document.createElement('a');
+      const file = new Blob([contenido], { type: 'text/plain;charset=utf-8' });
+      element.href = URL.createObjectURL(file);
+      element.download = nombreArchivo;
+      document.body.appendChild(element);
+      element.click();
+      document.body.removeChild(element);
+    }
   };
 
   const handleGenerarMinutaIa = async (req: RequisitoViabilidad) => {
@@ -3064,6 +3118,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
             {/* Sub-Navegación del Expediente */}
             <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-800 pb-2 shrink-0">
               {[
+                { id: 'estado_mayor', label: '🤖 1. Estado Mayor Multi-Agente (Commander MGA)', icon: Bot },
                 { id: 'mga', label: 'Ficha MGA Canónica (Módulos 1-4)', icon: FileText },
                 { id: 'requisitos', label: `Suplir Requisitos (${requisitosList.filter(r => r.estado !== 'pendiente').length}/12)`, icon: CheckSquare },
                 { id: 'censo', label: `Censo & Respaldos (${censoList.length})`, icon: Users },
@@ -3093,6 +3148,19 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
             {/* Contenido Dinámico por Pestaña */}
             <div className="flex-1 overflow-y-auto space-y-4 pr-1">
               
+                            {/* PESTAÑA: ESTADO MAYOR MULTI-AGENTE (COMMANDER MGA DNP) */}
+              {projectWorkTab === 'estado_mayor' && mgaOrchestrationReport && (
+                <div className="space-y-4 animate-fadeIn">
+                  <AgentOrchestratorPanel
+                    report={mgaOrchestrationReport}
+                    onRerunAnalysis={handleRerunMgaOrchestration}
+                    isRunningAnalysis={isRunningMgaAnalysis}
+                    entidadNombre={`Alcaldía Municipal de ${isCaparrapi ? 'Caparrapí' : 'Guaduas'}`}
+                    procesoIdOProyecto={selectedProject.codigo_bpin_propuesto || 'BPIN-2026'}
+                  />
+                </div>
+              )}
+
               {/* PESTAÑA 1: FICHA MGA CANÓNICA (MÓDULOS 1 A 4) */}
               {projectWorkTab === 'mga' && (
                 <div className="space-y-4 animate-fadeIn">
@@ -4200,7 +4268,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                 className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs flex items-center gap-1.5 shadow-md cursor-pointer transition-all"
               >
                 <Download className="w-3.5 h-3.5" />
-                Descargar Documento (.txt)
+                Descargar Minuta en Word Oficial (.docx)
               </button>
               <button
                 type="button"

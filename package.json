@@ -12,6 +12,7 @@
   "dependencies": {
     "@supabase/supabase-js": "^2.48.1",
     "chart.js": "^4.5.1",
+    "docx": "^9.9.0",
     "express": "^5.2.1",
     "lucide-react": "^0.475.0",
     "msedge-tts": "^2.0.9",
