@@ -149,7 +149,12 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     setIsAudioPermissionGranted(true);
     setShowPermissionModal(false);
 
-    // Con los permisos concedidos, iniciar de inmediato la bienvenida: voz clara y escritura sincronizada desde 0
+    // Refrescar página (F5) inmediatamente para que el navegador inicie con los permisos preactivados y empiece a hablar
+    if (typeof window !== 'undefined') {
+      window.location.reload();
+      return;
+    }
+
     setTimeout(() => {
       const textToSpeak = currentResponseRef.current || currentResponse || munData.saludoInicial;
       setDisplayedResponse('');
