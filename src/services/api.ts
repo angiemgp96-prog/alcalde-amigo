@@ -1,3 +1,4 @@
+import { getCanonicalSectorRequisitos, sanitizeAndMigrateProjectRequirements, detectSectorDnpType } from './sectorialRequirementsService';
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
 import { 
   CitizenNeed, CitizenLead, BaseProposal, GreenApiMessage, PurchaseItem, 
@@ -2269,261 +2270,8 @@ const PROYECTOS_TIPO_GUADUAS: ProyectoMgaEstructurado[] = [
 ];
 
 // Generador de los 12 requisitos canónicos de viabilidad sectorial
-export function generateStandardRequisitos(proyectoId: string, sectorDnp: string = 'Transporte'): RequisitoViabilidad[] {
-  const isTic = sectorDnp.toLowerCase().includes('tic') || 
-                sectorDnp.toLowerCase().includes('tecnolog') || 
-                sectorDnp.toLowerCase().includes('conectividad') ||
-                sectorDnp.toLowerCase().includes('comunicaciones');
-
-  // REQUISITOS DEL SECTOR TIC / CONECTIVIDAD SATELITAL (MINISTERIO TIC / DNP)
-  if (isTic) {
-    return [
-      {
-        id: `req-${proyectoId}-1`,
-        proyecto_id: proyectoId,
-        categoria: 'legal',
-        nombre_requisito: 'Carta de Presentación y Radicación Oficial al Ministerio de las TIC',
-        descripcion: 'Oficio formal firmado por el Alcalde justificando la necesidad de conectividad escolar y comunitaria rural.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Pendiente de generar minuta con IA o adjuntar oficio formal firmado.'
-      },
-      {
-        id: `req-${proyectoId}-2`,
-        proyecto_id: proyectoId,
-        categoria: 'legal',
-        nombre_requisito: 'Autorización de Uso de Espacio en Sedes Escolares Rurales y Plazas',
-        descripcion: 'Actas de autorización de rectores educativos y juntas comunales para instalación de antenas y equipos Wi-Fi.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Requiere firmas de los rectores de las sedes rurales focalizadas.'
-      },
-      {
-        id: `req-${proyectoId}-3`,
-        proyecto_id: proyectoId,
-        categoria: 'legal',
-        nombre_requisito: 'Certificación de Concordancia con el Plan de Desarrollo y PBOT',
-        descripcion: 'Constancia expedida por Planeación Municipal indicando alineación con las metas de conectividad digital.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Generar certificación oficial con la IA del despacho.'
-      },
-      {
-        id: `req-${proyectoId}-4`,
-        proyecto_id: proyectoId,
-        categoria: 'tecnico',
-        nombre_requisito: 'Estudio de Ingeniería y Topología de Enlace Satelital Starlink con Cobertura Wi-Fi 200m',
-        descripcion: 'Especificaciones técnicas de ancho de banda (150-250 Mbps), cálculo de radioenlace y topología de red comunitaria.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Especificación técnica de antenas de órbita baja y puntos de acceso exteriores.'
-      },
-      {
-        id: `req-${proyectoId}-5`,
-        proyecto_id: proyectoId,
-        categoria: 'tecnico',
-        nombre_requisito: 'Presupuesto Detallado APU de Antenas, Mástiles, Paneles Solares y Cableado',
-        descripcion: 'Desglose por ítems de hardware satelital, soporte fotovoltaico EcoFlow/Solar y mano de obra de instalación.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Verificar precios de importación Starlink y respaldo de energía fotovoltaica.'
-      },
-      {
-        id: `req-${proyectoId}-6`,
-        proyecto_id: proyectoId,
-        categoria: 'tecnico',
-        nombre_requisito: 'Cronograma Físico de Despliegue en 15 a 30 Días e Instalación en Escuelas',
-        descripcion: 'Planificación de instalación modular por veredas y puesta en marcha de zonas Wi-Fi.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Ruta de instalación en campo.'
-      },
-      {
-        id: `req-${proyectoId}-7`,
-        proyecto_id: proyectoId,
-        categoria: 'ambiental',
-        nombre_requisito: 'Concepto Ambiental de No Afectación ante CAR para Antenas y Paneles Solares',
-        descripcion: 'Certificación de bajo impacto ambiental al tratarse de equipos de telecomunicaciones limpios sin remoción de masa.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Concepto ambiental simplificado.'
-      },
-      {
-        id: `req-${proyectoId}-8`,
-        proyecto_id: proyectoId,
-        categoria: 'ambiental',
-        nombre_requisito: 'Análisis de Gestión del Riesgo Eléctrico y Pararrayos - Ley 1523',
-        descripcion: 'Protocolo de protección contra tormentas eléctricas, puesta a tierra y protección de equipos satelitales en zonas altas.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Obligatorio por Ley 1523 para instalaciones en cumbres rurales.'
-      },
-      {
-        id: `req-${proyectoId}-9`,
-        proyecto_id: proyectoId,
-        categoria: 'censo',
-        nombre_requisito: 'Censo Georreferenciado de Familias, Niños y Escuelas Rurales Beneficiarias',
-        descripcion: 'Listado georreferenciado de estudiantes y productores rurales que tendrán acceso a internet y telemedicina.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Se alimenta automáticamente con los reportes comunitarios de Voz del Pueblo.'
-      },
-      {
-        id: `req-${proyectoId}-10`,
-        proyecto_id: proyectoId,
-        categoria: 'socioeconomico',
-        nombre_requisito: 'Acta de Socialización y Priorización Comunitaria con la JAC de San Carlos',
-        descripcion: 'Constancia de concertación comunitaria donde la comunidad prioriza el internet satelital.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Adjuntar acta firmada por la directiva de la JAC.'
-      },
-      {
-        id: `req-${proyectoId}-11`,
-        proyecto_id: proyectoId,
-        categoria: 'socioeconomico',
-        nombre_requisito: 'Ficha Resumen MGA Web y Certificado BPIN MinTIC',
-        descripcion: 'Estructura canónica de los 4 módulos de la Metodología General Ajustada del DNP.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Generar resumen canónico del proyecto para radicación.'
-      },
-      {
-        id: `req-${proyectoId}-12`,
-        proyecto_id: proyectoId,
-        categoria: 'legal',
-        nombre_requisito: 'Acta de Compromiso de Pago de Conectividad y Sostenibilidad Operativa',
-        descripcion: 'Compromiso formal suscrito por el municipio garantizando la suscripción del servicio satelital.',
-        es_obligatorio: true,
-        estado: 'pendiente',
-        observaciones: 'Garantía de vigencias presupuestales.'
-      }
-    ];
-  }
-
-  // REQUISITOS DEL SECTOR TRANSPORTE / VÍAS Y PLACA HUELLAS (INVIAS / DNP)
-  return [
-    {
-      id: `req-${proyectoId}-1`,
-      proyecto_id: proyectoId,
-      categoria: 'legal',
-      nombre_requisito: 'Carta de Presentación y Radicación Oficial al Presidente / Ministerio',
-      descripcion: 'Documento formal firmado por el Alcalde o Representante Legal justificando la necesidad, valor y población beneficiaria.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Generar minuta formal o adjuntar oficio institucional firmado.'
-    },
-    {
-      id: `req-${proyectoId}-2`,
-      proyecto_id: proyectoId,
-      categoria: 'legal',
-      nombre_requisito: 'Certificado de Titularidad Predial y/o Actas de Servidumbre Comunal',
-      descripcion: 'Documentos que acreditan propiedad pública de la vía o actas de permiso de paso suscritas por los propietarios colindantes.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Se requiere adjuntar actas de servidumbre en tramos críticos.'
-    },
-    {
-      id: `req-${proyectoId}-3`,
-      proyecto_id: proyectoId,
-      categoria: 'legal',
-      nombre_requisito: 'Certificación de Concordancia con el Plan de Desarrollo y PBOT/EOT',
-      descripcion: 'Constancia expedida por Planeación Municipal indicando alineación con los instrumentos de ordenamiento territorial.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Generar certificación con la IA de Planeación.'
-    },
-    {
-      id: `req-${proyectoId}-4`,
-      proyecto_id: proyectoId,
-      categoria: 'tecnico',
-      nombre_requisito: 'Estudio de Ingeniería de Detalle y Diseños Estructurales (Proyecto Tipo DNP)',
-      descripcion: 'Planos topográficos, memorias de cálculo hidráulico y estructural conforme a especificaciones INVIAS / DNP.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Diseño tipo con módulos prefabricados de concreto 3000 PSI.'
-    },
-    {
-      id: `req-${proyectoId}-5`,
-      proyecto_id: proyectoId,
-      categoria: 'tecnico',
-      nombre_requisito: 'Presupuesto Detallado con Análisis de Precios Unitarios (APU) Regionalizados',
-      descripcion: 'Desglose por capítulos, ítems, cantidades de obra y tarifas regionalizadas para Cundinamarca.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Precios verificados con base de datos de la Gobernación de Cundinamarca e INVIAS.'
-    },
-    {
-      id: `req-${proyectoId}-6`,
-      proyecto_id: proyectoId,
-      categoria: 'tecnico',
-      nombre_requisito: 'Cronograma Físico y Financiero de Inversiones (Curva S)',
-      descripcion: 'Planificación de ejecución física por meses y flujo de desembolsos requerido.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Estimado de cronograma de obra.'
-    },
-    {
-      id: `req-${proyectoId}-7`,
-      proyecto_id: proyectoId,
-      categoria: 'ambiental',
-      nombre_requisito: 'Plan de Manejo Ambiental Específico (PMA) o Certificado de No Afectación',
-      descripcion: 'Evaluación de impacto ambiental, manejo de escombros, fuentes de materiales y permisos ante CAR Cundinamarca.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Trámite o certificación ambiental ante la CAR.'
-    },
-    {
-      id: `req-${proyectoId}-8`,
-      proyecto_id: proyectoId,
-      categoria: 'ambiental',
-      nombre_requisito: 'Análisis de Gestión del Riesgo y Amenaza de Desastres (Ley 1523)',
-      descripcion: 'Identificación de amenazas de remoción en masa, inundación y medidas de mitigación incorporadas en la obra.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Gestión del riesgo según Ley 1523.'
-    },
-    {
-      id: `req-${proyectoId}-9`,
-      proyecto_id: proyectoId,
-      categoria: 'censo',
-      nombre_requisito: 'Censo Georreferenciado de Familias y Beneficiarios Directos en Territorio',
-      descripcion: 'Listado formal de beneficiarios con nombres, cédulas, veredas, clasificación Sisbén y unidades productivas.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Vinculado directamente con los reportes de campo y Voz del Pueblo.'
-    },
-    {
-      id: `req-${proyectoId}-10`,
-      proyecto_id: proyectoId,
-      categoria: 'socioeconomico',
-      nombre_requisito: 'Acta de Socialización y Priorización con la Junta de Acción Comunal (JAC)',
-      descripcion: 'Constancia de concertación comunitaria donde la comunidad prioriza la intervención y respalda el proyecto.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Adjuntar acta firmada por el Presidente de la JAC.'
-    },
-    {
-      id: `req-${proyectoId}-11`,
-      proyecto_id: proyectoId,
-      categoria: 'socioeconomico',
-      nombre_requisito: 'Ficha Resumen MGA Web y Certificado BPIN',
-      descripcion: 'Estructura canónica de los 4 módulos de la Metodología General Ajustada del DNP.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Ficha canónica MGA del DNP.'
-    },
-    {
-      id: `req-${proyectoId}-12`,
-      proyecto_id: proyectoId,
-      categoria: 'legal',
-      nombre_requisito: 'Acta de Compromiso de Operación y Sostenibilidad Financiera',
-      descripcion: 'Compromiso formal suscrito por el municipio garantizando la apropiación presupuestal para mantenimiento rutinario.',
-      es_obligatorio: true,
-      estado: 'pendiente',
-      observaciones: 'Aprobación del despacho del Alcalde.'
-    }
-  ];
+export function generateStandardRequisitos(proyectoId: string, sectorDnp: string = 'Transporte', nombreProyecto: string = '', munNombre: string = 'Caparrapí'): RequisitoViabilidad[] {
+  return getCanonicalSectorRequisitos(proyectoId, sectorDnp, nombreProyecto, munNombre);
 }
 
 export async function fetchProyectosMgaFromSupabase(municipioId: 'caparrapi' | 'guaduas'): Promise<ProyectoMgaEstructurado[]> {
@@ -2707,9 +2455,13 @@ export async function saveProyectoMgaInSupabase(proyecto: Partial<ProyectoMgaEst
 }
 
 // 3. CONSULTAR REQUISITOS DEL PROYECTO ("SUPLIR REQUISITOS")
-export async function fetchRequisitosProyecto(proyectoId: string, sectorDnp?: string): Promise<RequisitoViabilidad[]> {
+export async function fetchRequisitosProyecto(proyectoId: string, sectorDnp?: string, nombreProyecto?: string): Promise<RequisitoViabilidad[]> {
   const cacheKey = `ialcaldia_requisitos_${proyectoId}`;
   const client = getSupabaseClient();
+  const effectiveSector = sectorDnp || (proyectoId.toLowerCase().includes('tic') ? 'TIC' : 'Transporte');
+  const effectiveNombre = nombreProyecto || (proyectoId.toLowerCase().includes('tic') ? 'Conectividad Digital Starlink' : '');
+
+  let list: RequisitoViabilidad[] = [];
 
   if (client) {
     try {
@@ -2720,58 +2472,49 @@ export async function fetchRequisitosProyecto(proyectoId: string, sectorDnp?: st
         .order('categoria', { ascending: true });
 
       if (!error && data && data.length > 0) {
-        localStorage.setItem(cacheKey, JSON.stringify(data));
-        return data as RequisitoViabilidad[];
-      }
-
-      // Si no hay requisitos registrados para este proyecto, sembrar los 12 estándar
-      if (!error && (!data || data.length === 0)) {
-        const standardReqs = generateStandardRequisitos(proyectoId, sectorDnp);
-        try {
-          const insertPayload = standardReqs.map(r => ({
-            proyecto_id: proyectoId,
-            categoria: r.categoria,
-            nombre_requisito: r.nombre_requisito,
-            descripcion: r.descripcion,
-            es_obligatorio: r.es_obligatorio,
-            estado: r.estado,
-            archivo_nombre: r.archivo_nombre,
-            archivo_size: r.archivo_size,
-            observaciones: r.observaciones
-          }));
-          await client.from('requisitos_viabilidad_proyecto').insert(insertPayload);
-        } catch (insErr) {
-          console.warn('Aviso sembrando requisitos en Supabase:', insErr);
-        }
-        localStorage.setItem(cacheKey, JSON.stringify(standardReqs));
-        return standardReqs;
+        list = data as RequisitoViabilidad[];
       }
     } catch (err) {
       console.warn('Error consultando requisitos en Supabase:', err);
     }
   }
 
-  // Respaldo en caché local
-  try {
-    const cached = localStorage.getItem(cacheKey);
-    if (cached) {
-      const parsed: RequisitoViabilidad[] = JSON.parse(cached);
-      const hasOldMock = Array.isArray(parsed) && parsed.some(r => 
-        r.archivo_nombre === 'Carta_Radicacion_Oficial_MinTransporte.pdf' || 
-        r.archivo_nombre === 'Certificado_No_Afectacion_Reserva_CAR.pdf' ||
-        r.archivo_nombre === 'Memorias_Calculo_PlacaHuella_Estándar_DNP.pdf'
-      );
-      if (!hasOldMock) {
-        return parsed;
-      }
-    }
-  } catch (e) {
-    console.warn(e);
+  // Si no había en Supabase, buscar en LocalStorage
+  if (list.length === 0 && typeof localStorage !== 'undefined') {
+    try {
+      const local = localStorage.getItem(cacheKey);
+      if (local) list = JSON.parse(local);
+    } catch (_) {}
   }
 
-  const standard = generateStandardRequisitos(proyectoId, sectorDnp);
-  localStorage.setItem(cacheKey, JSON.stringify(standard));
-  return standard;
+  // SANEAR INCONGRUENCIAS SECTORIALES AUTOMÁTICAMENTE (Ej: Quitar concreto 3000 PSI de proyectos TIC)
+  const { sanitized, wasMigrated } = sanitizeAndMigrateProjectRequirements(proyectoId, effectiveSector, effectiveNombre, list);
+  
+  if (wasMigrated || list.length === 0) {
+    list = sanitized;
+    if (typeof localStorage !== 'undefined') {
+      try {
+        localStorage.setItem(cacheKey, JSON.stringify(list));
+      } catch (_) {}
+    }
+    // Guardar en Supabase si aplica
+    if (client) {
+      try {
+        const payload = list.map(r => ({
+          proyecto_id: proyectoId,
+          categoria: r.categoria,
+          nombre_requisito: r.nombre_requisito,
+          descripcion: r.descripcion,
+          es_obligatorio: r.es_obligatorio,
+          estado: r.estado || 'pendiente',
+          observaciones: r.observaciones
+        }));
+        try { await client.from('requisitos_viabilidad_proyecto').upsert(payload, { onConflict: 'id' }); } catch (_) {}
+      } catch (_) {}
+    }
+  }
+
+  return list;
 }
 
 // 4. ACTUALIZAR ESTADO DE UN REQUISITO (SUPLIR REQUISITO)

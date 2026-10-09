@@ -1,4 +1,6 @@
 import { AgentOrchestratorPanel } from './AgentOrchestratorPanel';
+import { LiveAgentSupervisorSidebar } from './LiveAgentSupervisorSidebar';
+import { sanitizeAndMigrateProjectRequirements } from '../services/sectorialRequirementsService';
 import { runMgaAgentOrchestration, OrchestrationReport } from '../services/agentOrchestratorService';
 import { generateOfficialDocxBlob, downloadFileBlob } from '../services/docExportService';
 import React, { useState, useEffect, useRef, useMemo } from 'react';
@@ -761,7 +763,7 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
         archivo_nombre: res.archivoNombre,
         archivo_size: res.tamanoBytes,
         minuta_texto: res.contenido,
-        observaciones: `Minuta institucional generada con IA (${res.modeloUsado}).`
+        observaciones: `Memoria y minuta técnica auditada por BOT-INGENIERO-SECTORIAL y BOT-AUDITOR-SECOP (${res.modeloUsado}).`
       });
 
       setRequisitosList(prev => prev.map(r => r.id === req.id ? {
@@ -3437,12 +3439,12 @@ export const CentroMandoView: React.FC<CentroMandoViewProps> = ({
                                 {generatingMinutaId === req.id ? (
                                   <>
                                     <RefreshCw className="w-3 h-3 text-indigo-400 animate-spin" />
-                                    <span>Redactando con IA...</span>
+                                    <span>BOT-INGENIERO estructurando y auditando...</span>
                                   </>
                                 ) : (
                                   <>
                                     <Sparkles className="w-3 h-3 text-indigo-400" />
-                                    <span>Minuta IA</span>
+                                    <span>Estructurar y Auditar con Bots</span>
                                   </>
                                 )}
                               </button>

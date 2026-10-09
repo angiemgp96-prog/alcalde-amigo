@@ -45,8 +45,8 @@ export async function runSecopAgentOrchestration(opp: any, org: any): Promise<Or
   const defaultIncongruencias: AgentIncongruence[] = [
     {
       id: `inc_secop_1_${Date.now()}`,
-      agenteEmisor: 'Agente Jurídico (Ley 80 / CCE)',
-      agenteDestino: 'Agente Técnico (UNSPSC)',
+      agenteEmisor: 'BOT-JURIDICO-LEY80',
+      agenteDestino: 'BOT-INGENIERO-SECTORIAL',
       severidad: 'critico_descalificacion',
       titulo: 'Exigencia de Códigos UNSPSC con familia restringida en el Pliego',
       descripcionCausa: `La entidad ${opp.entidad} exige códigos específicos de 4to nivel que limitan la participación exclusiva. El RUP de ${org.nombre} cuenta con códigos de la misma familia de tercer nivel.`,
@@ -56,8 +56,8 @@ export async function runSecopAgentOrchestration(opp: any, org: any): Promise<Or
     },
     {
       id: `inc_secop_2_${Date.now()}`,
-      agenteEmisor: 'Agente Financiero (AIU & Matemático)',
-      agenteDestino: 'Agente Jurídico (Ley 80)',
+      agenteEmisor: 'BOT-FINANCIERO-DNP',
+      agenteDestino: 'BOT-JURIDICO-LEY80',
       severidad: 'critico_descalificacion',
       titulo: 'Riesgo de Descalificación por Redondeo de Decimales en la Oferta Económica',
       descripcionCausa: `En la plataforma SECOP II, las ofertas con decimales en ítems unitarios pueden diferir en centavos respecto al presupuesto de ${valorCOP}, lo que el algoritmo de SECOP califica como incongruencia económica.`,
@@ -67,7 +67,7 @@ export async function runSecopAgentOrchestration(opp: any, org: any): Promise<Or
     },
     {
       id: `inc_secop_3_${Date.now()}`,
-      agenteEmisor: 'Agente Técnico & Operativo',
+      agenteEmisor: 'BOT-INGENIERO-SECTORIAL',
       agenteDestino: 'Commander SECOP II',
       severidad: 'advertencia_puntaje',
       titulo: 'Acreditación del 100% de la Experiencia con los 3 Mejores Contratos',
@@ -81,7 +81,7 @@ export async function runSecopAgentOrchestration(opp: any, org: any): Promise<Or
   const defaultDebateLog: AgentDebateMessage[] = [
     {
       id: `deb_1_${Date.now()}`,
-      deAgente: 'Agente Jurídico (Ley 80)',
+      deAgente: 'BOT-JURIDICO-LEY80',
       rolTitulo: 'Auditor Jurídico & Inhabilidades',
       avatarIcon: 'Scale',
       mensaje: `Analizando pliego definitivo del proceso ${opp.id} (${opp.entidad}). Verificación de inhabilidades y vigencia de RUP de ${org.nombre} completada: 0 causales de inhabilidad.`,
@@ -90,8 +90,8 @@ export async function runSecopAgentOrchestration(opp: any, org: any): Promise<Or
     },
     {
       id: `deb_2_${Date.now()}`,
-      deAgente: 'Agente Técnico (UNSPSC)',
-      rolTitulo: 'Especialista en Experiencia y Capacidad',
+      deAgente: 'BOT-INGENIERO-SECTORIAL',
+      rolTitulo: 'Bot Auditor de Especificaciones Técnicas',
       avatarIcon: 'Briefcase',
       mensaje: `Revisando los códigos clasificadores. Alerta: El pliego pide experiencia en 4 códigos de telecomunicaciones/dotación. Estamos solicitando aclaración formal en SECOP II para avalar códigos conexos de nuestro RUP.`,
       timestamp: 'Hace 3 minutos',
@@ -99,8 +99,8 @@ export async function runSecopAgentOrchestration(opp: any, org: any): Promise<Or
     },
     {
       id: `deb_3_${Date.now()}`,
-      deAgente: 'Agente Financiero (AIU)',
-      rolTitulo: 'Auditor Financiero & Matemático',
+      deAgente: 'BOT-FINANCIERO-DNP',
+      rolTitulo: 'Bot Validador APU y Métricas Financieras',
       avatarIcon: 'Calculator',
       mensaje: `Auditando capacidad residual K y estructura de costos. Indicador de liquidez actual: 2.1 (Exigido: >= 1.5). Cobertura de intereses: 4.8 (Exigido: >= 2.0). Cifras cuadradas al centavo contra el presupuesto de ${valorCOP}.`,
       timestamp: 'Hace 2 minutos',
@@ -108,8 +108,8 @@ export async function runSecopAgentOrchestration(opp: any, org: any): Promise<Or
     },
     {
       id: `deb_4_${Date.now()}`,
-      deAgente: 'Agente Superior Commander SECOP II',
-      rolTitulo: 'Comandante Supremo de Licitaciones',
+      deAgente: 'BOT-COMANDANTE-RADICACION',
+      rolTitulo: 'Bot Orquestador y Consenso Oficial',
       avatarIcon: 'Award',
       mensaje: `CONSENSO LOGRADO: Todas las incongruencias fueron resueltas y blindadas. Los 3 sobres (Jurídico, Técnico y Financiero) cumplen el 100% de los criterios de calificación. Procedo a emitir el expediente oficial para radicación.`,
       timestamp: 'Hace 1 minuto',
@@ -143,8 +143,8 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
   const incongruenciasMGA: AgentIncongruence[] = isTic ? [
     {
       id: `inc_mga_1_${Date.now()}`,
-      agenteEmisor: 'Agente Ambiental & Riesgos (Ley 1523)',
-      agenteDestino: 'Agente Presupuestal APU',
+      agenteEmisor: 'BOT-AUDITOR-SECOP',
+      agenteDestino: 'BOT-FINANCIERO-DNP',
       severidad: 'critico_descalificacion',
       titulo: 'Falta de Sistema de Protección contra Rayos en Antenas Starlink de Cumbre',
       descripcionCausa: `Las escuelas de San Carlos y El Dinde están ubicadas en cordillera con alto nivel ceráunico (frecuencia de descargas eléctricas). Si no se presupuesta sistema pararrayos y puesta a tierra, el Ministerio de las TIC rechaza el proyecto por vulnerabilidad de infraestructura.`,
@@ -154,7 +154,7 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
     },
     {
       id: `inc_mga_2_${Date.now()}`,
-      agenteEmisor: 'Agente Metodológico DNP (MGA)',
+      agenteEmisor: 'BOT-AUDITOR-SECOP',
       agenteDestino: 'Agente Ambiental',
       severidad: 'advertencia_puntaje',
       titulo: 'Certificado Ambiental CAR Simplificado para Redes de Telecomunicaciones',
@@ -165,8 +165,8 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
     },
     {
       id: `inc_mga_3_${Date.now()}`,
-      agenteEmisor: 'Agente Presupuestal APU',
-      agenteDestino: 'Commander MGA DNP',
+      agenteEmisor: 'BOT-FINANCIERO-DNP',
+      agenteDestino: 'BOT-COMANDANTE-RADICACION',
       severidad: 'mejora_estrategica',
       titulo: 'Optimización de Autonomía Eléctrica en Cortes de Energía Rural',
       descripcionCausa: `Los cortes de energía de Enel en la ruralidad de Caparrapí promedian 4 a 8 horas semanales. Sin baterías, el internet escolar se apaga.`,
@@ -177,8 +177,8 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
   ] : [
     {
       id: `inc_mga_v1_${Date.now()}`,
-      agenteEmisor: 'Agente Ambiental CAR',
-      agenteDestino: 'Agente Técnico Vías',
+      agenteEmisor: 'BOT-AUDITOR-SECOP',
+      agenteDestino: 'BOT-INGENIERO-SECTORIAL',
       severidad: 'critico_descalificacion',
       titulo: 'Verificación de No Invasión de Ronda Hídrica en Tramos de Placa Huella',
       descripcionCausa: 'El trazado vial cruza dos quebradas veredales que exigen alcantarillas de 36 pulgadas para evitar socavación.',
@@ -192,7 +192,7 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
     {
       id: `deb_mga_1_${Date.now()}`,
       deAgente: 'Agente Metodológico DNP',
-      rolTitulo: 'Especialista en Metodología General Ajustada',
+      rolTitulo: 'Bot Auditor Metodológico MGA DNP',
       avatarIcon: 'Layers',
       mensaje: `Iniciando auditoría canónica de los 4 módulos MGA para "${proyecto.nombre_proyecto}". Árbol de problemas alineado con la meta de producto DNP 4301012. Beneficiarios directos: ${proyecto.poblacion_beneficiaria_total || 3900} habitantes en ${veredas}.`,
       timestamp: 'Hace 5 minutos',
@@ -200,8 +200,8 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
     },
     {
       id: `deb_mga_2_${Date.now()}`,
-      deAgente: 'Agente Presupuestal APU',
-      rolTitulo: 'Ingeniero de Costos y Precios Regionales',
+      deAgente: 'BOT-FINANCIERO-DNP',
+      rolTitulo: 'Bot Verificador de Costos y APU Regionales',
       avatarIcon: 'Calculator',
       mensaje: `Comprobación presupuestal de los ${valorCOP}. Se verificaron cotizaciones directas en Starlink Colombia y Homecenter. La alternativa práctica directa representa un ahorro del 91% en tiempo frente a la licitación ministerial ordinaria.`,
       timestamp: 'Hace 3 minutos',
@@ -209,8 +209,8 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
     },
     {
       id: `deb_mga_3_${Date.now()}`,
-      deAgente: 'Agente Ambiental & Riesgos (Ley 1523)',
-      rolTitulo: 'Auditor Ambiental y Gestión del Riesgo',
+      deAgente: 'BOT-AUDITOR-SECOP',
+      rolTitulo: 'Bot de Viabilidad Ambiental y Riesgos (Ley 1523)',
       avatarIcon: 'ShieldAlert',
       mensaje: `Alerta atendida: Se incorporó la protección pararrayos para las escuelas de cumbre rural. Se certificó ausencia de afectación en reservas forestales protectoras nacionales.`,
       timestamp: 'Hace 2 minutos',
@@ -218,7 +218,7 @@ export async function runMgaAgentOrchestration(proyecto: any, municipioId: 'capa
     },
     {
       id: `deb_mga_4_${Date.now()}`,
-      deAgente: 'Agente Superior Commander MGA DNP',
+      deAgente: 'Agente Superior BOT-COMANDANTE-RADICACION',
       rolTitulo: 'Director General de Viabilidad Ministerial',
       avatarIcon: 'Landmark',
       mensaje: `EXPEDIENTE VIABILIZADO: Todos los 12 requisitos del sector están sustentados con fundamento legal y técnico. El proyecto está listo para expedición de radicado oficial en MinTIC / Presidencia de la República.`,

@@ -1,4 +1,5 @@
 import { AgentOrchestratorPanel } from './AgentOrchestratorPanel';
+import { LiveAgentSupervisorSidebar } from './LiveAgentSupervisorSidebar';
 import { runSecopAgentOrchestration, OrchestrationReport } from '../services/agentOrchestratorService';
 import { generateOfficialDocxBlob, downloadFileBlob } from '../services/docExportService';
 import React, { useState } from 'react';
