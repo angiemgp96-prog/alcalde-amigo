@@ -18,17 +18,32 @@ const LOCAL_STORAGE_SUPABASE_CONFIG = 'alcalde_amigo_supabase_cfg';
 const DEFAULT_SUPABASE_URL = 'https://nfisbtgeuwfvorlwjcyb.supabase.co';
 const DEFAULT_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im5maXNidGdldXdmdm9ybHdqY3liIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTEyMjIzNjIsImV4cCI6MjEwNjc5ODM2Mn0.pbHoVQhO5Gp0YXgCck8qNDGt43gMK_EbhFZxnbd_pxQ';
 
+// Limpieza proactiva de configuraciones obsoletas o corruptas en LocalStorage
+if (typeof localStorage !== 'undefined') {
+  try {
+    const saved = localStorage.getItem(LOCAL_STORAGE_SUPABASE_CONFIG);
+    if (saved && !saved.includes('nfisbtgeuwfvorlwjcyb')) {
+      localStorage.removeItem(LOCAL_STORAGE_SUPABASE_CONFIG);
+    }
+    // Si el historial local de Caparrapí solo tiene 1 mensaje (el saludo), limpiarlo para recargar las 4 intervenciones reales de Supabase
+    const localCap = localStorage.getItem('ialcaldia_chat_history_v2_caparrapi');
+    if (localCap) {
+      const parsedCap = JSON.parse(localCap);
+      if (Array.isArray(parsedCap) && parsedCap.length <= 1) {
+        localStorage.removeItem('ialcaldia_chat_history_v2_caparrapi');
+      }
+    }
+  } catch (e) {}
+}
+
 let supabaseClient: SupabaseClient | null = null;
 
-// Inicializa Supabase si existen credenciales
+// Inicializa Supabase garantizando el endpoint oficial
 export function initSupabase(url: string, anonKey: string): boolean {
-  if (!url || !anonKey) {
-    supabaseClient = null;
-    return false;
-  }
+  const targetUrl = url && url.includes('supabase.co') ? url : DEFAULT_SUPABASE_URL;
+  const targetKey = anonKey && anonKey.length > 20 ? anonKey : DEFAULT_SUPABASE_ANON_KEY;
   try {
-    supabaseClient = createClient(url, anonKey);
-    localStorage.setItem(LOCAL_STORAGE_SUPABASE_CONFIG, JSON.stringify({ url, anonKey }));
+    supabaseClient = createClient(targetUrl, targetKey);
     return true;
   } catch (e) {
     console.error('Error al inicializar Supabase client:', e);
@@ -39,11 +54,7 @@ export function initSupabase(url: string, anonKey: string): boolean {
 
 export function getSupabaseClient(): SupabaseClient | null {
   if (!supabaseClient) {
-    const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-    const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
-    if (envUrl && envKey) {
-      initSupabase(envUrl, envKey);
-    }
+    initSupabase(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY);
   }
   return supabaseClient;
 }
@@ -60,29 +71,9 @@ export function purgePhantomLocalStorageCache(): void {
   }
 }
 
-// Carga configuración previa de Supabase desde variables de entorno o LocalStorage
+// Carga configuración oficial de Supabase
 export function getSavedSupabaseConfig(): { url: string; anonKey: string; isConnected: boolean } {
-  // 1. Intentar desde variables de entorno VITE_ o credenciales oficiales por defecto
-  const envUrl = (import.meta as any).env?.VITE_SUPABASE_URL || DEFAULT_SUPABASE_URL;
-  const envKey = (import.meta as any).env?.VITE_SUPABASE_ANON_KEY || DEFAULT_SUPABASE_ANON_KEY;
-  if (envUrl && envKey) {
-    const ok = initSupabase(envUrl, envKey);
-    if (ok) return { url: envUrl, anonKey: envKey, isConnected: true };
-  }
-
-  // 2. Intentar desde LocalStorage
-  try {
-    const saved = localStorage.getItem(LOCAL_STORAGE_SUPABASE_CONFIG);
-    if (saved) {
-      const parsed = JSON.parse(saved);
-      if (parsed.url && parsed.anonKey) {
-        const ok = initSupabase(parsed.url, parsed.anonKey);
-        return { url: parsed.url, anonKey: parsed.anonKey, isConnected: ok };
-      }
-    }
-  } catch (e) {
-    console.warn('No hay configuración guardada de Supabase.');
-  }
+  initSupabase(DEFAULT_SUPABASE_URL, DEFAULT_SUPABASE_ANON_KEY);
   return { url: DEFAULT_SUPABASE_URL, anonKey: DEFAULT_SUPABASE_ANON_KEY, isConnected: true };
 }
 

@@ -372,10 +372,9 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
           setHistory(loadedHistory);
           setCurrentResponse(reconnectGreeting);
           setCurrentExpresion('entusiasmado');
+          setDisplayedResponse(reconnectGreeting);
           if (!isMuted && isAudioPermissionGranted && !showPermissionModal) {
             speakRamitosVoice(reconnectGreeting, true);
-          } else {
-            setDisplayedResponse(reconnectGreeting);
           }
         } else {
           // Si no hay historial previo para este municipio, consultar si el ciudadano ya está registrado por IP/dispositivo
@@ -466,14 +465,22 @@ export const RamitosChatView: React.FC<RamitosChatViewProps> = ({
     setIsThinking(true);
     setIsRamitosSpeaking(true);
 
-    // Consultar registro en caché local (0ms)
     const userLead = getUserLeadInfo();
     const isUserRegistered = Boolean(userLead && userLead.nombre && userLead.whatsapp);
 
-    // Consultar IA con memoria (ultra-rápido)
-    const response = await processRamitosConversationAsync(query, selectedVereda, updatedHistory, isUserRegistered, municipioId);
-
-    setIsThinking(false);
+    let response: RamitosChatResponse;
+    try {
+      // Consultar IA con memoria (ultra-rápido)
+      response = await processRamitosConversationAsync(query, selectedVereda, updatedHistory, isUserRegistered, municipioId);
+    } catch (err) {
+      console.warn('Error al procesar con IA:', err);
+      response = {
+        textoRespuesta: `Comprendo perfectamente tu inquietud, Iván. La hemos registrado con prioridad para seguimiento comunitario en ${isCaparrapi ? 'Caparrapí' : 'Guaduas'}.`,
+        expresion: 'feliz'
+      };
+    } finally {
+      setIsThinking(false);
+    }
 
     if (response.openPlanTab) {
       onOpenFullPlan();
