@@ -7,7 +7,8 @@ import {
 import { BASE_PROPOSALS } from '../data/basePlanData';
 import { MUNICIPIOS_DATA } from '../data/municipiosConfig';
 import { getDeviceId, getClientIpAddress, getDeviceCategory } from './deviceMemory';
-import { cleanHumanName } from './ramitosBrain';
+import { cleanHumanName, isValidHumanName, isValidColombianPhone, formatColombianPhone } from './leadValidationService';
+export { cleanHumanName, isValidHumanName, isValidColombianPhone, formatColombianPhone };
 
 const LOCAL_STORAGE_NEEDS = 'alcalde_amigo_needs';
 const LOCAL_STORAGE_LEADS = 'alcalde_amigo_leads';

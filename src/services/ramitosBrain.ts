@@ -1,3 +1,24 @@
+import {
+  isValidHumanName,
+  cleanHumanName,
+  isValidColombianPhone,
+  formatColombianPhone,
+  extractLeadInfoFromText,
+  setPendingLeadUpdate,
+  getPendingLeadUpdate,
+  clearPendingLeadUpdate
+} from './leadValidationService';
+
+export {
+  isValidHumanName,
+  cleanHumanName,
+  isValidColombianPhone,
+  formatColombianPhone,
+  extractLeadInfoFromText,
+  setPendingLeadUpdate,
+  getPendingLeadUpdate,
+  clearPendingLeadUpdate
+};
 import { CitizenNeed } from '../types';
 import { 
   getRamitosMemory, 
@@ -103,145 +124,7 @@ export function extractAudioCorrectionFromText(text: string): { wrongTerm: strin
   return null;
 }
 
-// Sanitizador estricto de nombres propios humanos (descarta frases de dictado como "herramientas quiero comentarte")
-export function cleanHumanName(name?: string): string | undefined {
-  if (!name || typeof name !== 'string') return undefined;
-
-  const stopWords = new Set([
-    'de', 'del', 'la', 'el', 'los', 'las', 'san', 'santa', 'caparrapi', 'caparrapí', 'guaduas', 'cundinamarca', 'colombia',
-    'hola', 'buenas', 'saludos', 'para', 'tengo', 'quiero', 'necesito', 'buenos', 'dias', 'tardes', 'noches',
-    'ramitos', 'alcalde', 'amigo', 'plan', 'vereda', 'barrio', 'parque', 'agua', 'calle', 'solucion',
-    'propuesta', 'escuela', 'ver', 'abrir', 'como', 'cómo', 'donde', 'dónde', 'cuando', 'cuándo', 'quien', 'quién',
-    'porque', 'este', 'esta', 'estos', 'estas', 'pero', 'bien', 'gracias', 'sino', 'tampoco', 'tienen', 'podrian',
-    'podria', 'podría', 'podrían', 'hacer', 'crear', 'dije', 'dicen', 'decir', 'recuerdo', 'pense', 'pensaba',
-    'contactame', 'contactar', 'contacto', 'mensajes', 'mensaje', 'escribir', 'escribe', 'hablar', 'herramientas',
-    'comentarte', 'decirte', 'anos', 'años', 'ciudadano', 'anonimo', 'anónimo', 'usuario', 'registrado', 'numero',
-    'número', 'celular', 'whatsapp', 'telefono', 'teléfono', 'opcion', 'opción', 'practica', 'práctica', 'zona',
-    'cercana', 'mente', 'sabes', 'sabe', 'sabemos', 'saben', 'saber', 'sabras', 'sabrás', 'conoces', 'conoce',
-    'cual', 'cuál', 'cuales', 'cuáles', 'que', 'qué', 'llamo', 'llamas', 'llama', 'llaman', 'llamar', 'es', 'son',
-    'era', 'ser', 'sea', 'somos', 'tu', 'tú', 'yo', 'usted', 'ustedes', 'me', 'te', 'se', 'nos', 'le', 'les',
-    'mi', 'mis', 'su', 'sus', 'un', 'una', 'unos', 'unas', 'resumen', 'dame', 'da', 'dar', 'dime', 'dinos',
-    'cuenta', 'cuentame', 'cuéntame', 'mira', 'oye', 'oiga', 'escucha', 'bueno', 'buena', 'claro', 'dale', 'vale',
-    'si', 'sí', 'no', 'y', 'e', 'o', 'u', 'pedido', 'pedir', 'pido', 'pide', 'pedimos', 'copiloto', 'equipo', 'rr',
-    'alcaldia', 'alcaldía', 'voz', 'actualiza', 'actualizar', 'actualizalo', 'actualízalo', 'cambia', 'cambiar',
-    'modifica', 'modificar', 'revisar', 'revisa', 'consultar', 'consulta', 'proponer', 'propone', 'conversar'
-  ]);
-
-  const veredas = [
-    'san carlos', 'san pablo', 'san ramon', 'san ramón', 'pitalito', 'el dinde', 'mata de mora', 'la chorrera',
-    'boca de monte', 'galiche', 'el silencio', 'puerto colombia', 'casco urbano',
-    'piedras negras', 'puerto bogota', 'puerto bogotá', 'la paz', 'el hato', 'san jose', 'san josé',
-    'yaguara', 'la esperanza', 'carbonera', 'canta rana', 'versalles'
-  ];
-
-  const lowerRaw = name.toLowerCase().trim();
-  if (veredas.some(v => lowerRaw.includes(v))) return undefined;
-  if (/^(?:de\s+|del\s+|en\s+|desde\s+|soy\s+de\s+|para\s+)/i.test(lowerRaw)) return undefined;
-
-  const words = name.trim().split(/\s+/).filter(w => {
-    const cleanWord = w.toLowerCase().replace(/[^a-záéíóúñ]/gi, '');
-    return cleanWord.length >= 2 && !stopWords.has(cleanWord) && !/^\d+$/.test(w);
-  });
-
-  if (words.length === 0) return undefined;
-
-  const formatted = words.slice(0, 3).map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()).join(' ');
-  return formatted.length >= 3 ? formatted : undefined;
-}
-
-// Extracción inteligente de Datos de Contacto (Nombre y WhatsApp) del texto del ciudadano
-export function extractLeadInfoFromText(text: string): { nombre?: string; whatsapp?: string } | null {
-  if (!text) return null;
-
-  // 1. Extraer celular colombiano de 10 dígitos (3XX XXX XXXX o 3XXXXXXXXX)
-  const phoneMatch = text.match(/(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|\b3\d{9}\b)/);
-  let whatsappClean: string | undefined = undefined;
-  if (phoneMatch) {
-    whatsappClean = phoneMatch[0].replace(/[\s.-]/g, '');
-  }
-
-  // Comprobar si el texto es una PREGUNTA o CONSULTA sobre datos, nombre, teléfono, identidad o resumen
-  const isQuestionOrInquiry = 
-    /(?:sabes|sabe|recuerdas|recuerda|conoces|conoce|cu[aá]l\s+es|c[oó]mo\s+me|qui[eé]n\s+soy|quien\s+soy|tienes?\s+registrado|qu[eé]\s+tienes|mi\s+nombre|mi\s+n[uú]mero|mi\s+numero|mi\s+celular|mi\s+whatsapp|resumen)\b/i.test(text);
-
-  let rawNameCandidate: string | undefined = undefined;
-
-  // PATRÓN PRIORITARIO 1: "Nombre Apellido [,;:\-]? 3XXXXXXXXX" (ej. "ivan alvarado , 3225822027")
-  if (phoneMatch) {
-    const namePhonePair = text.match(/([a-záéíóúñÁÉÍÓÚÑ]{3,20}(?:\s+[a-záéíóúñÁÉÍÓÚÑ]{3,20}){1,3})\s*[,;:\-]?\s*(?:3\d{2}[\s.-]?\d{3}[\s.-]?\d{4}|\b3\d{9}\b)/i);
-    if (namePhonePair && namePhonePair[1]) {
-      const candidate = cleanHumanName(namePhonePair[1]);
-      if (candidate) {
-        rawNameCandidate = candidate;
-      }
-    }
-  }
-
-  // PATRÓN PRIORITARIO 2: Declaración afirmativa explícita: "mi nombre es X", "me llamo X", "soy X"
-  // REGLA CRÍTICA: NO debe coincidir si es una pregunta ("cómo me llamo", "sabes cómo me llamo", "si me llamo")
-  // NI si lo que sigue empieza por conectores/preguntas ("y", "o", "cuál", "que", "si", "de", "un")
-  if (!rawNameCandidate) {
-    const explicitDeclarationMatch = text.match(/(?:(?:mi\s+nombre\s+(?:es|real\s+es)|me\s+llamo)\s+([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){0,3}))/i);
-    if (explicitDeclarationMatch && explicitDeclarationMatch[1]) {
-      const matchIndex = explicitDeclarationMatch.index ?? 0;
-      const precedingText = text.substring(Math.max(0, matchIndex - 20), matchIndex).toLowerCase();
-      const isPrecededByQuestion = /c[oó]mo\s*$|sabes\s*$|sabe\s*$|si\s*$/i.test(precedingText);
-      if (!isPrecededByQuestion) {
-        const candidate = cleanHumanName(explicitDeclarationMatch[1]);
-        if (candidate) {
-          rawNameCandidate = candidate;
-        }
-      }
-    } else if (!isQuestionOrInquiry) {
-      // Solo si NO es una pregunta o consulta, permitir formas como "soy [Nombre Apellido]"
-      const soyMatch = text.match(/\bsoy\s+([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){1,2})\b/i);
-      if (soyMatch && soyMatch[1]) {
-        const candidate = cleanHumanName(soyMatch[1]);
-        if (candidate) {
-          rawNameCandidate = candidate;
-        }
-      }
-    }
-  }
-
-  // PATRÓN 3: "Iván Alvarado y mi número es..." (con teléfono presente y declaración afirmativa)
-  if (!rawNameCandidate && phoneMatch && !isQuestionOrInquiry) {
-    const nameMatchBeforePhone = text.match(/([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){1,3})\s+(?:y\s+)?(?:mi\s+)?(?:número|numero|celular|whatsapp)/i);
-    if (nameMatchBeforePhone && nameMatchBeforePhone[1]) {
-      const candidate = cleanHumanName(nameMatchBeforePhone[1]);
-      if (candidate) {
-        rawNameCandidate = candidate;
-      }
-    }
-  }
-
-  // PATRÓN 4: Introducción formal con vocativo ("Habla Iván Alvarado", "Att Iván Alvarado")
-  // O un mensaje corto que consiste ÚNICA Y EXCLUSIVAMENTE en el nombre propio (ej. "Iván Alvarado")
-  if (!rawNameCandidate && !isQuestionOrInquiry) {
-    const formalIntroMatch = text.match(/^(?:habla|atentamente|att|attt)\s+([A-ZÁÉÍÓÚÑa-z]{3,20}(?:\s+[A-ZÁÉÍÓÚÑa-z]{3,20}){1,2})$/i);
-    if (formalIntroMatch && formalIntroMatch[1]) {
-      const candidate = cleanHumanName(formalIntroMatch[1]);
-      if (candidate) {
-        rawNameCandidate = candidate;
-      }
-    } else if (text.trim().length <= 35 && !text.includes('?') && !text.includes('!')) {
-      const words = text.trim().split(/\s+/);
-      if (words.length >= 2 && words.length <= 4) {
-        const candidate = cleanHumanName(text.trim());
-        if (candidate) {
-          rawNameCandidate = candidate;
-        }
-      }
-    }
-  }
-
-  const nombreClean = cleanHumanName(rawNameCandidate);
-
-  if (whatsappClean || nombreClean) {
-    return { nombre: nombreClean, whatsapp: whatsappClean };
-  }
-  return null;
-}
+// Funciones cleanHumanName y extractLeadInfoFromText importadas desde leadValidationService.ts
 
 // Detección dinámica de Veredas y Barrios según el municipio activo
 export function detectVeredaOrBarrioFromText(text: string, municipioId: 'guaduas' | 'caparrapi' = 'guaduas'): string | undefined {
@@ -425,73 +308,104 @@ export async function processRamitosConversationAsync(
   }
 
   // --------------------------------------------------------------------------------
+    const pendingLeadUpdate = getPendingLeadUpdate();
+  const isAffirmativeConfirmation = 
+    /(?:^|)(?:s[ií]|claro|dale|vale|correcto|afirmativo|pors+favor|actualiz[ao]|actualizar|modific[ao]|modificar|cambi[ao]|cambiar|guarda|confirmo|sis+si|s[ií]s+quiero)(?:|$)/i.test(textLower);
+
+  if (pendingLeadUpdate && pendingLeadUpdate.nombre && isAffirmativeConfirmation) {
+    const finalName = pendingLeadUpdate.nombre;
+    const finalPhone = pendingLeadUpdate.whatsapp || leadCheck.whatsapp || '';
+    await updateUserLeadInSupabase(finalName, finalPhone, currentVereda);
+    clearPendingLeadUpdate();
+    leadCheck.nombre = finalName;
+    leadCheck.whatsapp = finalPhone;
+    leadCheck.isRegistered = true;
+
+    return {
+      textoRespuesta: `¡Hecho, ${finalName}! Ya actualicé tu nombre en el registro del Equipo RR.${finalPhone ? ' Tu número de WhatsApp registrado es ' + finalPhone + '.' : ''} ¿Te gustaría actualizar algún otro dato o prefieres que sigamos conversando sobre tu propuesta?`,
+      expresion: 'agradecido'
+    };
+  }
+
+  // --------------------------------------------------------------------------------
   // VALIDACIÓN DE IDENTIDAD Y CONTROL DE SOBREESCRITURA DE DATOS DE CONTACTO
   // --------------------------------------------------------------------------------
-  if (leadCheck.isRegistered && (leadCheck.nombre || leadCheck.whatsapp)) {
-    const inputName = newlyExtractedInInput?.nombre;
-    const inputPhone = newlyExtractedInInput?.whatsapp;
+  // Si en la base de datos el nombre registrado no es humano válido (ej. "Estás"), descartarlo
+  const rawRegName = leadCheck.nombre;
+  const isRegisteredNameHuman = rawRegName && isValidHumanName(rawRegName);
+  const sanitizedRegisteredName = isRegisteredNameHuman ? cleanHumanName(rawRegName) : undefined;
+  const registeredPhone = leadCheck.whatsapp || '';
 
-    const sanitizedRegisteredName = cleanHumanName(leadCheck.nombre);
-    const registeredName = sanitizedRegisteredName || 'el usuario registrado';
-    const registeredPhone = leadCheck.whatsapp || '';
+  const inputName = newlyExtractedInInput?.nombre;
+  const inputPhone = newlyExtractedInInput?.whatsapp;
 
-    // Si el nombre previamente registrado era inválido (como "De San") y ahora tenemos un nombre humano real
-    if (!sanitizedRegisteredName && inputName) {
-      await updateUserLeadInSupabase(inputName, registeredPhone || inputPhone || '', currentVereda);
-      leadCheck.nombre = inputName;
+  // Detección de orden directa del usuario ("modifica mi nombre me llamo Iván Alvarado", "cambia mi nombre a...")
+  const isDirectChangeCommand = 
+    /(?:modifica|cambia|actualiza|corrige|cambiar|modificar|actualizar)\s+(?:mi\s+)?(?:nombre|datos|registro)/i.test(userInput) ||
+    /(?:no\s+me\s+llamo|mi\s+nombre\s+(?:no\s+es|real\s+es)|me\s+llamo\s+realmente)/i.test(userInput);
+
+  // CASO A: El usuario pide explícitamente modificar su nombre O el nombre actual era inválido ("Estás")
+  if (inputName && (isDirectChangeCommand || !sanitizedRegisteredName)) {
+    const finalName = inputName;
+    const finalPhone = inputPhone || registeredPhone || '';
+    await updateUserLeadInSupabase(finalName, finalPhone, currentVereda);
+    clearPendingLeadUpdate();
+    leadCheck.nombre = finalName;
+    leadCheck.whatsapp = finalPhone;
+    leadCheck.isRegistered = true;
+
+    return {
+      textoRespuesta: `¡Listo, ${finalName}! He actualizado tu nombre correctamente en nuestro registro${finalPhone ? ' conservando tu WhatsApp ' + finalPhone : ''}. Continuemos conversando sobre tu propuesta.`,
+      expresion: 'agradecido'
+    };
+  }
+
+  // CASO B: Hay un nombre registrado válido y el usuario menciona un nombre diferente sin orden explícita
+  if (leadCheck.isRegistered && sanitizedRegisteredName && inputName && inputName.toLowerCase() !== sanitizedRegisteredName.toLowerCase()) {
+    // Si viene acompañado de afirmación explícita
+    if (isAffirmativeConfirmation) {
+      const finalName = inputName;
+      const finalPhone = inputPhone || registeredPhone || '';
+      await updateUserLeadInSupabase(finalName, finalPhone, currentVereda);
+      clearPendingLeadUpdate();
+      leadCheck.nombre = finalName;
+      leadCheck.whatsapp = finalPhone;
+
+      return {
+        textoRespuesta: `¡Entendido, ${finalName}! He actualizado tus datos de registro a nombre de ${finalName}${finalPhone ? ' con el WhatsApp ' + finalPhone : ''}. Continuemos estructurando tu propuesta.`,
+        expresion: 'agradecido'
+      };
+    } else {
+      // Guardar pendiente por si confirma en el siguiente turno
+      setPendingLeadUpdate({ nombre: inputName, whatsapp: inputPhone || registeredPhone });
+      return {
+        textoRespuesta: `¿${inputName}? Pensé que te llamabas ${sanitizedRegisteredName}${registeredPhone ? ' (con WhatsApp ' + registeredPhone + ')' : ''}. ¿Quieres actualizar tus datos de registro a ${inputName} o sigues siendo ${sanitizedRegisteredName}?`,
+        expresion: 'curioso'
+      };
     }
+  }
 
-    const isNameDifferent = Boolean(
-      inputName &&
-      sanitizedRegisteredName &&
-      inputName.toLowerCase().trim() !== sanitizedRegisteredName.toLowerCase().trim() &&
-      !sanitizedRegisteredName.toLowerCase().includes(inputName.toLowerCase().trim())
-    );
-    const isPhoneDifferent = Boolean(inputPhone && inputPhone !== registeredPhone);
+  // CASO C: Cambio de celular
+  if (inputPhone && registeredPhone && inputPhone !== registeredPhone) {
+    if (isAffirmativeConfirmation || isDirectChangeCommand) {
+      const currentName = sanitizedRegisteredName || inputName || 'Ciudadano';
+      await updateUserLeadInSupabase(currentName, inputPhone, currentVereda);
+      clearPendingLeadUpdate();
+      leadCheck.whatsapp = inputPhone;
 
-    if (isNameDifferent || isPhoneDifferent) {
-      // Verificar si el usuario está dando una confirmación explícita para actualizar sus datos
-      const isExplicitConfirmationToUpdate = 
-        textLower.includes('sí') || textLower.includes('si') ||
-        textLower.includes('actualizar') || textLower.includes('cambiar') ||
-        textLower.includes('modificar') || textLower.includes('correcto') ||
-        textLower.includes('actualízalo') || textLower.includes('actualizalo') ||
-        textLower.includes('cambia') || textLower.includes('soy yo') ||
-        textLower.includes('conserva');
-
-      if (isExplicitConfirmationToUpdate) {
-        const finalName = inputName || registeredName;
-        const finalPhone = inputPhone || registeredPhone;
-        await updateUserLeadInSupabase(finalName, finalPhone, currentVereda);
-
-        if (inputName && !inputPhone && registeredPhone) {
-          return {
-            textoRespuesta: `¡Entendido, ${finalName}! He actualizado tu nombre a ${finalName} conservando tu número de WhatsApp ${registeredPhone}. Continuemos estructurando tu propuesta.`,
-            expresion: 'agradecido'
-          };
-        }
-
-        return {
-          textoRespuesta: `¡Entendido, ${finalName}! He actualizado tus datos de registro a nombre de ${finalName}${finalPhone ? ' con el WhatsApp ' + finalPhone : ''}. Continuemos estructurando tu propuesta.`,
-          expresion: 'agradecido'
-        };
-      } else {
-        if (isNameDifferent && inputName) {
-          return {
-            textoRespuesta: `¿${inputName}? Pensé que te llamabas ${registeredName}${registeredPhone ? ' (con WhatsApp ' + registeredPhone + ')' : ''}. ¿Quieres actualizar tus datos de registro a ${inputName} o sigues siendo ${registeredName}?`,
-            expresion: 'curioso'
-          };
-        }
-
-        if (isPhoneDifferent && inputPhone) {
-          return {
-            textoRespuesta: `Veo que indicas un nuevo número de WhatsApp (${inputPhone}). Actualmente estás registrado como ${registeredName} (WhatsApp ${registeredPhone}). ¿Quieres actualizar tu número registrado a ${inputPhone}?`,
-            expresion: 'curioso'
-          };
-        }
-      }
+      return {
+        textoRespuesta: `¡Entendido! He actualizado tu número de WhatsApp registrado a ${inputPhone}. Continuemos con tu propuesta.`,
+        expresion: 'agradecido'
+      };
+    } else {
+      setPendingLeadUpdate({ nombre: sanitizedRegisteredName, whatsapp: inputPhone });
+      return {
+        textoRespuesta: `Veo que indicas un nuevo número de WhatsApp (${inputPhone}). Actualmente estás registrado con el WhatsApp ${registeredPhone}. ¿Quieres actualizar tu número registrado a ${inputPhone}?`,
+        expresion: 'curioso'
+      };
     }
-  } else {
+  }
+  if (!leadCheck.isRegistered && !leadCheck.nombre) {
     // Si aún NO está registrado en Supabase, guardar voluntariamente si proporcionó datos en este mensaje o en el historial
     const nameToSave = newlyExtractedInInput?.nombre || autoExtracted?.nombre;
     const phoneToSave = newlyExtractedInInput?.whatsapp || autoExtracted?.whatsapp;
