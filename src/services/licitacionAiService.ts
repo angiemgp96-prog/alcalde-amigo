@@ -1,4 +1,5 @@
 import { getGroqApiKey } from './ramitosBrain';
+import { getSupabaseClient } from './api';
 
 export interface GeneratedDocResult {
   id: string;
@@ -47,6 +48,31 @@ export interface MasterAuditPackage {
     analisisFinancieroAiu: string[];
     recomendacionesEstrategicas: string[];
   };
+}
+
+export interface SupabaseAuditRecord {
+  id: string;
+  codigo_bpin_propuesto: string;
+  nombre_proyecto: string;
+  sector_dnp: string;
+  estado_tramite: 'pendiente_auditoria_senior' | 'en_revision' | 'aprobado_blindado' | 'observaciones_requeridas';
+  presupuesto_total_cop: number;
+  justificacion_presidencia: string; // JSON del MasterAuditPackage
+  evaluacion_economica?: string;    // Dictamen del Copiloto Senior
+  updated_at: string;
+}
+
+function generateSafeUUID(): string {
+  if (typeof crypto !== 'undefined' && crypto.randomUUID) {
+    try {
+      return crypto.randomUUID();
+    } catch (e) {}
+  }
+  return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === 'x' ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
 }
 
 function getFallbackDocumentContent(tipo: string, opp: any, org: any): string {
@@ -389,4 +415,124 @@ export function buildMasterAuditPackage(
       ]
     }
   };
+}
+
+// =========================================================================
+// COMUNICACIÓN NATIVA EN SUPABASE (CANAL DUAL AI EN LA NUBE)
+// =========================================================================
+
+export async function syncAuditPackageToSupabase(pkg: MasterAuditPackage): Promise<{
+  success: boolean;
+  recordId?: string;
+  estado?: string;
+  mensaje?: string;
+}> {
+  const client = getSupabaseClient();
+  if (!client) {
+    return { success: false, mensaje: 'Cliente Supabase no disponible' };
+  }
+
+  const pkgJsonStr = JSON.stringify(pkg);
+  const nowIso = new Date().toISOString();
+
+  try {
+    // 1. Buscar si ya existe una auditoría previa para este proceso SECOP
+    const { data: existingRows } = await client
+      .from('proyectos_mga_estructurados')
+      .select('id, estado_tramite, evaluacion_economica')
+      .eq('sector_dnp', 'LICITACION_SECOP_AUDITORIA')
+      .eq('codigo_bpin_propuesto', pkg.procesoSecop.id)
+      .limit(1);
+
+    if (existingRows && existingRows.length > 0) {
+      const existing = existingRows[0];
+      const { error: updateErr } = await client
+        .from('proyectos_mga_estructurados')
+        .update({
+          nombre_proyecto: `[AUDITORÍA SECOP] ${pkg.procesoSecop.titulo} - ${pkg.empresaProponente.nombre}`,
+          presupuesto_total_cop: pkg.procesoSecop.presupuestoCop,
+          justificacion_presidencia: pkgJsonStr,
+          estado_tramite: 'pendiente_auditoria_senior',
+          updated_at: nowIso
+        })
+        .eq('id', existing.id);
+
+      if (updateErr) throw updateErr;
+
+      return {
+        success: true,
+        recordId: existing.id,
+        estado: 'pendiente_auditoria_senior',
+        mensaje: 'Expediente actualizado en Supabase y notificado al Copiloto Senior'
+      };
+    }
+
+    // 2. Si no existe, insertar nuevo registro con UUID válido
+    const newUuid = generateSafeUUID();
+    const { error: insertErr } = await client
+      .from('proyectos_mga_estructurados')
+      .insert({
+        id: newUuid,
+        municipio_id: 'caparrapi',
+        codigo_bpin_propuesto: pkg.procesoSecop.id,
+        nombre_proyecto: `[AUDITORÍA SECOP] ${pkg.procesoSecop.titulo} - ${pkg.empresaProponente.nombre}`,
+        sector_dnp: 'LICITACION_SECOP_AUDITORIA',
+        estado_tramite: 'pendiente_auditoria_senior',
+        presupuesto_total_cop: pkg.procesoSecop.presupuestoCop,
+        justificacion_presidencia: pkgJsonStr,
+        creado_por: `LicitaPro SaaS (${pkg.empresaProponente.nombre})`,
+        updated_at: nowIso
+      });
+
+    if (insertErr) throw insertErr;
+
+    return {
+      success: true,
+      recordId: newUuid,
+      estado: 'pendiente_auditoria_senior',
+      mensaje: 'Expediente creado en Supabase con éxito. Esperando auditoría senior.'
+    };
+  } catch (error: any) {
+    console.error('Error sincronizando auditoría con Supabase:', error);
+    return {
+      success: false,
+      mensaje: error?.message || 'Error desconocido sincronizando con Supabase'
+    };
+  }
+}
+
+export async function fetchAuditStatusFromSupabase(procesoSecopId: string): Promise<{
+  encontrado: boolean;
+  estado?: 'pendiente_auditoria_senior' | 'en_revision' | 'aprobado_blindado' | 'observaciones_requeridas';
+  dictamenSenior?: string;
+  fechaActualizacion?: string;
+  recordId?: string;
+}> {
+  const client = getSupabaseClient();
+  if (!client) return { encontrado: false };
+
+  try {
+    const { data, error } = await client
+      .from('proyectos_mga_estructurados')
+      .select('id, estado_tramite, evaluacion_economica, updated_at')
+      .eq('sector_dnp', 'LICITACION_SECOP_AUDITORIA')
+      .eq('codigo_bpin_propuesto', procesoSecopId)
+      .limit(1);
+
+    if (error || !data || data.length === 0) {
+      return { encontrado: false };
+    }
+
+    const row = data[0];
+    return {
+      encontrado: true,
+      recordId: row.id,
+      estado: row.estado_tramite as any,
+      dictamenSenior: row.evaluacion_economica || undefined,
+      fechaActualizacion: row.updated_at
+    };
+  } catch (error) {
+    console.warn('Error consultando estado en Supabase:', error);
+    return { encontrado: false };
+  }
 }

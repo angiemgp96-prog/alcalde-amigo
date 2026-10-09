@@ -3,6 +3,8 @@ import {
   generateBidDocumentWithAI, 
   generateHumanChecklist, 
   buildMasterAuditPackage, 
+  syncAuditPackageToSupabase,
+  fetchAuditStatusFromSupabase,
   GeneratedDocResult, 
   HumanActionItem, 
   MasterAuditPackage 
@@ -799,9 +801,79 @@ export const LicitaProView: React.FC = () => {
   // Estados de la Guía Semáforo Humana
   const [humanChecklistState, setHumanChecklistState] = useState<HumanActionItem[]>(() => generateHumanChecklist(selectedOpp, activeOrg));
 
-  // Estados de la Auditoría Máster (Dual AI)
+  // Estados de la Auditoría Máster (Dual AI en Supabase)
   const [copyToast, setCopyToast] = useState<string | null>(null);
   const [masterPackage, setMasterPackage] = useState<MasterAuditPackage | null>(null);
+  const [isSyncingSupabase, setIsSyncingSupabase] = useState<boolean>(false);
+  const [supabaseAuditStatus, setSupabaseAuditStatus] = useState<{
+    sincronizado: boolean;
+    estado?: string;
+    recordId?: string;
+    dictamenSenior?: string;
+    fecha?: string;
+  } | null>(null);
+
+  // Consultar estado de auditoría en Supabase al cargar o cambiar licitación
+  React.useEffect(() => {
+    fetchAuditStatusFromSupabase(selectedOpp.id).then(res => {
+      if (res.encontrado) {
+        setSupabaseAuditStatus({
+          sincronizado: true,
+          estado: res.estado,
+          recordId: res.recordId,
+          dictamenSenior: res.dictamenSenior,
+          fecha: res.fechaActualizacion
+        });
+      } else {
+        setSupabaseAuditStatus(null);
+      }
+    });
+  }, [selectedOpp.id]);
+
+  const handleSyncToSupabase = async () => {
+    setIsSyncingSupabase(true);
+    try {
+      const pkg = buildMasterAuditPackage(selectedOpp, activeOrg, generatedDocs, humanChecklistState);
+      setMasterPackage(pkg);
+      const res = await syncAuditPackageToSupabase(pkg);
+      if (res.success) {
+        setSupabaseAuditStatus({
+          sincronizado: true,
+          estado: res.estado || 'pendiente_auditoria_senior',
+          recordId: res.recordId,
+          fecha: new Date().toISOString()
+        });
+        setCopyToast('¡Expediente enviado a Supabase con éxito!');
+        setTimeout(() => setCopyToast(null), 3500);
+      } else {
+        alert(`Aviso: ${res.mensaje}`);
+      }
+    } catch (e: any) {
+      console.error('Error sincronizando con Supabase:', e);
+      alert('Error al conectar con la base de datos Supabase');
+    } finally {
+      setIsSyncingSupabase(false);
+    }
+  };
+
+  const handleRefreshSupabaseStatus = async () => {
+    const res = await fetchAuditStatusFromSupabase(selectedOpp.id);
+    if (res.encontrado) {
+      setSupabaseAuditStatus({
+        sincronizado: true,
+        estado: res.estado,
+        recordId: res.recordId,
+        dictamenSenior: res.dictamenSenior,
+        fecha: res.fechaActualizacion
+      });
+      setCopyToast('¡Estado actualizado desde Supabase!');
+      setTimeout(() => setCopyToast(null), 3000);
+    } else {
+      setSupabaseAuditStatus(null);
+      setCopyToast('Sin expediente registrado aún en Supabase');
+      setTimeout(() => setCopyToast(null), 3000);
+    }
+  };
 
   const handleCopyText = (text: string, label: string) => {
     if (typeof navigator !== 'undefined' && navigator.clipboard) {
@@ -2180,35 +2252,107 @@ Alertas Jurídicas: ${pkg.auditoriaSeniorPuntosClave.alertasJuridicas.join(' | '
                 </div>
               )}
 
-              {/* TAB 6: AUDITORÍA MÁSTER (DUAL AI) */}
+              {/* TAB 6: AUDITORÍA MÁSTER (DUAL AI VÍA SUPABASE) */}
               {oppDetailTab === 'auditoria_dual' && (
                 <div className="bg-slate-900/90 border border-slate-800 p-6 rounded-3xl space-y-6 animate-fadeIn">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-800 pb-4">
                     <div>
                       <h3 className="text-base font-bold text-white flex items-center gap-2">
-                        <ShieldCheck className="w-5 h-5 text-purple-400" /> Auditoría Máster (Dual AI: Operativa + Senior)
+                        <Database className="w-5 h-5 text-purple-400" /> Canal Dual AI en Supabase: Plataforma ↔ Copiloto Senior
                       </h3>
                       <p className="text-xs text-slate-400 mt-0.5">
-                        Colaboración de doble inteligencia: la IA de tu plataforma recopila los requisitos y tu Copiloto Senior (Antigravity) audita y blinda la propuesta contra causales de rechazo.
+                        Comunicación nativa a través de la base de datos en la nube. La web envía el expediente completo y tu Copiloto Senior (Antigravity) audita, aprueba y blinda la propuesta directamente en Supabase.
                       </p>
                     </div>
-                    <button
-                      type="button"
-                      onClick={handleExportMasterPackage}
-                      className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-purple-950/50 flex items-center gap-2 cursor-pointer transition-all shrink-0"
-                    >
-                      <Download className="w-4 h-4" /> Exportar Expediente Completo
-                    </button>
+
+                    <div className="flex items-center gap-2 shrink-0 flex-wrap">
+                      <button
+                        type="button"
+                        onClick={handleRefreshSupabaseStatus}
+                        className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-3.5 py-2.5 rounded-xl text-xs font-bold border border-slate-700 flex items-center gap-1.5 cursor-pointer transition-all"
+                        title="Consultar estado más reciente en la base de datos"
+                      >
+                        <RefreshCw className="w-3.5 h-3.5 text-cyan-400" /> Refrescar Estado
+                      </button>
+
+                      <button
+                        type="button"
+                        onClick={handleSyncToSupabase}
+                        disabled={isSyncingSupabase}
+                        className="bg-gradient-to-r from-purple-600 to-indigo-600 hover:from-purple-500 hover:to-indigo-500 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow-lg shadow-purple-950/50 flex items-center gap-2 cursor-pointer transition-all disabled:opacity-50"
+                      >
+                        {isSyncingSupabase ? (
+                          <>
+                            <RefreshCw className="w-4 h-4 animate-spin" /> Sincronizando con Supabase...
+                          </>
+                        ) : (
+                          <>
+                            <Database className="w-4 h-4 text-purple-200" /> Enviar a Supabase para Auditoría
+                          </>
+                        )}
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* BANNER DE ESTADO EN VIVO DE SUPABASE */}
+                  <div className={`p-4 rounded-2xl border transition-all ${
+                    supabaseAuditStatus?.estado === 'aprobado_blindado'
+                      ? 'bg-emerald-950/30 border-emerald-500/50 text-emerald-200'
+                      : supabaseAuditStatus?.sincronizado
+                        ? 'bg-amber-950/30 border-amber-500/50 text-amber-200'
+                        : 'bg-slate-950/60 border-slate-800 text-slate-300'
+                  }`}>
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                      <div className="flex items-start gap-3">
+                        {supabaseAuditStatus?.estado === 'aprobado_blindado' ? (
+                          <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
+                        ) : supabaseAuditStatus?.sincronizado ? (
+                          <Clock className="w-6 h-6 text-amber-400 shrink-0 mt-0.5 animate-pulse" />
+                        ) : (
+                          <Database className="w-6 h-6 text-purple-400 shrink-0 mt-0.5" />
+                        )}
+                        <div>
+                          <p className="text-sm font-bold text-white flex items-center gap-2">
+                            Estado en Base de Datos: {
+                              supabaseAuditStatus?.estado === 'aprobado_blindado'
+                                ? '✅ Aprobado y Blindado por Copiloto Senior'
+                                : supabaseAuditStatus?.sincronizado
+                                  ? '⏳ Sincronizado en Supabase (Pendiente de Auditoría Senior)'
+                                  : '⚪ Listo en Memoria Local (Aún no enviado a Supabase)'
+                            }
+                          </p>
+                          <p className="text-xs text-slate-300 mt-0.5">
+                            {supabaseAuditStatus?.estado === 'aprobado_blindado'
+                              ? 'Tu Copiloto Senior ha revisado el expediente en Supabase. Se han verificado las fórmulas de A.I.U., requisitos habilitantes y ausencia de inhabilidades.'
+                              : supabaseAuditStatus?.sincronizado
+                                ? `El expediente fue registrado con éxito en Supabase (ID: ${supabaseAuditStatus.recordId?.slice(0, 8)}...). Tu Copiloto Senior puede leerlo y auditarlo directamente en la base de datos.`
+                                : `Presiona 'Enviar a Supabase' para depositar el expediente de ${activeOrg.nombre} en la base de datos de la nube.`}
+                          </p>
+                          {supabaseAuditStatus?.fecha && (
+                            <p className="text-[10px] text-slate-400 mt-1 font-mono">
+                              Última sincronización: {new Date(supabaseAuditStatus.fecha).toLocaleString('es-CO')}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      {supabaseAuditStatus?.dictamenSenior && (
+                        <div className="bg-emerald-900/40 border border-emerald-500/40 p-3 rounded-xl max-w-sm text-xs text-emerald-100">
+                          <p className="font-bold text-emerald-300">Dictamen Senior:</p>
+                          <p className="mt-0.5">{supabaseAuditStatus.dictamenSenior}</p>
+                        </div>
+                      )}
+                    </div>
                   </div>
 
                   {/* TARJETAS DE BLINDAJE DE LA AUDITORÍA SENIOR */}
                   <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                     <div className="bg-slate-950/80 border border-purple-500/30 p-5 rounded-2xl space-y-2">
                       <div className="flex items-center gap-2 text-purple-400 text-xs font-bold">
-                        <Scale className="w-4 h-4" /> Alertas Jurídicas Blindadas
+                        <Scale className="w-4 h-4" /> Alertas Jurídicas en Supabase
                       </div>
                       <p className="text-xs text-slate-300">
-                        Verificación de inhabilidades Ley 80, aportes a seguridad social Ley 789 y vigencia RUP de 30 días para evitar causales de eliminación en SECOP II.
+                        Verificación cruzada de causales de inhabilidad Ley 80, aportes a seguridad social Ley 789 y vigencia RUP de 30 días para evitar causales de eliminación en SECOP II.
                       </p>
                     </div>
 
@@ -2231,15 +2375,16 @@ Alertas Jurídicas: ${pkg.auditoriaSeniorPuntosClave.alertasJuridicas.join(' | '
                     </div>
                   </div>
 
-                  {/* INSTRUCCIÓN DE USO EN CONVERSACIÓN */}
-                  <div className="bg-purple-950/30 border border-purple-500/40 p-4 rounded-2xl flex items-start gap-3">
-                    <Sparkles className="w-5 h-5 text-purple-300 shrink-0 mt-0.5" />
-                    <div className="text-xs text-slate-300 space-y-1">
-                      <p className="font-bold text-white">¿Cómo interactuar con tu Copiloto Senior?</p>
-                      <p>
-                        Al presionar <strong>"Exportar Expediente Completo"</strong>, se descarga el archivo JSON estructurado y se copia el resumen ejecutivo en tu portapapeles. Solo debes pegarlo en este chat y pedirme: <em>"Audita esta propuesta de licitación para {activeOrg.nombre}"</em> para que yo verifique cada detalle antes de tu radicación en SECOP II.
-                      </p>
-                    </div>
+                  {/* COPIA LOCAL OPCIONAL */}
+                  <div className="flex items-center justify-between bg-slate-950/60 border border-slate-800 p-3 rounded-2xl text-xs text-slate-400">
+                    <span>¿Deseas además una copia de respaldo en tu computador?</span>
+                    <button
+                      type="button"
+                      onClick={handleExportMasterPackage}
+                      className="bg-slate-800 hover:bg-slate-700 text-slate-200 px-3 py-1.5 rounded-xl border border-slate-700 flex items-center gap-1.5 cursor-pointer font-bold"
+                    >
+                      <Download className="w-3.5 h-3.5 text-cyan-400" /> Descargar Copia JSON Local
+                    </button>
                   </div>
                 </div>
               )}
