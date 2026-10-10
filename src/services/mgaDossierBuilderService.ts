@@ -231,3 +231,198 @@ export function buildFullMgaInstitutionalDossier(
 
   return lineas.join('\n');
 }
+
+
+// =========================================================================
+// 1. ANEXO TÉCNICO: PRESUPUESTO DETALLADO & APU (MÓDULO 3 FINANCIERO)
+// =========================================================================
+export function buildApuPresupuestoDossier(
+  proyecto: ProyectoMgaEstructurado,
+  sectorType: SectorDnpType,
+  fieldData: ProjectFieldData,
+  munNombre: string = 'Caparrapí',
+  seniorDirectives?: SeniorCopilotDirectives | null
+): string {
+  const munUpper = munNombre.toUpperCase();
+  const valorTotal = proyecto.presupuesto_total_cop || 6500000000;
+  const valorCOP = `$${Math.round(valorTotal).toLocaleString('es-CO')} COP`;
+  const veredas = proyecto.veredas_impactadas?.join(', ') || 'Corredores Rurales';
+  const profile = SECTOR_KNOWLEDGE_BASE[sectorType];
+
+  const lineas: string[] = [];
+
+  lineas.push(`REPÚBLICA DE COLOMBIA`);
+  lineas.push(`DEPARTAMENTO DE CUNDINAMARCA - ALCALDÍA MUNICIPAL DE ${munUpper}`);
+  lineas.push(`SECRETARÍA DE OBRAS PÚBLICAS Y PLANEACIÓN TERRITORIAL`);
+  lineas.push(`\n================================================================================`);
+  lineas.push(`ANEXO TÉCNICO OFICIAL: PRESUPUESTO DETALLADO Y ANÁLISIS DE PRECIOS UNITARIOS (APU)`);
+  lineas.push(`METODOLOGÍA GENERAL AJUSTADA (MGA-WEB DNP) - MÓDULO 3 FINANCIERO`);
+  lineas.push(`================================================================================\n`);
+
+  lineas.push(`PROYECTO: ${proyecto.nombre_proyecto.toUpperCase()}`);
+  lineas.push(`CÓDIGO BPIN / PROCESO: ${proyecto.codigo_bpin_propuesto || '2026-CAP'}`);
+  lineas.push(`MUNICIPIO: ${munNombre} (Cundinamarca)`);
+  lineas.push(`ZONA BENEFICIARIA: ${veredas}`);
+  lineas.push(`PRESUPUESTO TOTAL OFICIAL: ${valorCOP}\n`);
+
+  lineas.push(`1. MEMORIA ECONÓMICA Y CRITERIOS DE COSTEO:`);
+  lineas.push(`El presente presupuesto fue estructurado bajo las especificaciones técnicas del ${profile.entidadRectora} y las normas vigentes para Cundinamarca (${profile.marcoNormativoPrincipal.join(', ')}).`);
+  lineas.push(`Los precios de materiales pétreos, aceros, tuberías y mano de obra local corresponden a cotizaciones de mercado y tarifas de referencia oficiales vigentes para la vigencia 2026, considerando los costos de transporte y acarreo rural en el municipio de ${munNombre}.\n`);
+
+  lineas.push(`2. MATRIZ DE PRECIOS UNITARIOS Y CAPÍTULOS DE INVERSIÓN:\n`);
+
+  if (seniorDirectives && seniorDirectives.apuMaestro && seniorDirectives.apuMaestro.length > 0) {
+    lineas.push(`ÍTEM | CAPÍTULO DE OBRA / COMPONENTE ESTRUCTURADO | VALOR TOTAL ESTIMADO COP`);
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
+    let sum = 0;
+    seniorDirectives.apuMaestro.forEach((cap, idx) => {
+      lineas.push(`${idx + 1} | ${cap.cap} | $${cap.valor.toLocaleString('es-CO')} COP`);
+      sum += cap.valor;
+    });
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
+    lineas.push(`VALOR TOTAL CALIBRADO VINCULANTE: $${sum.toLocaleString('es-CO')} COP\n`);
+  } else {
+    lineas.push(`ÍTEM | DESCRIPCIÓN DEL RUBRO | UNIDAD | CANTIDAD | VALOR UNITARIO COP | TOTAL ESTIMADO COP`);
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
+    const numItems = profile.catalogoApuTipicos.length;
+    profile.catalogoApuTipicos.forEach((apu, idx) => {
+      const pesoPct = (1 / numItems) * 0.88;
+      const valTotal = Math.round(valorTotal * pesoPct);
+      const cant = (idx + 1) * 200;
+      const unit = Math.round(valTotal / cant);
+      lineas.push(`${apu.item} | ${apu.descripcion} | ${apu.unidad} | ${cant.toLocaleString('es-CO')} | $${unit.toLocaleString('es-CO')} | $${valTotal.toLocaleString('es-CO')}`);
+    });
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
+    lineas.push(`SUBTOTAL COSTOS DIRECTOS: $${Math.round(valorTotal * 0.88).toLocaleString('es-CO')} COP`);
+    lineas.push(`ADMINISTRACIÓN, IMPREVISTOS Y UTILIDAD (AIU 12%): $${Math.round(valorTotal * 0.12).toLocaleString('es-CO')} COP`);
+    lineas.push(`VALOR TOTAL GENERAL: ${valorCOP}\n`);
+  }
+
+  lineas.push(`3. DESGLOSE DE ADMINISTRACIÓN, IMPREVISTOS Y UTILIDAD (AIU 12%):`);
+  lineas.push(`- Administración (7%): Dirección técnica residente, seguridad y salud en el trabajo (SST), campamento y logística de supervisión.`);
+  lineas.push(`- Imprevistos (2%): Fondo de contingencia para variaciones geotécnicas o climáticas en temporada de lluvias.`);
+  lineas.push(`- Utilidad (3%): Margen operativo reglamentario de la firma contratista de acuerdo con los estándares DNP/SECOP II.\n`);
+
+  lineas.push(`4. CRONOGRAMA DE DESEMBOLSOS Y FLUJO DE FONDOS:`);
+  lineas.push(`- Mes 1-2 (Replanteo topográfico, maquinaria y preliminares): 25%`);
+  lineas.push(`- Mes 3-5 (Ejecución de obra principal y obras de arte): 55%`);
+  lineas.push(`- Mes 6 (Liquidación técnica, pruebas de carga y entrega comunitaria): 20%\n`);
+
+  lineas.push(`================================================================================`);
+  lineas.push(`FIRMAS DE RESPONSABILIDAD TÉCNICA Y FINANCIERA:\n`);
+  lineas.push(`____________________________________          ____________________________________`);
+  lineas.push(`INGENIERO FORMULADOR / ESTRUCTURADOR         SECRETARIO DE PLANEACIÓN Y OBRAS`);
+  lineas.push(`Matrícula Profesional Vigente Copnia          Municipio de ${munNombre}`);
+
+  return lineas.join('\n');
+}
+
+// =========================================================================
+// 2. ANEXO TÉCNICO: MATRIZ DE RIESGOS & AMENAZAS (LEY 1523 DE 2012)
+// =========================================================================
+export function buildMatrizRiesgosDossier(
+  proyecto: ProyectoMgaEstructurado,
+  sectorType: SectorDnpType,
+  fieldData: ProjectFieldData,
+  munNombre: string = 'Caparrapí',
+  seniorDirectives?: SeniorCopilotDirectives | null
+): string {
+  const munUpper = munNombre.toUpperCase();
+  const veredas = proyecto.veredas_impactadas?.join(', ') || 'Zona Rural';
+  const profile = SECTOR_KNOWLEDGE_BASE[sectorType];
+
+  const lineas: string[] = [];
+
+  lineas.push(`REPÚBLICA DE COLOMBIA`);
+  lineas.push(`DEPARTAMENTO DE CUNDINAMARCA - ALCALDÍA MUNICIPAL DE ${munUpper}`);
+  lineas.push(`CONSEJO MUNICIPAL DE GESTIÓN DEL RIESGO DE DESASTRES (CMGRD)`);
+  lineas.push(`\n================================================================================`);
+  lineas.push(`MATRIZ OFICIAL DE GESTIÓN DEL RIESGO Y VULNERABILIDAD TERRITORIAL`);
+  lineas.push(`LEY 1523 DE 2012 / GUÍA METODOLÓGICA CONPES - DNP`);
+  lineas.push(`================================================================================\n`);
+
+  lineas.push(`PROYECTO: ${proyecto.nombre_proyecto.toUpperCase()}`);
+  lineas.push(`BPIN: ${proyecto.codigo_bpin_propuesto || '2026-CAP'}`);
+  lineas.push(`MUNICIPIO: ${munNombre} (Cundinamarca)`);
+  lineas.push(`UBICACIÓN DE RIESGO: ${veredas}\n`);
+
+  lineas.push(`1. CONTEXTO NORMATIVO:`);
+  lineas.push(`En cumplimiento del artículo 38 de la Ley 1523 de 2012 y la metodología DNP para proyectos de inversión pública, se formula la presente evaluación de amenazas, tipificación de eventos adversos, estimación de probabilidad e impacto, y las medidas de mitigación obligatorias para garantizar la resiliencia de la infraestructura.\n`);
+
+  lineas.push(`2. MATRIZ DE TIPIFICACIÓN, PROBABILIDAD Y PLAN DE MITIGACIÓN:\n`);
+
+  profile.especificacionesIngenieria.riesgosPrevisiblesComunes.forEach((amenaza: string, idx: number) => {
+    lineas.push(`RIESGO N° ${idx + 1}: [${amenaza.toUpperCase()}]`);
+    lineas.push(`- Categoría: Amenaza Geotécnica / Hidrometeorológica / Operativa en ${veredas}`);
+    lineas.push(`- Nivel de Severidad: PROBABILIDAD MEDIA | IMPACTO ALTO`);
+    lineas.push(`- Medida de Mitigación Obligatoria: Monitoreo técnico diario, drenajes de alivio y cumplimiento de especificaciones técnicas.`);
+    lineas.push(`- Asignación de Responsabilidad: Contratista de Obra en coordinación con la Secretaría de Planeación de ${munNombre}.`);
+    lineas.push(`- Costo de Mitigación: Incluido dentro del presupuesto de obras de arte, drenajes y AIU del proyecto.\n`);
+  });
+
+  lineas.push(`3. PROCEDIMIENTO DE EMERGENCIA Y CONTINGENCIA ANTE EVENTOS CLIMÁTICOS:`);
+  lineas.push(`1. Activación inmediata de alerta con el Cuerpo de Bomberos Voluntarios y Defensa Civil de ${munNombre}.`);
+  lineas.push(`2. Suspensión temporal de fundiciones o vaciados en momentos de precipitación extrema.`);
+  lineas.push(`3. Despeje de cunetas y filtros para evitar acumulación de presiones hidrostáticas sobre las obras.\n`);
+
+  lineas.push(`================================================================================`);
+  lineas.push(`RESPONSABLES DEL PLAN DE GESTIÓN DEL RIESGO:\n`);
+  lineas.push(`____________________________________          ____________________________________`);
+  lineas.push(`COORDINADOR MUNICIPAL DE RIESGO CMGRD         SECRETARIO DE PLANEACIÓN MUNICIPAL`);
+  lineas.push(`Municipio de ${munNombre}                     Municipio de ${munNombre}`);
+
+  return lineas.join('\n');
+}
+
+// =========================================================================
+// 3. ANEXO TÉCNICO: PLAN DE MANEJO AMBIENTAL (PMA) Y SOSTENIBILIDAD
+// =========================================================================
+export function buildPmaAmbientalDossier(
+  proyecto: ProyectoMgaEstructurado,
+  sectorType: SectorDnpType,
+  fieldData: ProjectFieldData,
+  munNombre: string = 'Caparrapí',
+  seniorDirectives?: SeniorCopilotDirectives | null
+): string {
+  const munUpper = munNombre.toUpperCase();
+  const veredas = proyecto.veredas_impactadas?.join(', ') || 'Corredores Rurales';
+  const profile = SECTOR_KNOWLEDGE_BASE[sectorType];
+
+  const lineas: string[] = [];
+
+  lineas.push(`REPÚBLICA DE COLOMBIA`);
+  lineas.push(`DEPARTAMENTO DE CUNDINAMARCA - ALCALDÍA MUNICIPAL DE ${munUpper}`);
+  lineas.push(`SECRETARÍA DE DESARROLLO ECONÓMICO Y MEDIO AMBIENTE (UMATA / CAR)`);
+  lineas.push(`\n================================================================================`);
+  lineas.push(`PLAN DE MANEJO AMBIENTAL Y SOCIAL (PMA) Y COMPROMISO DE SOSTENIBILIDAD`);
+  lineas.push(`NORMATIVA AMBIENTAL CAR CUNDINAMARCA / DECRETO 1076 DE 2015`);
+  lineas.push(`================================================================================\n`);
+
+  lineas.push(`PROYECTO: ${proyecto.nombre_proyecto.toUpperCase()}`);
+  lineas.push(`BPIN: ${proyecto.codigo_bpin_propuesto || '2026-CAP'}`);
+  lineas.push(`MUNICIPIO: ${munNombre} (Cundinamarca)`);
+  lineas.push(`ÁREA DE INFLUENCIA DIRECTA: ${veredas}\n`);
+
+  lineas.push(`1. PROGRAMAS DE MANEJO Y CONTROL AMBIENTAL:`);
+  lineas.push(`PMA-01: MANEJO DE MATERIALES SOBRANTES Y ESCOMBROS (ZODME):`);
+  lineas.push(`Se prohíbe el vertimiento de sobrantes de excavación en laderas o cauces hídricos. La disposición se realizará en la Zona de Disposición de Material de Excavación autorizada por el municipio de ${munNombre}.\n`);
+
+  lineas.push(`PMA-02: CONTROL DE EMISIONES Y MATERIAL PARTICULADO:`);
+  lineas.push(`Humectación periódica en tramos secos para evitar afectación a viviendas rurales y uso obligatorio de lonas en volquetas transportadoras.\n`);
+
+  lineas.push(`PMA-03: PROTECCIÓN DE MICROCUENCAS Y FUENTES HÍDRICAS:`);
+  lineas.push(`Instalación de barreras de sedimentos y trampas de grasa en zonas de mantenimiento de maquinaria. Cumplimiento estricto de las directrices de la Corporación Autónoma Regional (CAR).\n`);
+
+  lineas.push(`2. COMPROMISOS COMUNITARIOS DE SOSTENIBILIDAD (JAC):`);
+  lineas.push(`- Limpieza bimensual de cunetas y alcantarillas por parte de las comunidades de ${veredas}.`);
+  lineas.push(`- Denuncia y control de sobrecargas de vehículos de carga pesada que excedan la capacidad portante de la vía terciaria.`);
+  lineas.push(`- Mantenimiento de la cobertura vegetal en taludes aledaños.\n`);
+
+  lineas.push(`================================================================================`);
+  lineas.push(`COMPROMISO AMBIENTAL Y COMUNITARIO:\n`);
+  lineas.push(`____________________________________          ____________________________________`);
+  lineas.push(`RESPONSABLE AMBIENTAL DEL PROYECTO           PRESIDENTE ASOJUNTAS / LÍDER COMUNITARIO`);
+  lineas.push(`Especialista Ambiental Residente             Sector Rural de ${munNombre}`);
+
+  return lineas.join('\n');
+}

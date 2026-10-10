@@ -29,7 +29,12 @@ import {
   applySeniorDirectivesToBlueprint,
   SeniorCopilotDirectives
 } from '../services/projectMasterBlueprintService';
-import { buildFullMgaInstitutionalDossier } from '../services/mgaDossierBuilderService';
+import { 
+  buildFullMgaInstitutionalDossier, 
+  buildApuPresupuestoDossier, 
+  buildMatrizRiesgosDossier, 
+  buildPmaAmbientalDossier 
+} from '../services/mgaDossierBuilderService';
 import { detectSectorDnpTypeRigorous, SECTOR_KNOWLEDGE_BASE } from '../services/agentKnowledgeBaseService';
 import { generateOfficialDocxBlob, downloadFileBlob } from '../services/docExportService';
 
@@ -245,6 +250,84 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
     } catch (e) {
       console.error('Error generando expediente Word:', e);
       alert('Se generó el expediente institucional en texto canónico para descarga.');
+    } finally {
+      setIsDownloadingMaster(false);
+    }
+  };
+
+  // Descarga Especializada: Anexo APU y Presupuesto (.docx)
+  const handleDownloadApuDocx = async () => {
+    try {
+      setIsDownloadingMaster(true);
+      const textContent = buildApuPresupuestoDossier(proyecto, sectorType, fieldData, munNombre, seniorDirectives);
+      const docxBlob = await generateOfficialDocxBlob({
+        tituloPrincipal: `ANEXO TÉCNICO APU - ${proyecto.nombre_proyecto.toUpperCase()}`,
+        subtitulo: `PRESUPUESTO DETALLADO Y ANÁLISIS DE PRECIOS UNITARIOS - ALCALDÍA DE ${munNombre.toUpperCase()}`,
+        entidadEmisora: `Alcaldía Municipal de ${munNombre}`,
+        tipoDocumento: 'proyecto_mga',
+        referenciaProceso: proyecto.codigo_bpin_propuesto || '2026-CAP',
+        contenidoTexto: textContent,
+        firmantes: [
+          { cargo: 'SECRETARIO DE PLANEACIÓN', entidad: `Alcaldía de ${munNombre}`, nombre: 'Secretaría de Planeación' },
+          { cargo: 'INGENIERO FORMULADOR', entidad: `Alcaldía de ${munNombre}`, nombre: 'Dirección Técnica de Obras' }
+        ]
+      });
+      const bpinClean = (proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadFileBlob(docxBlob, `ANEXO_TECNICO_APU_${bpinClean}.docx`);
+    } catch (e) {
+      console.error('Error generando documento APU:', e);
+    } finally {
+      setIsDownloadingMaster(false);
+    }
+  };
+
+  // Descarga Especializada: Matriz de Gestión del Riesgo Ley 1523 (.docx)
+  const handleDownloadRiesgosDocx = async () => {
+    try {
+      setIsDownloadingMaster(true);
+      const textContent = buildMatrizRiesgosDossier(proyecto, sectorType, fieldData, munNombre, seniorDirectives);
+      const docxBlob = await generateOfficialDocxBlob({
+        tituloPrincipal: `MATRIZ DE RIESGOS LEY 1523 - ${proyecto.nombre_proyecto.toUpperCase()}`,
+        subtitulo: `ANÁLISIS DE AMENAZAS Y MITIGACIÓN TERRITORIAL - ALCALDÍA DE ${munNombre.toUpperCase()}`,
+        entidadEmisora: `Alcaldía Municipal de ${munNombre}`,
+        tipoDocumento: 'proyecto_mga',
+        referenciaProceso: proyecto.codigo_bpin_propuesto || '2026-CAP',
+        contenidoTexto: textContent,
+        firmantes: [
+          { cargo: 'COORDINADOR CMGRD', entidad: `Alcaldía de ${munNombre}`, nombre: 'Consejo Municipal del Riesgo' },
+          { cargo: 'SECRETARIO DE PLANEACIÓN', entidad: `Alcaldía de ${munNombre}`, nombre: 'Secretaría de Planeación' }
+        ]
+      });
+      const bpinClean = (proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadFileBlob(docxBlob, `MATRIZ_RIESGOS_LEY_1523_${bpinClean}.docx`);
+    } catch (e) {
+      console.error('Error generando documento de Riesgos:', e);
+    } finally {
+      setIsDownloadingMaster(false);
+    }
+  };
+
+  // Descarga Especializada: Plan de Manejo Ambiental y Sostenibilidad (.docx)
+  const handleDownloadPmaDocx = async () => {
+    try {
+      setIsDownloadingMaster(true);
+      const textContent = buildPmaAmbientalDossier(proyecto, sectorType, fieldData, munNombre, seniorDirectives);
+      const docxBlob = await generateOfficialDocxBlob({
+        tituloPrincipal: `PLAN DE MANEJO AMBIENTAL (PMA) - ${proyecto.nombre_proyecto.toUpperCase()}`,
+        subtitulo: `COMPROMISO DE SOSTENIBILIDAD Y MEDIO AMBIENTE - ALCALDÍA DE ${munNombre.toUpperCase()}`,
+        entidadEmisora: `Alcaldía Municipal de ${munNombre}`,
+        tipoDocumento: 'proyecto_mga',
+        referenciaProceso: proyecto.codigo_bpin_propuesto || '2026-CAP',
+        contenidoTexto: textContent,
+        firmantes: [
+          { cargo: 'RESPONSABLE AMBIENTAL (UMATA)', entidad: `Alcaldía de ${munNombre}`, nombre: 'Secretaría de Medio Ambiente' },
+          { cargo: 'LÍDER COMUNITARIO JAC', entidad: `Veredas Focalizadas`, nombre: 'Representante Comunal' }
+        ]
+      });
+      const bpinClean = (proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_');
+      downloadFileBlob(docxBlob, `PLAN_MANEJO_AMBIENTAL_PMA_${bpinClean}.docx`);
+    } catch (e) {
+      console.error('Error generando documento PMA:', e);
     } finally {
       setIsDownloadingMaster(false);
     }
@@ -798,7 +881,7 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
                   </p>
                 </div>
                 <button
-                  onClick={handleDownloadMasterDossierDocx}
+                  onClick={handleDownloadApuDocx}
                   className="w-full py-2.5 rounded-xl bg-cyan-600 hover:bg-cyan-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-md cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
@@ -818,7 +901,7 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
                   </p>
                 </div>
                 <button
-                  onClick={handleDownloadMasterDossierDocx}
+                  onClick={handleDownloadRiesgosDocx}
                   className="w-full py-2.5 rounded-xl bg-amber-600 hover:bg-amber-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-md cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
@@ -838,7 +921,7 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
                   </p>
                 </div>
                 <button
-                  onClick={handleDownloadMasterDossierDocx}
+                  onClick={handleDownloadPmaDocx}
                   className="w-full py-2.5 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-black flex items-center justify-center gap-2 shadow-md cursor-pointer"
                 >
                   <Download className="w-4 h-4" />
