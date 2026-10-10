@@ -482,17 +482,40 @@ export function applySeniorDirectivesToBlueprint(
     }
   }
 
-  // Si incluye instrucciones específicas de trámites
+  // Mapeo semántico y dinámico de subsanaciones a trámites y requerimientos de terreno
   if (directives.tramitesSubsanacion) {
+    const entries = Object.entries(directives.tramitesSubsanacion);
+
     updated.tramitesInstitucionales = updated.tramitesInstitucionales.map(t => {
-      if (t.id === 'tr_01' && directives.tramitesSubsanacion?.car) {
-        return { ...t, descripcion: directives.tramitesSubsanacion.car };
-      }
-      if (t.id === 'tr_02' && directives.tramitesSubsanacion?.predio) {
-        return { ...t, descripcion: directives.tramitesSubsanacion.predio };
+      const tNorm = (t.nombre + ' ' + t.entidadResponsable + ' ' + t.descripcion).toLowerCase();
+      for (const [key, instruction] of entries) {
+        const kNorm = key.toLowerCase();
+        if (
+          tNorm.includes(kNorm) ||
+          (kNorm.includes('car') && tNorm.includes('car')) ||
+          (kNorm.includes('ambient') && (tNorm.includes('ambiental') || tNorm.includes('licencia') || tNorm.includes('reserva'))) ||
+          (kNorm.includes('predio') && (tNorm.includes('predio') || tNorm.includes('titularidad') || tNorm.includes('catastro'))) ||
+          (kNorm.includes('sostenib') && (tNorm.includes('sostenib') || tNorm.includes('mantenimiento') || tNorm.includes('obras'))) ||
+          (kNorm.includes('pot') && (tNorm.includes('pot') || tNorm.includes('suelo') || tNorm.includes('planeaci'))) ||
+          (kNorm.includes('salud') && (tNorm.includes('salud') || tNorm.includes('hospital') || tNorm.includes('minsalud'))) ||
+          (kNorm.includes('tic') && (tNorm.includes('tic') || tNorm.includes('conectividad') || tNorm.includes('mintic'))) ||
+          (kNorm.includes('educ') && (tNorm.includes('educ') || tNorm.includes('colegio') || tNorm.includes('mineducacion')))
+        ) {
+          return { ...t, descripcion: instruction };
+        }
       }
       return t;
     });
+
+    // Si incluye directriz para comisión en terreno o campo
+    if (directives.tramitesSubsanacion.terreno && updated.requerimientosTerreno) {
+      updated.requerimientosTerreno = updated.requerimientosTerreno.map(req => {
+        if (req.tipo === 'dato_tecnico' || req.id === 'req_01' || req.titulo.toLowerCase().includes('tramo')) {
+          return { ...req, descripcion: directives.tramitesSubsanacion!.terreno! };
+        }
+        return req;
+      });
+    }
   }
 
   return updated;

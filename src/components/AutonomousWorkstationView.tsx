@@ -71,6 +71,7 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
   const [isRunningPipeline, setIsRunningPipeline] = useState(false);
   const [pipelineResult, setPipelineResult] = useState<AutonomousExecutionResult | null>(null);
   const [isDownloadingMaster, setIsDownloadingMaster] = useState(false);
+  const [downloadToastMessage, setDownloadToastMessage] = useState<string | null>(null);
   const [promptCopyFeedback, setPromptCopyFeedback] = useState(false);
   const [isSyncingDirectives, setIsSyncingDirectives] = useState(false);
   const [seniorDirectives, setSeniorDirectives] = useState<SeniorCopilotDirectives | null>(null);
@@ -243,10 +244,10 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
           { cargo: 'ALCALDE MUNICIPAL', entidad: `Municipio de ${munNombre}`, nombre: 'Despacho del Alcalde' }
         ]
       });
-      downloadFileBlob(
-        docxBlob, 
-        `EXPEDIENTE_MAESTRO_MGA_${(proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_')}_RADICACION_OFICIAL.docx`
-      );
+      const fName = `EXPEDIENTE_MAESTRO_MGA_${(proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_')}_RADICACION_OFICIAL.docx`;
+      downloadFileBlob(docxBlob, fName);
+      setDownloadToastMessage(`✓ Expediente Maestro descargado: ${fName}`);
+      setTimeout(() => setDownloadToastMessage(null), 4500);
     } catch (e) {
       console.error('Error generando expediente Word:', e);
       alert('Se generó el expediente institucional en texto canónico para descarga.');
@@ -273,7 +274,10 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
         ]
       });
       const bpinClean = (proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_');
-      downloadFileBlob(docxBlob, `ANEXO_TECNICO_APU_${bpinClean}.docx`);
+      const fName = `ANEXO_TECNICO_APU_${bpinClean}.docx`;
+      downloadFileBlob(docxBlob, fName);
+      setDownloadToastMessage(`✓ Anexo APU y Presupuesto descargado: ${fName}`);
+      setTimeout(() => setDownloadToastMessage(null), 4500);
     } catch (e) {
       console.error('Error generando documento APU:', e);
     } finally {
@@ -299,7 +303,10 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
         ]
       });
       const bpinClean = (proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_');
-      downloadFileBlob(docxBlob, `MATRIZ_RIESGOS_LEY_1523_${bpinClean}.docx`);
+      const fName = `MATRIZ_RIESGOS_LEY_1523_${bpinClean}.docx`;
+      downloadFileBlob(docxBlob, fName);
+      setDownloadToastMessage(`✓ Matriz de Riesgos Ley 1523 descargada: ${fName}`);
+      setTimeout(() => setDownloadToastMessage(null), 4500);
     } catch (e) {
       console.error('Error generando documento de Riesgos:', e);
     } finally {
@@ -325,7 +332,10 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
         ]
       });
       const bpinClean = (proyecto.codigo_bpin_propuesto || '2026-CAP').replace(/[^a-zA-Z0-9]/g, '_');
-      downloadFileBlob(docxBlob, `PLAN_MANEJO_AMBIENTAL_PMA_${bpinClean}.docx`);
+      const fName = `PLAN_MANEJO_AMBIENTAL_PMA_${bpinClean}.docx`;
+      downloadFileBlob(docxBlob, fName);
+      setDownloadToastMessage(`✓ Plan de Manejo Ambiental (PMA) descargado: ${fName}`);
+      setTimeout(() => setDownloadToastMessage(null), 4500);
     } catch (e) {
       console.error('Error generando documento PMA:', e);
     } finally {
@@ -335,6 +345,14 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
 
   return (
     <div id="mga-workstation-panel" className="space-y-6 pb-20 animate-fadeIn text-slate-100">
+      {/* TOAST DE CONFIRMACIÓN DE DESCARGA DIFERENCIADA */}
+      {downloadToastMessage && (
+        <div className="fixed bottom-6 right-6 z-50 bg-emerald-950 border border-emerald-500/80 text-emerald-200 px-4 py-3 rounded-2xl shadow-2xl flex items-center gap-3 animate-bounce">
+          <CheckCircle2 className="w-5 h-5 text-emerald-400" />
+          <span className="text-xs font-bold font-mono">{downloadToastMessage}</span>
+        </div>
+      )}
+
       
       {/* BARRA SUPERIOR: BOTÓN VOLVER & ACCIONES PRINCIPALES */}
       <div className="flex flex-wrap items-center justify-between gap-4 bg-slate-900/90 border border-slate-800 p-4 rounded-2xl shadow-xl backdrop-blur-md">
@@ -480,20 +498,41 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
               {seniorDirectives.dictamenVinculante}
             </p>
 
-            {seniorDirectives.tramitesSubsanacion && (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1 text-[11px]">
-                {seniorDirectives.tramitesSubsanacion.car && (
-                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-indigo-900/60">
-                    <span className="text-cyan-400 font-bold block mb-0.5">Orden CAR Cundinamarca:</span>
-                    <span className="text-slate-300">{seniorDirectives.tramitesSubsanacion.car}</span>
-                  </div>
-                )}
-                {seniorDirectives.tramitesSubsanacion.predio && (
-                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-indigo-900/60">
-                    <span className="text-purple-400 font-bold block mb-0.5">Orden Predial / Notaría:</span>
-                    <span className="text-slate-300">{seniorDirectives.tramitesSubsanacion.predio}</span>
-                  </div>
-                )}
+            {seniorDirectives.tramitesSubsanacion && Object.keys(seniorDirectives.tramitesSubsanacion).length > 0 && (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-2.5 pt-1 text-[11px]">
+                {Object.entries(seniorDirectives.tramitesSubsanacion).map(([k, instruccion]) => {
+                  const kl = k.toLowerCase();
+                  let label = `Orden Específica (${k.toUpperCase()})`;
+                  let colorClass = 'text-cyan-400 border-cyan-800/60';
+                  
+                  if (kl.includes('car') || kl.includes('ambient')) {
+                    label = 'Orden Ambiental (CAR Cundinamarca)';
+                    colorClass = 'text-cyan-400 border-cyan-800/60';
+                  } else if (kl.includes('predio') || kl.includes('titularidad')) {
+                    label = 'Orden Predial / Notaría / IGAC';
+                    colorClass = 'text-purple-400 border-purple-800/60';
+                  } else if (kl.includes('sostenib') || kl.includes('mantenimiento')) {
+                    label = 'Orden Sostenibilidad & Mantenimiento';
+                    colorClass = 'text-amber-400 border-amber-800/60';
+                  } else if (kl.includes('terreno') || kl.includes('campo') || kl.includes('pr')) {
+                    label = 'Orden Comisión en Terreno';
+                    colorClass = 'text-emerald-400 border-emerald-800/60';
+                  } else if (kl.includes('jac') || kl.includes('social')) {
+                    label = 'Orden Concertación Comunitaria';
+                    colorClass = 'text-blue-400 border-blue-800/60';
+                  }
+
+                  return (
+                    <div key={k} className="bg-slate-950/90 p-2.5 rounded-xl border border-indigo-900/60 flex flex-col justify-between">
+                      <div>
+                        <span className={`font-bold block mb-1 text-[10px] uppercase tracking-wide ${colorClass.split(' ')[0]}`}>
+                          ⚡ {label}:
+                        </span>
+                        <span className="text-slate-300 leading-relaxed">{instruccion}</span>
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
