@@ -1,3 +1,5 @@
+import { detectSectorDnpTypeRigorous, SectorDnpType } from './agentKnowledgeBaseService';
+export type { SectorDnpType };
 ﻿/**
  * sectorialRequirementsService.ts
  * Catálogo canónico oficial de requisitos de viabilidad sectorial MGA / DNP para entidades territoriales colombianas.
@@ -7,39 +9,10 @@
 
 import { RequisitoViabilidad } from '../types';
 
-export type SectorDnpType = 'tic' | 'transporte' | 'agua' | 'educacion' | 'salud' | 'agropecuario';
 
-export function detectSectorDnpType(sectorTexto: string, nombreProyecto: string = ''): SectorDnpType {
-  const combined = `${sectorTexto} ${nombreProyecto}`.toLowerCase();
-  
-  if (combined.includes('tic') || combined.includes('tecnolog') || combined.includes('conectividad') || 
-      combined.includes('internet') || combined.includes('starlink') || combined.includes('digital') || 
-      combined.includes('telecomunicac')) {
-    return 'tic';
-  }
 
-  if (combined.includes('agua') || combined.includes('acueducto') || combined.includes('alcantarillado') || 
-      combined.includes('ptap') || combined.includes('saneamiento') || combined.includes('tratamiento de agua')) {
-    return 'agua';
-  }
-
-  if (combined.includes('salud') || combined.includes('puesto de salud') || combined.includes('hospital') || 
-      combined.includes('clinica') || combined.includes('ambulancia')) {
-    return 'salud';
-  }
-
-  if (combined.includes('educaci') || combined.includes('colegio') || combined.includes('escuela') || 
-      combined.includes('aulas') && !combined.includes('satelital')) {
-    return 'educacion';
-  }
-
-  if (combined.includes('agro') || combined.includes('pecuario') || combined.includes('cultivo') || 
-      combined.includes('cafe') || combined.includes('cacao') || combined.includes('ganader')) {
-    return 'agropecuario';
-  }
-
-  // Por defecto si no coincide es transporte/infraestructura vial
-  return 'transporte';
+export function detectSectorDnpType(sectorTexto: string, nombreProyecto: string = '', codigoBpin: string = ''): SectorDnpType {
+  return detectSectorDnpTypeRigorous(codigoBpin, sectorTexto, nombreProyecto);
 }
 
 /**
