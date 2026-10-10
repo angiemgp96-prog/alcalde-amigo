@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Zap, ShieldCheck, CheckCircle2, Clock, AlertTriangle, Download, 
   ArrowLeft, RefreshCw, FileText, ChevronDown, ChevronUp, Bot, 
@@ -30,6 +30,43 @@ export const AutonomousSecopWorkstationView: React.FC<AutonomousSecopWorkstation
   onVolver,
   onNavigateToBidRoom
 }) => {
+  useEffect(() => {
+    const el = document.getElementById('secop-workstation-panel');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [opportunity.id]);
+
+  const [promptCopied, setPromptCopied] = useState(false);
+  const refCode = `REF-SECOP-${(opportunity.process_number || '2026').replace(/[^a-zA-Z0-9]/g, '-')}`;
+
+  const promptCopilotoSenior = `REPORTE TÁCTICO DE LICITACIÓN SECOP II - DUAL AI COPILOTO SENIOR
+========================================================================
+CÓDIGO ÚNICO: ${refCode}
+PROCESO SECOP II: ${opportunity.process_number}
+ENTIDAD CONTRATANTE: ${opportunity.entity_name} (${opportunity.department} - ${opportunity.city})
+OBJETO CONTRACTUAL: "${opportunity.description}"
+PRESUPUESTO OFICIAL: ${formatCOP(opportunity.estimated_value)}
+MODALIDAD: ${opportunity.modality}
+PROPONENTE ACTIVO: ${proponente.nombre} (NIT: ${proponente.nit})
+NATURALEZA: ${proponente.nature || proponente.tipo}
+
+FACTORES DE CALIFICACIÓN Y PUNTOS EXTRA ACTIVADOS:
+1. Ley 816 de 2003: 100% Componente Nacional (Máximo puntaje en industria colombiana).
+2. Decreto 1860 de 2021: Factor de ponderación para Mipymes / ESAL territorial.
+3. Decreto 392 de 2018: Inclusión laboral de personas con discapacidad (+1% puntaje).
+4. A.I.U. Calibrado al Centavo: Cero rechazo por inconsistencia aritmética.
+
+ORDEN PARA EL COPILOTO SENIOR:
+Auditar los requisitos habilitantes y pliegos de condiciones de este proceso. Dictar la estrategia jurídica y económica exacta para asegurar la adjudicación definitiva en la audiencia pública.`;
+
+  const handleCopyPromptCopiloto = () => {
+    if (navigator.clipboard) {
+      navigator.clipboard.writeText(promptCopilotoSenior);
+      setPromptCopied(true);
+      setTimeout(() => setPromptCopied(false), 3000);
+    }
+  };
   const [isRunningPipeline, setIsRunningPipeline] = useState(false);
   const [pipelineResult, setPipelineResult] = useState<AutonomousSecopExecutionResult | null>(null);
   const [faseExpandida, setFaseExpandida] = useState<number | null>(1);
@@ -210,7 +247,7 @@ export const AutonomousSecopWorkstationView: React.FC<AutonomousSecopWorkstation
   const isCompleted = pipelineResult?.veredicto === 'BLINDADO_100_PORCIENTO';
 
   return (
-    <div className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans pb-16">
+    <div id="secop-workstation-panel" className="min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans pb-16">
       {/* ===================================================================
           TOPBAR EJECUTIVA DE LA MESA DE TRABAJO SECOP II
       =================================================================== */}
@@ -263,6 +300,15 @@ export const AutonomousSecopWorkstationView: React.FC<AutonomousSecopWorkstation
           </div>
 
           {/* BOTÓN MAGNO */}
+          <button
+            onClick={handleCopyPromptCopiloto}
+            className="px-4 py-2.5 rounded-xl text-xs font-black flex items-center gap-2 bg-indigo-600 hover:bg-indigo-500 text-white shadow-lg cursor-pointer transition-all"
+            title="Copiar Ficha Táctica para el Copiloto Senior"
+          >
+            {promptCopied ? <Check className="w-4 h-4" /> : <Copy className="w-4 h-4" />}
+            <span>{promptCopied ? '¡Ficha Copiada!' : 'Copiar Ficha Copiloto Senior'}</span>
+          </button>
+
           <button
             onClick={handleRunFullPipeline}
             disabled={isRunningPipeline}
