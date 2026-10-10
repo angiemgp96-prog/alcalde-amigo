@@ -9,12 +9,15 @@
 import { ProyectoMgaEstructurado } from '../types';
 import { SectorDnpType, SECTOR_KNOWLEDGE_BASE } from './agentKnowledgeBaseService';
 import { ProjectFieldData } from './fieldEvidenceService';
+import { SeniorCopilotDirectives, ProjectMasterBlueprint } from './projectMasterBlueprintService';
 
 export function buildFullMgaInstitutionalDossier(
   proyecto: ProyectoMgaEstructurado,
   sectorType: SectorDnpType,
   fieldData: ProjectFieldData,
-  munNombre: string = 'Caparrapí'
+  munNombre: string = 'Caparrapí',
+  seniorDirectives?: SeniorCopilotDirectives | null,
+  blueprint?: ProjectMasterBlueprint | null
 ): string {
   const profile = SECTOR_KNOWLEDGE_BASE[sectorType];
   const munUpper = munNombre.toUpperCase();
@@ -136,23 +139,35 @@ export function buildFullMgaInstitutionalDossier(
   lineas.push(`3.1 ESTRUCTURA DE COSTOS Y ANÁLISIS DE PRECIOS UNITARIOS (APU):`);
   lineas.push(`A continuación se desglosan los ítems representativos del presupuesto oficial de ${valorCOP}:\n`);
 
-  lineas.push(`ÍTEM | DESCRIPCIÓN TÉCNICA DEL RUBRO | UNIDAD | CANTIDAD APROX. | COSTO UNIT. EST. | TOTAL ESTIMADO COP`);
-  lineas.push(`----------------------------------------------------------------------------------------------------`);
+  if (seniorDirectives && seniorDirectives.apuMaestro && seniorDirectives.apuMaestro.length > 0) {
+    lineas.push(`ÍTEM | CAPÍTULO / COMPONENTE TÉCNICO CALIBRADO POR COPILOTO SENIOR | TOTAL ESTIMADO COP`);
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
+    let subtotalDirectos = 0;
+    seniorDirectives.apuMaestro.forEach((cap, idx) => {
+      lineas.push(`${idx + 1} | ${cap.cap} | ${cap.valor.toLocaleString('es-CO')} COP`);
+      subtotalDirectos += cap.valor;
+    });
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
+    lineas.push(`PRESUPUESTO TOTAL CALIBRADO VINCULANTE: ${subtotalDirectos.toLocaleString('es-CO')} COP\n`);
+  } else {
+    lineas.push(`ÍTEM | DESCRIPCIÓN TÉCNICA DEL RUBRO | UNIDAD | CANTIDAD APROX. | COSTO UNIT. EST. | TOTAL ESTIMADO COP`);
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
 
-  const numItems = profile.catalogoApuTipicos.length;
-  profile.catalogoApuTipicos.forEach((apu, idx) => {
-    // Estimación matemática proporcional del presupuesto
-    const pesoPct = (1 / numItems) * 0.85; // 85% costo directo distribuido
-    const valorItemTotal = Math.round(valorTotal * pesoPct);
-    const cantEst = (idx + 1) * 150;
-    const unitEst = Math.round(valorItemTotal / cantEst);
-    lineas.push(`${apu.item} | ${apu.descripcion.substring(0, 48)}... | ${apu.unidad} | ${cantEst.toLocaleString('es-CO')} | $${unitEst.toLocaleString('es-CO')} | $${valorItemTotal.toLocaleString('es-CO')}`);
-  });
+    const numItems = profile.catalogoApuTipicos.length;
+    profile.catalogoApuTipicos.forEach((apu, idx) => {
+      // Estimación matemática proporcional del presupuesto
+      const pesoPct = (1 / numItems) * 0.85; // 85% costo directo distribuido
+      const valorItemTotal = Math.round(valorTotal * pesoPct);
+      const cantEst = (idx + 1) * 150;
+      const unitEst = Math.round(valorItemTotal / cantEst);
+      lineas.push(`${apu.item} | ${apu.descripcion.substring(0, 48)}... | ${apu.unidad} | ${cantEst.toLocaleString('es-CO')} | ${unitEst.toLocaleString('es-CO')} | ${valorItemTotal.toLocaleString('es-CO')}`);
+    });
 
-  lineas.push(`----------------------------------------------------------------------------------------------------`);
-  lineas.push(`VALOR TOTAL DE COSTOS DIRECTOS ESTIMADOS: $${Math.round(valorTotal * 0.88).toLocaleString('es-CO')} COP`);
-  lineas.push(`ADMINISTRACIÓN, IMPREVISTOS Y UTILIDAD (A.I.U. / GASTOS GENERALES 12%): $${Math.round(valorTotal * 0.12).toLocaleString('es-CO')} COP`);
-  lineas.push(`PRESUPUESTO TOTAL GENERAL DEL PROYECTO: ${valorCOP}\n`);
+    lineas.push(`----------------------------------------------------------------------------------------------------`);
+    lineas.push(`VALOR TOTAL DE COSTOS DIRECTOS ESTIMADOS: ${Math.round(valorTotal * 0.88).toLocaleString('es-CO')} COP`);
+    lineas.push(`ADMINISTRACIÓN, IMPREVISTOS Y UTILIDAD (A.I.U. / GASTOS GENERALES 12%): ${Math.round(valorTotal * 0.12).toLocaleString('es-CO')} COP`);
+    lineas.push(`PRESUPUESTO TOTAL GENERAL DEL PROYECTO: ${valorCOP}\n`);
+  }
 
   lineas.push(`3.2 CRONOGRAMA DE EJECUCIÓN FINANCIERA (FLUJO DE CAJA):`);
   lineas.push(`- Mes 1 a Mes 2 (Alistamiento e inicio): 25% ($${Math.round(valorTotal * 0.25).toLocaleString('es-CO')} COP)`);

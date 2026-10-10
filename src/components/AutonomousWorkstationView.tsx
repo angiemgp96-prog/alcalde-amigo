@@ -78,9 +78,9 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
     generateMasterBlueprint(proyecto, getProjectFieldData(proyecto.id))
   );
 
-  // Consulta en Supabase si el Copiloto Senior emitió directrices
-  const checkSeniorDirectives = async (refCode: string) => {
-    setIsSyncingDirectives(true);
+  // Consulta en Supabase si el Copiloto Senior emitió directrices (Sincronización en Vivo)
+  const checkSeniorDirectives = async (refCode: string, silent: boolean = false) => {
+    if (!silent) setIsSyncingDirectives(true);
     try {
       const dirs = await fetchSeniorCopilotDirectivesFromSupabase(refCode);
       if (dirs) {
@@ -92,14 +92,21 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
         });
       }
     } finally {
-      setIsSyncingDirectives(false);
+      if (!silent) setIsSyncingDirectives(false);
     }
   };
 
+  // Detección Instantánea: Consulta inicial + Heartbeat reactivo en tiempo real cada 5 segundos
   useEffect(() => {
-    if (blueprint.codigoReferenciaUnico) {
-      checkSeniorDirectives(blueprint.codigoReferenciaUnico);
-    }
+    if (!blueprint.codigoReferenciaUnico) return;
+
+    checkSeniorDirectives(blueprint.codigoReferenciaUnico, false);
+
+    const heartbeatTimer = setInterval(() => {
+      checkSeniorDirectives(blueprint.codigoReferenciaUnico, true);
+    }, 5000);
+
+    return () => clearInterval(heartbeatTimer);
   }, [blueprint.codigoReferenciaUnico]);
 
   // Estados de Edición de Terreno
@@ -218,7 +225,7 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
   const handleDownloadMasterDossierDocx = async () => {
     try {
       setIsDownloadingMaster(true);
-      const textContent = buildFullMgaInstitutionalDossier(proyecto, sectorType, fieldData, munNombre);
+      const textContent = buildFullMgaInstitutionalDossier(proyecto, sectorType, fieldData, munNombre, seniorDirectives, blueprint);
       const docxBlob = await generateOfficialDocxBlob({
         tituloPrincipal: `EXPEDIENTE MAESTRO MGA - ${proyecto.nombre_proyecto.toUpperCase()}`,
         subtitulo: `RADICACIÓN OFICIAL BPIN / SUIFP - ALCALDÍA DE ${munNombre.toUpperCase()}`,
