@@ -413,3 +413,87 @@ export function getMasterBlueprint(proyectoId: string): ProjectMasterBlueprint |
   }
   return null;
 }
+
+
+export interface SeniorCopilotDirectives {
+  codigoRef: string;
+  sectorRector: string;
+  metaDnp: string;
+  dictamenVinculante: string;
+  apuMaestro?: { cap: string; valor: number }[];
+  tramitesSubsanacion?: Record<string, string>;
+  fechaDictamen: string;
+}
+
+/**
+ * Consulta en Supabase si el Copiloto Senior ha emitido directrices vinculantes para este proyecto
+ */
+export async function fetchSeniorCopilotDirectivesFromSupabase(
+  codigoRef: string
+): Promise<SeniorCopilotDirectives | null> {
+  const client = getSupabaseClient();
+  if (!client) return null;
+
+  try {
+    const { data, error } = await client
+      .from('propuestas_estructuradas_ia')
+      .select('*')
+      .ilike('intencion_sintetizada', `%${codigoRef}%`)
+      .order('fecha_analisis', { ascending: false })
+      .limit(1);
+
+    if (error || !data || data.length === 0) return null;
+
+    const row = data[0];
+    if (row.propuesta_redactada_ramitos) {
+      try {
+        const parsed = JSON.parse(row.propuesta_redactada_ramitos);
+        if (parsed.dictamenVinculante) {
+          return parsed as SeniorCopilotDirectives;
+        }
+      } catch (e) {
+        console.warn('Error parsing dictamen JSON from Supabase:', e);
+      }
+    }
+  } catch (err) {
+    console.warn('Error fetching Senior Directives from Supabase:', err);
+  }
+
+  return null;
+}
+
+/**
+ * Aplica las directrices del Copiloto Senior al Blueprint Maestro del proyecto.
+ * Ajusta los requerimientos operativos, costos APU e instrucciones específicas.
+ */
+export function applySeniorDirectivesToBlueprint(
+  blueprint: ProjectMasterBlueprint,
+  directives: SeniorCopilotDirectives
+): ProjectMasterBlueprint {
+  const updated = { ...blueprint };
+
+  updated.dictamenCopilotoSenior = directives.dictamenVinculante;
+
+  // Si incluye desglose de APU maestro calibrado por el Copiloto
+  if (directives.apuMaestro && directives.apuMaestro.length > 0) {
+    const totalApu = directives.apuMaestro.reduce((acc, item) => acc + item.valor, 0);
+    if (totalApu > 0) {
+      updated.presupuestoEstimadoCop = totalApu;
+    }
+  }
+
+  // Si incluye instrucciones específicas de trámites
+  if (directives.tramitesSubsanacion) {
+    updated.tramitesInstitucionales = updated.tramitesInstitucionales.map(t => {
+      if (t.id === 'tr_01' && directives.tramitesSubsanacion?.car) {
+        return { ...t, descripcion: directives.tramitesSubsanacion.car };
+      }
+      if (t.id === 'tr_02' && directives.tramitesSubsanacion?.predio) {
+        return { ...t, descripcion: directives.tramitesSubsanacion.predio };
+      }
+      return t;
+    });
+  }
+
+  return updated;
+}

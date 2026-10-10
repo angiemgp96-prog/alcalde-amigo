@@ -24,7 +24,10 @@ import {
   saveMasterBlueprint, 
   ProjectMasterBlueprint,
   TramiteInstitucionalItem,
-  RequerimientoTerrenoItem
+  RequerimientoTerrenoItem,
+  fetchSeniorCopilotDirectivesFromSupabase,
+  applySeniorDirectivesToBlueprint,
+  SeniorCopilotDirectives
 } from '../services/projectMasterBlueprintService';
 import { buildFullMgaInstitutionalDossier } from '../services/mgaDossierBuilderService';
 import { detectSectorDnpTypeRigorous, SECTOR_KNOWLEDGE_BASE } from '../services/agentKnowledgeBaseService';
@@ -64,12 +67,40 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
   const [pipelineResult, setPipelineResult] = useState<AutonomousExecutionResult | null>(null);
   const [isDownloadingMaster, setIsDownloadingMaster] = useState(false);
   const [promptCopyFeedback, setPromptCopyFeedback] = useState(false);
+  const [isSyncingDirectives, setIsSyncingDirectives] = useState(false);
+  const [seniorDirectives, setSeniorDirectives] = useState<SeniorCopilotDirectives | null>(null);
+
+
 
   // Estados de Terreno y Master Blueprint
   const [fieldData, setFieldData] = useState<ProjectFieldData>(() => getProjectFieldData(proyecto.id));
   const [blueprint, setBlueprint] = useState<ProjectMasterBlueprint>(() => 
     generateMasterBlueprint(proyecto, getProjectFieldData(proyecto.id))
   );
+
+  // Consulta en Supabase si el Copiloto Senior emitió directrices
+  const checkSeniorDirectives = async (refCode: string) => {
+    setIsSyncingDirectives(true);
+    try {
+      const dirs = await fetchSeniorCopilotDirectivesFromSupabase(refCode);
+      if (dirs) {
+        setSeniorDirectives(dirs);
+        setBlueprint(prev => {
+          const applied = applySeniorDirectivesToBlueprint(prev, dirs);
+          saveMasterBlueprint(applied);
+          return applied;
+        });
+      }
+    } finally {
+      setIsSyncingDirectives(false);
+    }
+  };
+
+  useEffect(() => {
+    if (blueprint.codigoReferenciaUnico) {
+      checkSeniorDirectives(blueprint.codigoReferenciaUnico);
+    }
+  }, [blueprint.codigoReferenciaUnico]);
 
   // Estados de Edición de Terreno
   const [tramoInput, setTramoInput] = useState(fieldData.tramoOInstalacion || '');
@@ -328,6 +359,56 @@ export const AutonomousWorkstationView: React.FC<AutonomousWorkstationViewProps>
         </div>
 
       </div>
+
+      {/* BANNER DE DIRECTRICES EN VIVO DEL COPILOTO SENIOR */}
+      {seniorDirectives && (
+        <div className="bg-gradient-to-r from-indigo-950 via-purple-950 to-slate-900 border border-indigo-500/70 p-5 rounded-3xl shadow-2xl space-y-3 animate-fadeIn">
+          <div className="flex flex-wrap items-center justify-between gap-2 border-b border-indigo-800/60 pb-2.5">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping" />
+              <span className="text-xs font-black uppercase tracking-wider text-cyan-300">
+                ⚡ DIRECTRICES VINCULANTES DEL COPILOTO SENIOR ACTIVAS (Sincronizado vía Supabase)
+              </span>
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-mono text-slate-400">
+                Ref: {seniorDirectives.codigoRef}
+              </span>
+              <button
+                onClick={() => checkSeniorDirectives(blueprint.codigoReferenciaUnico)}
+                disabled={isSyncingDirectives}
+                className="text-[10px] font-bold text-cyan-400 hover:text-cyan-300 flex items-center gap-1 cursor-pointer bg-slate-900 px-2 py-0.5 rounded border border-slate-700"
+              >
+                <RefreshCw className={`w-3 h-3 ${isSyncingDirectives ? 'animate-spin' : ''}`} />
+                <span>Actualizar</span>
+              </button>
+            </div>
+          </div>
+
+          <div className="space-y-2 text-xs">
+            <p className="font-bold text-white leading-relaxed">
+              {seniorDirectives.dictamenVinculante}
+            </p>
+
+            {seniorDirectives.tramitesSubsanacion && (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-2.5 pt-1 text-[11px]">
+                {seniorDirectives.tramitesSubsanacion.car && (
+                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-indigo-900/60">
+                    <span className="text-cyan-400 font-bold block mb-0.5">Orden CAR Cundinamarca:</span>
+                    <span className="text-slate-300">{seniorDirectives.tramitesSubsanacion.car}</span>
+                  </div>
+                )}
+                {seniorDirectives.tramitesSubsanacion.predio && (
+                  <div className="bg-slate-950/80 p-2.5 rounded-xl border border-indigo-900/60">
+                    <span className="text-purple-400 font-bold block mb-0.5">Orden Predial / Notaría:</span>
+                    <span className="text-slate-300">{seniorDirectives.tramitesSubsanacion.predio}</span>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* ========================================================================= */}
       {/* PESTAÑAS DE NAVEGACIÓN EJECUTIVAS                                         */}
